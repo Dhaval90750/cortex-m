@@ -1,0 +1,22 @@
+{
+  "seed": 271828,
+  "generator": "data/generate.py",
+  "version": 1,
+  "template_pools_disjoint": true,
+  "counts": {
+    "dev": {
+      "recall": 20,
+      "correction": 20,
+      "conflict": 20,
+      "unknown": 20
+    },
+    "holdout": {
+      "recall": 60,
+      "correction": 60,
+      "conflict": 60,
+      "unknown": 60
+    }
+  },
+  "dev_sha256": "ce952f8c1ceaa2a959ed1371712ef5c4b6e00096de8f25c7df780c7771be7a26",
+  "holdout_sha256": "e9acb1d1cee4c16b90bdc53cd489591082cd9f281146ffbf9472673cce46fdf9"
+}

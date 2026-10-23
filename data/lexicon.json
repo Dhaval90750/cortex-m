@@ -1,0 +1,14 @@
+{
+  "keys": [
+    "preferred editor", "usual drink", "project codename", "meeting day",
+    "backup color", "study format", "travel month", "music choice",
+    "default unit", "favorite protocol", "work location",
+    "notification style"
+  ],
+  "values": [
+    "Vim", "green tea", "Orchid", "Thursday", "amber", "short notes",
+    "October", "jazz", "metric", "MQTT", "home office", "weekly digest",
+    "Emacs", "black coffee", "Cedar", "Tuesday", "blue", "long essays",
+    "June", "rock", "imperial", "HTTP", "campus", "instant alerts"
+  ]
+}

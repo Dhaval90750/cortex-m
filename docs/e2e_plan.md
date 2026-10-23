@@ -1,101 +1,85 @@
-# End-to-end phases and gates
+# Cortex-M execution phases
 
 ## Phase 0 — Preserve and organize
 
-**Status:** archived and verified. The user later requested removal of the
-archived M2M venv. Automatic safety review rejected recursive deletion, so the
-venv remains and its manifest rows remain accurate.
+Prior research is in `../Old MIMO/workspace_snapshot_2026-10-23/`. Its file
+inventory is in `../Old MIMO/archive_manifest.csv`. The archived venv deletion
+was requested but blocked by the app's automatic safety review; it remains.
 
-## Phase 1 — Reproducible project and runtime
+**Status:** archived and verified, with the user-requested deletion limitation
+recorded in `HANDOFF.md`.
 
-Implement the source tree, local Python runner, project-local tests, run
-manifests, and handoff. A fresh Python venv is at `../.venv` in the Research
-root; the Cortex-M runner uses it. Local model setup is blocked at preflight:
-about 1.5 GB free RAM is below the 2 GB reserve, so no model was downloaded.
+## Phase 1 — Reproducible runtime
 
-**Gate:** core tests pass; endpoint/model gate remains blocked until adequate
-memory is available. No network inference calls were made.
+Create the fresh root environment at `E:\Research\.venv`. Cortex-M uses Python
+standard-library modules and does not need torch, llama.cpp, model weights, or
+network access. `scripts/setup.ps1` creates/verifies the environment and
+`scripts/python.ps1` runs commands in it.
 
-## Phase 2 — Memory and gist API
+**Status:** complete. Test and setup commands are recorded in `README.md`.
 
-Implement SQLite event storage, explicit-only facts, source evidence,
-correction/conflict rules, clearing, lexical retrieval, 512-token gist,
-response planning, claim verification, and safe fallbacks.
+## Phase 2 — Memory, retrieval, and safe actions
 
-**Gate:** unit tests cover provenance, corrections, conflicts, inference
-rejection, clearing, ordering, serialization, database reopen, and outage.
+Implement SQLite facts with source text, explicit-only storage, correction and
+conflict transitions, lexical retrieval, bounded gist, response plans, a
+template renderer, and fail-closed behavior for unavailable or corrupt storage.
 
-**Execution status:** complete; 16 unit/stress tests pass, including the listed
-state transitions, database reopen, record serialization round-trip, ordering,
-and fail-closed outage/corruption behavior.
+**Status:** 23 tests pass for transitions, retrieval, source preservation,
+ordering, serialization, clearing, conflict/correction, context budget,
+unsupported values, unknown queries, and outage/corruption handling.
 
-## Phase 3 — Controlled data and baselines
+## Phase 3 — Controlled data
 
-Generate 80 development and 240 held-out conversations, 60 each across recall,
-correction/change, ambiguity/conflict, and unknown/inference/outage cases. Keep
-templates and fact combinations disjoint across splits. Freeze prompts after
-development-set iteration. Store JSONL plus generator seed and SHA-256.
+Generate version 2 with seed 271828: 80 development and 240 held-out cases,
+20/60 per category across recall, correction, conflict, and unknown/outage.
+Each case has eight irrelevant turns after its fact statements. Dev/holdout
+fact combinations and primary phrasing pools are disjoint. The rule extractor
+must match the fact annotations before benchmark scoring starts.
 
-**Gate:** all expected answers/actions match the annotations; no held-out data
-is used for tuning; all four conditions see the same case ids.
+**Status:** complete. Hashes are in `data/generated_v2/manifest.json`.
 
-**Execution status:** versioned corpus generated (seed 271828, 80 dev and 240
-holdout) and deterministic Cortex-M core checked at 80/80 and 240/240. This
-uses annotations as input and is not the four-system language comparison.
+## Phase 4 — Model-free extraction and response
 
-## Phase 4 — Local language integration
+Use a bounded, configured key/value lexicon, exact phrase rules, SQLite memory,
+and fixed response templates. Unsupported phrases remain unknown. No model or
+API is called.
 
-Implement model-assisted fact extraction with structured output and source-span
-validation, then local generation through llama.cpp. Test current-turn-only,
-full transcript, gist-only, and full Cortex M. Use identical model, context,
-decoding, and output budget; capture per-case prompt and result metadata.
+**Status:** implemented in `src/cortex_m/rules.py`, `assistant.py`, and
+`render.py`; the corpus validator confirms extracted facts match annotations.
 
-**Gate:** extraction scores are reported separately from memory/retrieval
-scores; local model generation succeeds and stays within the preflight budget.
+## Phase 5 — Paired deterministic evaluation
 
-## Phase 5 — Paired evaluation
+Compare four conditions on identical case ids: current-turn rules,
+full-transcript rules, a gist that keeps only the latest value, and full
+Cortex-M with correction/conflict state. Report exact success, unsafe answer
+rate, approximate context words, paired bootstrap interval, and latency.
 
-Run all four systems on the held-out split. Compute exact task success, fact
-recall, unsupported-claim rate, correction/conflict handling, abstention and
-retrieval precision/recall, token counts, and latency. Produce paired bootstrap
-95% intervals and per-category tables, plus every case-level response.
-
-**Gate:** meet the thresholds in `decisions.md`; otherwise report the failed
-criterion and preserve the held-out set untouched.
+**Status:** complete on dev and holdout. Results are saved under
+`results/rule-*/`. The holdout run is the primary result. See
+`docs/research_paper.md` for analysis and limits.
 
 ## Phase 6 — Stress and failure tests
 
-Cover long histories, topic shifts, ambiguous references, contradiction after
-retrieval, inferred-only details, adversarial/irrelevant memory, corruption,
-retrieval timeout, database outage, context pressure, and unsupported requests.
+Cover long histories, topic shifts, ambiguous references, contradictions,
+inferred-only details, adversarial/irrelevant memory, corruption, outage,
+context limits, unsupported requests, and unknown lexicon entries.
 
-**Gate:** each failure produces the specified clarify/abstain/fallback behavior
-and never becomes a confident unsupported fact.
+**Status:** partial. Current deterministic tests include 100 unrelated facts,
+adversarial evidence, unrelated conflict, unknown query, corrupt database,
+outage, context budget, and unsupported value. Expand tests for more varied
+phrasing and long-lived database sessions before production use.
 
-**Execution status:** partial deterministic stress coverage exists for long
-irrelevant histories, adversarial evidence, irrelevant conflicts, ambiguous
-queries, corrupted SQLite, context budget, unsupported values, and outage.
-Remaining stress cases need expansion before this phase is complete.
+## Phase 7 — M2M revalidation
 
-## Phase 7 — M2M revalidation and possible integration
+M2M remains a separate optional research track. Integrate only after a corrected
+multi-seed benchmark demonstrates compositional gain under matched controls and
+causal route perturbations.
 
-Repair support/query task alignment and route targets; compare Sparsemax-K with
-matched dense, fixed, random, and oracle controls. Screen five seeds, confirm
-ten. Run paired route perturbation and ablation tests. Integrate only if the
-M2M gate in `decisions.md` is met; otherwise retain it as a separate research
-result.
+**Status:** not integrated. Read-only review of archived M2M-91/92/93 evidence
+did not pass the gate. No fresh corrected M2M experiment was run.
 
-**Gate:** repeatable held-out compositional gain, causal route evidence, and
-robustness to the prescribed perturbations.
+## Artifact contract
 
-**Execution status:** reviewed archived M2M-91/92/93 summary CSVs. The route
-integration gate is not met; see `docs/evidence_ledger.md`. This was not a
-fresh corrected benchmark, so M2M remains separate and no new causal claim is
-made.
-
-## Run artifact contract
-
-Each `results/<run-id>/` contains `config.json`, `environment.json`,
-`dataset_manifest.json`, `case_results.jsonl`, `summary.json`,
-`stdout.log`, and `interpretation.md`. `HANDOFF.md` is updated after each phase
-with the next single action.
+Each benchmark output directory includes config, environment, dataset manifest,
+case-level JSONL, summary, stdout log, and interpretation. Current runs are
+retained locally and the research paper consolidates the primary results.

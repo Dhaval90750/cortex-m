@@ -1,0 +1,12 @@
+{
+  "split": "holdout",
+  "systems": [
+    "current_turn",
+    "full_transcript",
+    "gist_only",
+    "cortex_m"
+  ],
+  "model": null,
+  "api": null,
+  "case_count": 240
+}

@@ -7,7 +7,10 @@ from dataclasses import asdict
 from pathlib import Path
 
 from cortex_m.extractor import AnnotatedFactExtractor
+from cortex_m.assistant import RuleBasedCortex
 from cortex_m.memory import CortexMemory
+from cortex_m.render import render_response
+from cortex_m.rules import RuleFactExtractor
 from cortex_m.store import MemoryStore, MemoryUnavailableError
 from cortex_m.types import FactRecord
 from cortex_m.verifier import EvidenceVerifier
@@ -20,6 +23,12 @@ def fact(key="preferred editor", value="Vim", turn=1, **kwargs):
 
 
 class MemoryTests(unittest.TestCase):
+    def setUp(self):
+        self.rule_extractor = RuleFactExtractor(
+            ["preferred editor", "usual drink"],
+            ["Vim", "Emacs", "green tea", "black coffee"],
+        )
+
     def test_explicit_only_and_audit(self):
         store = MemoryStore()
         inferred = fact(explicitness="inferred")
@@ -141,6 +150,52 @@ class MemoryTests(unittest.TestCase):
                       fact("second topic", "b", 2),
                       fact("third topic", "c", 3)])
         self.assertEqual([record.source_turn for record in store.facts()], [2, 3, 5])
+
+    def test_rule_extractor_handles_explicit_fact(self):
+        records = self.rule_extractor.extract(
+            "My preferred editor preference: Vim.", 3)
+        self.assertEqual([(r.key, r.value, r.source_turn) for r in records],
+                         [("preferred editor", "Vim", 3)])
+
+    def test_rule_extractor_uses_new_value_in_correction(self):
+        records = self.rule_extractor.extract(
+            "Correction: set preferred editor to Vim, replacing Emacs.", 4)
+        self.assertEqual([(r.value, r.correction) for r in records], [("Vim", True)])
+
+    def test_rule_extractor_keeps_conflict_sides(self):
+        records = self.rule_extractor.extract(
+            "My statements about preferred editor disagree: Emacs and Vim.", 5)
+        self.assertEqual({r.value for r in records}, {"Emacs", "Vim"})
+
+    def test_rule_extractor_does_not_promote_denied_facts(self):
+        records = self.rule_extractor.extract(
+            "I have not told you my preferred editor is Vim.", 6)
+        self.assertEqual(records, [])
+
+    def test_rule_extractor_rejects_uncertain_or_quoted_values(self):
+        for text in (
+            "Maybe my preferred editor is Vim.",
+            "They said 'my preferred editor is Vim', but I didn't confirm.",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(self.rule_extractor.extract(text, 7), [])
+
+    def test_fixed_renderer_only_uses_planned_evidence(self):
+        store = MemoryStore()
+        store.ingest([fact()])
+        _, _, plan = CortexMemory(store).prepare("preferred editor")
+        self.assertEqual(render_response(plan), "Your recorded preferred editor is Vim.")
+
+    def test_model_free_assistant_end_to_end(self):
+        assistant = RuleBasedCortex(["preferred editor"], ["Vim", "Emacs"])
+        self.assertEqual(assistant.observe("My preferred editor preference: Vim."), 1)
+        self.assertEqual(assistant.respond("What is my preferred editor?"),
+                         "Your recorded preferred editor is Vim.")
+        self.assertEqual(assistant.observe(
+            "Correction: set preferred editor to Emacs, replacing Vim."), 1)
+        self.assertEqual(assistant.respond("What is my preferred editor?"),
+                         "Your recorded preferred editor is Emacs.")
+        assistant.close()
 
 
 if __name__ == "__main__":

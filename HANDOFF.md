@@ -1,70 +1,69 @@
-# Cortex M handoff
+# Cortex-M handoff
 
 ## Objective
 
-Test whether explicit compact memory, provenance-aware retrieval, response
-preparation, and verification improve multi-turn fact continuity over a
-matched language-model baseline. Keep all model calls local. M2M routing stays
-separate until its benchmark and causal evidence pass the integration gate.
+Study compact factual memory, correction/conflict handling, provenance-aware
+retrieval, and safe replies using a model-free, deterministic system. No AI
+model or external API is part of the current design.
 
-## Workspace history
+## Workspace and environment
 
-The previous Research workspace is under
-`E:\Research\Old MIMO\workspace_snapshot_2026-10-23`; its SHA-256 inventory is
-`E:\Research\Old MIMO\archive_manifest.csv`. The user asked to delete the
-archived `M2M_Network\.venv`, but automatic safety review rejected recursive
-deletion. It remains, and the inventory still describes current contents.
+- Historical material: `E:\Research\Old MIMO\workspace_snapshot_2026-10-23`.
+- Fresh root venv: `E:\Research\.venv`, Python 3.12.10; Cortex-M uses it.
+- Runtime dependencies: Python standard library only. No torch, model weights,
+  or network calls.
+- The archived venv deletion was requested, but automatic safety review
+  rejected recursive deletion. It remains present; its archive manifest is
+  unchanged.
 
-## Current phase and next action
+## Phase status
 
-Phases 0-2 are complete. The Phase 3 corpus and annotated-core checks are
-complete; its four-system baseline comparison is pending. A fresh Python
-3.12.10 environment is at `E:\Research\.venv`; the project runner uses it.
-Phase 4 model evaluation is hardware-blocked at preflight: about 1.5 GB RAM
-was free, below the required 2 GB reserve. No model was downloaded or started.
-Phase 6 has partial deterministic stress coverage. Existing M2M route evidence
-does not pass the integration gate. Next: wait for enough free RAM to run the
-local model preflight; LLM comparisons remain blocked until then.
+- Phases 0-5: complete for the model-free research scope.
+- Phase 6: partial; see `docs/e2e_plan.md` for tested failure classes and gaps.
+- Phase 7: M2M is not integrated. Archived route evidence does not meet the
+  repeatable causal gate; no new M2M run was performed.
 
-## Environment
+## Main experiment
 
-- Fresh Cortex-M venv: `E:\Research\.venv`, Python 3.12.10.
-- Cortex-M core uses only Python standard-library modules; no PyTorch or model
-  packages were installed.
-- Around 7.7 GB total RAM and about 1.5 GB free at preflight; no NVIDIA GPU.
-- LLM backend is local llama.cpp only. No hosted inference calls are allowed.
+Version 2 synthetic corpus, seed 271828: 80 dev and 240 holdout cases, four
+categories, eight irrelevant turns per case. Corpus hashes are in
+`data/generated_v2/manifest.json`.
 
-## Commands
+Latest holdout run: `results/rule-20261023T174812718078Z/`.
+
+- Current-turn rule system: 25.0% exact task success.
+- Full-transcript rule system: 100.0%.
+- Latest-value-only gist: 75.0%, with 25.0% unsupported-answer rate; it misses
+  conflict cases.
+- Cortex-M: 100.0%, 0% unsupported answers, using 72.9% fewer approximate
+  context words than full transcript.
+- Paired Cortex-M minus full-transcript success: 0.0 percentage points,
+  percentile bootstrap 95% CI [0, 0], n=240.
+- Cortex-M p95 latency is about 2.16x full-transcript p95 in this small
+  microbenchmark; the absolute times are below 1 ms and susceptible to timer
+  noise. This relative latency criterion did not pass.
+
+This is a controlled phrase/lexicon benchmark, not general language
+understanding and not evidence of an AI performance gain. The consolidated
+methods and findings are in `docs/research_paper.md`.
+
+## Reproduce
 
 From `E:\Research\Cortex-M`:
 
 ```powershell
+.\scripts\setup.ps1
 .\scripts\python.ps1 -m unittest discover -s tests -v
 .\scripts\python.ps1 data\generate.py
-.\scripts\python.ps1 benchmarks\run_core_eval.py --split dev
-.\scripts\python.ps1 benchmarks\run_core_eval.py --split holdout
+.\scripts\python.ps1 benchmarks\run_rule_benchmark.py --split dev
+.\scripts\python.ps1 benchmarks\run_rule_benchmark.py --split holdout
+.\scripts\python.ps1 scripts\demo.py
 ```
 
-Generated data is under `data/generated/`; run artifacts are under
-`results/core-<UTC timestamp>/`. The deterministic core evaluation uses
-annotated facts. It is not an LLM or baseline comparison. Do not load a local
-model until memory meets the limits in `docs/decisions.md`.
+Each benchmark run saves configuration, runtime, corpus manifest, all case
+results, summary, stdout, and interpretation under `results/rule-*/`.
 
-## Decisions and evidence
+## Single next action
 
-- Target: multi-turn factual continuity, correction, conflict handling, and
-  safe abstention.
-- Unit suite: 16/16 passed on the fresh root environment.
-- Deterministic core check: dev 80/80; holdout 240/240. This checks annotated
-  storage, retrieval, action selection, and outage behavior only; it does not
-  demonstrate language-model gains.
-- Dataset seed: 271828. Split hashes are stored in
-  `data/generated/manifest.json`.
-- The held-out split has not been used for prompt tuning.
-- Previous MIMO results and their limits are recorded in
-  `docs/evidence_ledger.md`.
-
-## Handoff update protocol
-
-After each completed phase, update this file with status, command,
-runtime/model version, results path, failures, and the single next action.
+Expand Phase 6 with paraphrase, quoted speech, topic shift, and long-session
+stress cases while preserving the current v2 holdout unchanged.

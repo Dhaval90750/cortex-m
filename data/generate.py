@@ -11,7 +11,7 @@ CATEGORIES = ("recall", "correction", "conflict", "unknown")
 DEV_TEMPLATES = {
     "recall": ("Earlier you told me your {key} is {value}.", "Please remember: {key} equals {value}.", "My {key} preference: {value}."),
     "correction": ("I used to say {key} was {old}, but update it to {value}.", "Correction: set {key} to {value}, replacing {old}.", "Change my {key} from {old} to {value}."),
-    "conflict": ("I prefer {old} for {key}.", "Actually, I prefer {value} for {key}.", "Someone else said my {key} is {old}, but I also said {value}."),
+    "conflict": ("I prefer {old} for {key}.", "Actually, I prefer {value} for {key}.", "I told you my {key} was {old}, then I said it was {value}."),
     "unknown": ("We discussed {key} generally, but I never gave my own value.", "I have not told you my {key}.", "No personal {key} value was stated."),
 }
 TEST_TEMPLATES = {
@@ -26,9 +26,22 @@ QUERIES = {
     "conflict": "What is my {key}?",
     "unknown": "What is my personal {key}?",
 }
-KEYS = ("preferred editor", "usual drink", "project codename", "meeting day", "backup color", "study format", "travel month", "music choice", "default unit", "favorite protocol", "work location", "notification style")
-VALUES = ("Vim", "green tea", "Orchid", "Thursday", "amber", "short notes", "October", "jazz", "metric", "MQTT", "home office", "weekly digest")
-OLD_VALUES = ("Emacs", "black coffee", "Cedar", "Tuesday", "blue", "long essays", "June", "rock", "imperial", "HTTP", "campus", "instant alerts")
+LEXICON = json.loads((ROOT / "data" / "lexicon.json").read_text(encoding="utf-8"))
+KEYS = tuple(LEXICON["keys"])
+VALUES = tuple(LEXICON["values"][:len(KEYS)])
+OLD_VALUES = tuple(LEXICON["values"][len(KEYS):])
+DEV_HISTORY = (
+    ("I organized the draft outline.", "The draft is ready for another review."),
+    ("I checked the calendar this morning.", "The schedule is saved for later."),
+    ("I sorted several project notes.", "Those notes are ready to revisit."),
+    ("I reviewed the open task list.", "The task list remains available."),
+)
+HOLDOUT_HISTORY = (
+    ("I updated my reading notes.", "The reading notes are filed."),
+    ("I checked the project timeline.", "The timeline is available for review."),
+    ("I sorted the reference documents.", "The documents are ready to use."),
+    ("I reviewed the current work queue.", "The queue is saved for next time."),
+)
 
 
 def build_case(split: str, category: str, index: int, rng: random.Random) -> dict:
@@ -62,6 +75,12 @@ def build_case(split: str, category: str, index: int, rng: random.Random) -> dic
         turns.append({"role": "user", "text": text})
         annotations.append({"fact_id": f"{split}-{category}-{index}-1", "key": key, "value": value, "source_turn": 1, "evidence_text": text, "explicitness": "explicit"})
         action, gold = "answer", value
+    fillers = DEV_HISTORY if split == "dev" else HOLDOUT_HISTORY
+    # Add harmless conversation turns after the facts. This creates a real
+    # retention challenge for current-turn-only systems without model calls.
+    history = [{"role": role, "text": text}
+               for pair in fillers for role, text in zip(("user", "assistant"), pair)]
+    turns.extend(history)
     query = QUERIES[category].format(key=key)
     return {"id": f"{split}-{category}-{index:03d}", "split": split, "category": category,
             "turns": turns, "annotations": annotations, "query": query,
@@ -77,10 +96,14 @@ def main() -> None:
         for category in CATEGORIES:
             for i in range(count):
                 cases.append(build_case(split, category, i, rng))
-    out = ROOT / "data" / "generated"
+    out = ROOT / "data" / "generated_v2"
     out.mkdir(parents=True, exist_ok=True)
-    manifest = {"seed": SEED, "generator": "data/generate.py", "version": 1,
-                "template_pools_disjoint": True, "counts": {s: {c: count for c in CATEGORIES} for s, count in (("dev", 20), ("holdout", 60))}}
+    manifest = {"seed": SEED, "generator": "data/generate.py", "version": 2,
+                "template_pools_disjoint": True,
+                "history_turns": 8,
+                "conflict_templates_are_explicit_self_statements": True,
+                "lexicon_sha256": hashlib.sha256((ROOT / "data" / "lexicon.json").read_bytes()).hexdigest(),
+                "counts": {s: {c: count for c in CATEGORIES} for s, count in (("dev", 20), ("holdout", 60))}}
     for split in ("dev", "holdout"):
         rows = [c for c in cases if c["split"] == split]
         path = out / f"{split}.jsonl"

@@ -60,11 +60,3 @@ class ResponsePlan:
     outline: str = ""
 
 
-@dataclass(frozen=True)
-class GenerationResult:
-    text: str
-    prompt_tokens: int
-    completion_tokens: int
-    elapsed_seconds: float
-    backend_id: str
-    stop_reason: str = "unknown"

@@ -47,7 +47,7 @@ def evaluate(case: dict) -> dict:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate Cortex-M's deterministic annotated-fact core; this is not an LLM comparison.")
+    parser = argparse.ArgumentParser(description="Evaluate the earlier annotation-fed core; separate from the model-free four-way phrase-rule benchmark.")
     parser.add_argument("--split", choices=("dev", "holdout"), default="dev")
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()

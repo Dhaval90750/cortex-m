@@ -1,0 +1,27 @@
+{
+  "run_id": "core-20261023T173822868764Z",
+  "split": "holdout",
+  "n": 240,
+  "successes": 240,
+  "exact_success_rate": 1,
+  "by_category": {
+    "conflict": {
+      "n": 60,
+      "success_rate": 1
+    },
+    "correction": {
+      "n": 60,
+      "success_rate": 1
+    },
+    "recall": {
+      "n": 60,
+      "success_rate": 1
+    },
+    "unknown": {
+      "n": 60,
+      "success_rate": 1
+    }
+  },
+  "p95_core_latency_seconds": 8.600000001024455e-05,
+  "interpretation": "Deterministic component check using gold annotations; not a language-model or baseline comparison."
+}
