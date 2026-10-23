@@ -25,6 +25,10 @@ response planning, claim verification, and safe fallbacks.
 **Gate:** unit tests cover provenance, corrections, conflicts, inference
 rejection, clearing, ordering, serialization, database reopen, and outage.
 
+**Execution status:** complete; 16 unit/stress tests pass, including the listed
+state transitions, database reopen, record serialization round-trip, ordering,
+and fail-closed outage/corruption behavior.
+
 ## Phase 3 — Controlled data and baselines
 
 Generate 80 development and 240 held-out conversations, 60 each across recall,

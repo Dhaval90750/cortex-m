@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import tempfile
 import unittest
+import json
+from dataclasses import asdict
 from pathlib import Path
 
 from cortex_m.extractor import AnnotatedFactExtractor
@@ -127,6 +129,18 @@ class MemoryTests(unittest.TestCase):
         store.ingest([fact()])
         _, _, plan = CortexMemory(store).prepare("What was that again?")
         self.assertEqual(plan.action, "abstain")
+
+    def test_fact_serialization_round_trip(self):
+        original = fact("usual drink", "tea", 8, correction=True)
+        restored = type(original)(**json.loads(json.dumps(asdict(original))))
+        self.assertEqual(restored, original)
+
+    def test_fact_ordering_uses_source_turn(self):
+        store = MemoryStore()
+        store.ingest([fact("first topic", "a", 5),
+                      fact("second topic", "b", 2),
+                      fact("third topic", "c", 3)])
+        self.assertEqual([record.source_turn for record in store.facts()], [2, 3, 5])
 
 
 if __name__ == "__main__":

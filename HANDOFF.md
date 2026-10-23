@@ -17,13 +17,14 @@ deletion. It remains, and the inventory still describes current contents.
 
 ## Current phase and next action
 
-Phases 0-3 deterministic deliverables are complete. A fresh Python 3.12.10
-environment is at `E:\Research\.venv`; the project runner uses it. Phase 4
-model evaluation is hardware-blocked at preflight: about 1.5 GB RAM was free,
-below the required 2 GB reserve. No model was downloaded or started. Phase 6
-has partial deterministic stress coverage. Existing M2M route evidence does
-not pass the integration gate. Next: wait for enough free RAM to run the local
-model preflight; LLM comparisons remain blocked until then.
+Phases 0-2 are complete. The Phase 3 corpus and annotated-core checks are
+complete; its four-system baseline comparison is pending. A fresh Python
+3.12.10 environment is at `E:\Research\.venv`; the project runner uses it.
+Phase 4 model evaluation is hardware-blocked at preflight: about 1.5 GB RAM
+was free, below the required 2 GB reserve. No model was downloaded or started.
+Phase 6 has partial deterministic stress coverage. Existing M2M route evidence
+does not pass the integration gate. Next: wait for enough free RAM to run the
+local model preflight; LLM comparisons remain blocked until then.
 
 ## Environment
 
@@ -53,7 +54,7 @@ model until memory meets the limits in `docs/decisions.md`.
 
 - Target: multi-turn factual continuity, correction, conflict handling, and
   safe abstention.
-- Unit suite: 14/14 passed on the fresh root environment.
+- Unit suite: 16/16 passed on the fresh root environment.
 - Deterministic core check: dev 80/80; holdout 240/240. This checks annotated
   storage, retrieval, action selection, and outage behavior only; it does not
   demonstrate language-model gains.
