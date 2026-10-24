@@ -2,6 +2,10 @@
 
 from .analytics.cognitive_analyzer import CognitiveAnalyzer
 from .cortex_v2 import CortexV2
+
+# Unified, canonical Cortex-M class (Zero versioning)
+CortexM = CortexV2
+
 from .legacy_v1.memory import CortexMemory
 from .legacy_v1.store import MemoryStore
 from .pathway.causal_mimo import CausalPathwayMIMO
@@ -16,11 +20,21 @@ from .pathway.synaptic_memory import SynapticMemoryNetwork
 from .pathway.tenant_paging import SynapticTenantManager
 from .pathway.tracer import PathwayTrace, PathwayTracer
 from .pathway.working_memory import WorkingMemoryBuffer
+from .model.cortex_lm import CortexLM, CortexLMOutput
+from .model.real_data_trainer import RealDataTrainer, EVERYDAY_USER_KNOWLEDGE
+from .database.db_trainer import DatabaseKnowledgeTrainer, DatabaseSchemaMetadata
 from .sdk.engine import CortexEngine, RecallResult, TenantSession
 from .sdk.llm_bridge import CortexLLMBridge
 from .security.critic import NeuromodulatorySafetyCritic
 
 __all__ = [
+    "CortexM",
+    "CortexLM",
+    "CortexLMOutput",
+    "RealDataTrainer",
+    "EVERYDAY_USER_KNOWLEDGE",
+    "DatabaseKnowledgeTrainer",
+    "DatabaseSchemaMetadata",
     "CortexEngine",
     "CortexLLMBridge",
     "CognitiveAnalyzer",

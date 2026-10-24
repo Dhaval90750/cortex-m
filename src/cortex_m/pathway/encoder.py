@@ -29,15 +29,15 @@ SEMANTIC_ANCHORS = {
     ],
     "preference": [
         "favorite", "favourite", "like", "prefer", "love", "color", "colour", "blue",
-        "green", "red", "yellow", "taste", "choice"
+        "green", "red", "yellow", "taste", "choice", "drink", "tea", "coffee", "beverage"
     ],
     "location": [
         "live", "where", "city", "place", "country", "home", "reside", "located",
-        "location", "address", "town"
+        "location", "address", "town", "residence"
     ],
     "occupation": [
         "work", "job", "profession", "role", "career", "engineer", "scientist",
-        "researcher", "doctor", "developer", "do"
+        "researcher", "doctor", "developer", "employment", "vocation"
     ],
     "state_mode": [
         "mode", "state", "status", "setting", "alpha", "beta", "gamma", "delta",
@@ -56,14 +56,107 @@ SEMANTIC_ANCHORS = {
         "outside", "hot", "cold", "nice"
     ],
     "software_code": [
-        "code", "coding", "program", "programming", "language", "python", "developer", "function", "script"
+        "code", "coding", "program", "programming", "language", "python", "rust",
+        "developer", "function", "script", "ownership", "borrow", "checker",
+        "lifetime", "pointer", "safety", "guarantee", "compiler", "runtime"
     ],
-    "systems_infra": [
-        "server", "port", "network", "host", "socket", "ip", "database", "devops", "cloud", "run"
+    "relational_transactions": [
+        "acid", "atomicity", "consistency", "isolation", "durability", "transaction",
+        "transactions", "relational", "sql", "rollback", "commit", "schema", "tables",
+        "planner", "base"
+    ],
+    "distributed_sharding": [
+        "sharding", "shard", "partitions", "partition", "horizontal", "replica",
+        "replication", "cluster", "nodes", "distributed", "hashing"
+    ],
+    "storage_indexing": [
+        "btree", "lsmtree", "sstable", "memtable", "index", "indexing", "vector",
+        "ann", "storage", "engine", "engines", "hnsw", "ivfpq"
+    ],
+    "systems_networking": [
+        "server", "port", "network", "host", "socket", "ip", "database",
+        "protocol", "tls", "encryption", "api", "token", "auth", "authenticate", "header", "key",
+        "connection", "pooling"
     ],
     "neural_ai": [
-        "model", "neural", "architecture", "cortex", "deep", "mimo", "weights", "deployment"
-    ]
+        "model", "neural", "architecture", "cortex", "deep", "mimo", "weights",
+        "deployment", "hopfield", "attractor", "energy", "lyapunov", "hebbian",
+        "plasticity", "unlearning", "gist", "sparsity", "consolidation", "sprouting"
+    ],
+    "formal_logic": [
+        "logic", "proof", "demorgan", "boolean", "negation", "conjunction", "disjunction"
+    ],
+    "math_linear_prob": [
+        "math", "mathematics", "calculate", "solve", "equation", "bayes", "theorem",
+        "probability", "prior", "posterior", "conditional", "eigenvalue", "eigenvector",
+        "matrix", "linear", "algebra"
+    ],
+    "algorithms": [
+        "algorithm", "quicksort", "sorting", "complexity", "hash", "lookup",
+        "graph", "search", "time", "amortized"
+    ],
+    "containers_virtualization": [
+        "docker", "container", "containers", "virtual", "vm", "vms", "hypervisor", "guest"
+    ],
+    "memory_debugging": [
+        "leak", "leaks", "profiler", "profilers", "valgrind", "pprof", "heap", "snapshots", "diagnose"
+    ],
+    "version_control": [
+        "git", "rebase", "merge", "commit", "branch", "branches", "linear"
+    ],
+    "system_architecture": [
+        "microservices", "monolith", "monolithic", "epoll", "gil", "concurrency", "mutex", "lock", "thread"
+    ],
+    "astrophysics_relativity": [
+        "physics", "relativity", "gravity", "spacetime", "geodesic", "light",
+        "speed", "vacuum", "einstein", "curvature", "velocity"
+    ],
+    "cell_biology": [
+        "photosynthesis", "chloroplast", "glucose", "atp", "calvin", "cellular",
+        "biology", "plants", "carbon"
+    ],
+    "thermodynamics_physics": [
+        "thermodynamics", "entropy", "heat", "temperature", "equilibrium", "energy"
+    ],
+    "decision_principles": [
+        "first", "principles", "axiomatic", "fundamental", "reasoning", "assumptions",
+        "deconstruct", "truth"
+    ],
+    "optimization_heuristics": [
+        "pareto", "80", "20", "leverage", "optimization", "effort", "results",
+        "heuristic"
+    ],
+    "finance_budget": [
+        "budget", "budgeting", "income", "finance", "financial", "money", "savings",
+        "tax", "debt", "invest", "investing", "expense", "expenses", "cost"
+    ],
+    "sleep_circadian": [
+        "sleep", "circadian", "hygiene", "bedtime", "melatonin", "rest"
+    ],
+    "hydration_water": [
+        "water", "hydration", "hydrate", "liters", "fluid"
+    ],
+    "fitness_exercise": [
+        "exercise", "walking", "steps", "fitness", "movement", "cardio", "health", "healthy", "nutrition"
+    ],
+    "productivity_habits": [
+        "pomodoro", "productivity", "interval", "intervals", "focus", "routine",
+        "declutter", "habits", "habit", "schedule", "packing"
+    ],
+    "conversational": [
+        "hello", "hey", "greetings", "howdy", "morning", "evening", "welcome",
+        "assist", "collaborate", "help"
+    ],
+}
+
+
+COMMON_STOPWORDS = {
+    "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "is", "are", "was", "were",
+    "be", "by", "with", "from", "as", "it", "this", "that", "what", "how", "why", "explain", "tell",
+    "describe", "about", "sentence", "format", "json", "bullet", "points", "step", "steps", "key",
+    "guide", "state", "which", "do", "does", "i", "my", "you", "your", "there", "give", "show", "can",
+    "compare", "difference", "between", "like", "simple", "analogy", "analogies", "terms", "beginner",
+    "layman", "plain", "english"
 }
 
 
@@ -75,7 +168,7 @@ class BuiltinSemanticProjection(nn.Module):
     between queries and assertions while maintaining distinct identities.
     """
 
-    def __init__(self, output_dim: int = 64, num_hash_buckets: int = 4096, seed: int = 42):
+    def __init__(self, output_dim: int = 64, num_hash_buckets: int = 16384, seed: int = 42):
         super().__init__()
         self.output_dim = output_dim
         self.num_hash_buckets = num_hash_buckets
@@ -83,7 +176,7 @@ class BuiltinSemanticProjection(nn.Module):
         self.num_concepts = len(self.concept_names)
 
         torch.manual_seed(seed)
-        # Hash embedding for specific word identities and trigrams
+        # Hash embedding for specific word identities and subwords
         self.hash_emb = nn.Embedding(num_hash_buckets, output_dim)
         nn.init.normal_(self.hash_emb.weight, mean=0.0, std=1.0)
 
@@ -104,28 +197,39 @@ class BuiltinSemanticProjection(nn.Module):
 
     def _extract_tokens_and_concepts(self, text: str) -> tuple[list[int], torch.Tensor]:
         cleaned = text.strip().lower()
+        cleaned = re.sub(r"\bb-trees?\b", "btree", cleaned)
+        cleaned = re.sub(r"\blsm-trees?\b", "lsmtree", cleaned)
+        cleaned = re.sub(r"\bb\s+trees?\b", "btree", cleaned)
+        cleaned = re.sub(r"\blsm\s+trees?\b", "lsmtree", cleaned)
         words = re.findall(r"[a-z0-9_]+", cleaned)
+        content_words = [
+            w for w in words
+            if w not in COMMON_STOPWORDS and (len(w) >= 3 or w.isdigit() or w in {"ai", "db", "io", "os", "vm", "ip", "ui", "ux"})
+        ]
+        if not content_words:
+            content_words = [w for w in words if len(w) >= 2] or ["empty"]
 
-        # Compute concept weights
+        # Compute concept weights strictly from content words
         concept_weights = torch.zeros(self.num_concepts, dtype=torch.float32)
         for i, c_name in enumerate(self.concept_names):
-            anchor_words = SEMANTIC_ANCHORS[c_name]
+            anchor_words = set(SEMANTIC_ANCHORS[c_name])
             score = 0.0
-            for w in words:
+            for w in content_words:
                 if w in anchor_words:
-                    score += 2.5
-                elif any(anchor in w or w in anchor for anchor in anchor_words if len(anchor) > 3):
-                    score += 1.0
+                    score += 3.0
+                elif len(w) >= 4 and any(w.startswith(anchor) or anchor.startswith(w) for anchor in anchor_words if len(anchor) >= 4):
+                    score += 1.5
             if score > 0:
                 concept_weights[i] = score
 
-        # Trigrams and word hashes
+        # Content word hashes (6x multiplicity) and 4-gram character subwords
         buckets: list[int] = []
-        padded = f"< {cleaned} >"
-        for i in range(len(padded) - 2):
-            buckets.append(self._hash_token(padded[i : i + 3]))
-        for w in words:
-            buckets.append(self._hash_token(f"w:{w}"))
+        for w in content_words:
+            w_h = self._hash_token(f"tok:{w}")
+            buckets.extend([w_h] * 6)
+            if len(w) >= 4:
+                for j in range(len(w) - 3):
+                    buckets.append(self._hash_token(f"sub:{w[j : j + 4]}"))
 
         if not buckets:
             buckets = [0]
@@ -138,12 +242,11 @@ class BuiltinSemanticProjection(nn.Module):
         concept_weights = concept_weights.to(device)
 
         with torch.no_grad():
-            hash_vec = self.hash_emb(idx_tensor).mean(dim=0)  # [output_dim]
+            hash_vec = F.normalize(self.hash_emb(idx_tensor).mean(dim=0), p=2, dim=0)
             if concept_weights.sum() > 0:
                 norm_c = concept_weights / (concept_weights.norm() + 1e-6)
-                concept_vec = torch.matmul(norm_c, self.concept_proj)  # [output_dim]
-                # Combine concept semantic guidance (60%) with lexical identity (40%)
-                combined = 0.65 * concept_vec + 0.35 * F.normalize(hash_vec, p=2, dim=0)
+                concept_vec = torch.matmul(norm_c, self.concept_proj)
+                combined = 0.60 * concept_vec + 0.40 * hash_vec
             else:
                 combined = hash_vec
 
@@ -160,7 +263,7 @@ class NeuralFeatureEncoder(nn.Module):
         self,
         output_dim: int = 64,
         backend: str = "hybrid",
-        num_hash_buckets: int = 4096,
+        num_hash_buckets: int = 16384,
         seed: int = 42,
     ):
         super().__init__()

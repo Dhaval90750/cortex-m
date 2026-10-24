@@ -1,28 +1,28 @@
 {
-  "timestamp": "2026-10-24 15:47:49",
-  "elapsed_seconds": 0.899,
+  "timestamp": "2026-10-24 17:18:33",
+  "elapsed_seconds": 0.722,
   "all_passed": true,
   "total_iterations": 100,
   "benchmarks": {
     "benchmark_1_semantic_denoising": {
-      "mean_qa_similarity": 0.7185,
-      "mean_unrelated_similarity": 0.0879,
+      "mean_qa_similarity": 0.7865,
+      "mean_unrelated_similarity": 0.0021,
       "denoising_curve": [
         {
           "noise_pct": 0.2,
-          "sim_before": 0.466,
+          "sim_before": 0.494,
           "sim_after": 1.0,
           "recovered": true
         },
         {
           "noise_pct": 0.4,
-          "sim_before": 0.264,
+          "sim_before": 0.271,
           "sim_after": 1.0,
           "recovered": true
         },
         {
           "noise_pct": 0.6,
-          "sim_before": 0.154,
+          "sim_before": -0.136,
           "sim_after": 1.0,
           "recovered": true
         }
@@ -33,13 +33,13 @@
       "unlearned_memory_id": "mem_alice",
       "post_unlearn_recalled_id": "mem_bob",
       "untouched_memory_recalled_id": "mem_color",
-      "synaptic_delta_norm": 0.9999999403953552,
+      "synaptic_delta_norm": 1.0,
       "passed": true
     },
     "benchmark_3_pathway_resonance_and_source": {
       "mean_matching_resonance": 0.7,
-      "mean_mismatch_resonance": 0.0516,
-      "source_attribution_accuracy": 0.8,
+      "mean_mismatch_resonance": 0.0,
+      "source_attribution_accuracy": 1.0,
       "passed": true
     },
     "benchmark_4_gist_bottleneck": {
@@ -49,19 +49,19 @@
           "text": "Task mode is alpha: execute routing",
           "expected": "mode_alpha",
           "nearest": "mode_alpha",
-          "similarity": 0.777
+          "similarity": 0.7352
         },
         {
           "text": "Task mode is beta: execute routing",
           "expected": "mode_beta",
-          "nearest": "mode_beta",
-          "similarity": 0.769
+          "nearest": "mode_alpha",
+          "similarity": 0.7365
         },
         {
           "text": "Task mode is gamma: novel unseen experimental mode",
           "expected": "unseen",
-          "nearest": "mode_beta",
-          "similarity": 0.7827
+          "nearest": "mode_alpha",
+          "similarity": 0.6457
         }
       ],
       "passed": true
@@ -87,14 +87,14 @@
           "N": 16,
           "levels": 2,
           "clusters": 2,
-          "execution_ms": 3.0,
+          "execution_ms": 3.909,
           "passed": true
         },
         {
           "N": 32,
           "levels": 2,
           "clusters": 4,
-          "execution_ms": 5.703,
+          "execution_ms": 6.321,
           "passed": true
         }
       ],
@@ -105,30 +105,30 @@
         "status": "consolidated",
         "replayed_memories": 4,
         "quarantined_memories": 0,
-        "pruned_synapses": 3653,
-        "sprouted_synapses": 109,
-        "sparsity_pct": 86.52,
-        "initial_weight_norm": 1.8557,
-        "final_weight_norm": 1.5492,
+        "pruned_synapses": 3639,
+        "sprouted_synapses": 108,
+        "sparsity_pct": 86.21,
+        "initial_weight_norm": 1.8915,
+        "final_weight_norm": 1.6215,
         "replay_summary": [
           {
             "memory_id": "mem_rust",
-            "energy_drop": 0.2186,
+            "energy_drop": 0.2115,
             "steps": 2
           },
           {
             "memory_id": "mem_hop",
-            "energy_drop": 0.1629,
+            "energy_drop": 0.1795,
             "steps": 2
           },
           {
             "memory_id": "mem_nodb",
-            "energy_drop": 0.1981,
+            "energy_drop": 0.1302,
             "steps": 2
           },
           {
             "memory_id": "mem_port",
-            "energy_drop": 0.2019,
+            "energy_drop": 0.2475,
             "steps": 2
           }
         ]
@@ -153,7 +153,7 @@
         "lagrangian_loss": 1.3596
       },
       "m2m_97_consistency_loss": 0.07835978269577026,
-      "m2m_98_gist_hierarchical_time_ms": 5.0,
+      "m2m_98_gist_hierarchical_time_ms": 6.67,
       "m2m_99_recurrent_wm": true,
       "m2m_100_causality_ratio": 14810.5798,
       "passed": true

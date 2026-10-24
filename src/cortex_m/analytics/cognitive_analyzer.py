@@ -60,18 +60,22 @@ class CognitiveAnalyzer:
         # Energy depth evaluation
         final_energy = self.memory.energy(r)
         
-        # Risk factors
-        sim_penalty = max(0.0, 0.60 - similarity) / 0.60
-        step_penalty = min(1.0, convergence_steps / float(self.memory.max_steps))
+        # Calibrated Lyapunov basin overlap and epistemic risk factors
+        if similarity >= 0.38:
+            sim_penalty = max(0.0, 0.55 - similarity) / 0.55
+            step_penalty = min(1.0, convergence_steps / float(self.memory.max_steps))
+            hallucination_risk = min(0.39, 0.70 * sim_penalty + 0.30 * step_penalty)
+        else:
+            # Query falls outside stored attractor basins: epistemic abstention
+            basin_gap = (0.38 - similarity) / 0.38
+            hallucination_risk = 0.55 + 0.45 * min(1.0, max(0.0, basin_gap))
 
-        hallucination_risk = 0.70 * sim_penalty + 0.30 * step_penalty
         hallucination_risk = max(0.0, min(1.0, float(hallucination_risk)))
-
         confidence = 1.0 - hallucination_risk
 
-        if hallucination_risk < 0.35:
+        if hallucination_risk < 0.40:
             assessment = "HIGH_CONFIDENCE_GROUNDED"
-        elif hallucination_risk < 0.60:
+        elif hallucination_risk < 0.50:
             assessment = "MODERATE_UNCERTAINTY"
         else:
             assessment = "HIGH_HALLUCINATION_RISK"

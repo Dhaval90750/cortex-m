@@ -55,6 +55,10 @@ class WorkingMemoryBuffer:
         self.turn_history.clear()
         self.entity_stack.clear()
 
+    def clear(self) -> None:
+        """Alias for reset."""
+        self.reset()
+
     def push_entity(
         self,
         entity_vector: torch.Tensor,
