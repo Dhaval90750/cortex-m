@@ -100,10 +100,12 @@ class CortexLM(nn.Module):
             seed=seed,
         ).to(device)
 
-        # Metacognitive Reasoning & Database Knowledge Ingestion
+        # Metacognitive Reasoning, Conversational Cognition & Trainers
+        from .conversational_cognition import ConversationalCognition
         from .metacognition import MetacognitiveEngine
         from ..database.db_trainer import DatabaseKnowledgeTrainer
         from .real_data_trainer import RealDataTrainer
+        self.conversation = ConversationalCognition()
         self.metacognition = MetacognitiveEngine(self)
         self.db_trainer = DatabaseKnowledgeTrainer(self)
         self.real_data_trainer = RealDataTrainer(self)
@@ -134,6 +136,27 @@ class CortexLM(nn.Module):
     ) -> CortexLMOutput:
         """Generate energy-grounded text output with full provenance and explainability."""
         start_t = time.perf_counter()
+
+        # Dynamic human conversational cognition
+        conv = self.conversation.analyze_intent(prompt)
+        if conv.is_conversational and conv.response:
+            latency = (time.perf_counter() - start_t) * 1000.0
+            return CortexLMOutput(
+                text=conv.response,
+                hallucination_risk=0.0,
+                is_grounded=True,
+                provenance={
+                    "memory_id": f"conversational_{conv.category}",
+                    "source": "conversational_cognition",
+                    "resonance_score": 0.95,
+                },
+                factored_gist={},
+                latency_ms=round(latency, 2),
+                explainability=f"Dynamic conversational dialogue ({conv.category}).",
+                suggestions=["Ask a systems or algorithms question", "Try coding with CortexCode", "Teach me a new fact with /learn"],
+                metacognition={"status": "conversational_dialogue", "category": conv.category},
+                comprehension_level="CONVERSATIONAL_HUMAN",
+            )
 
         # Handle empty synaptic memory gracefully
         if self.cortex.memory.num_memories == 0:

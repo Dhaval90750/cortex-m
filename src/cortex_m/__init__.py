@@ -36,10 +36,12 @@ from .agents import (
     CortexCode,
     CortexCoder,
     CortexCodingAgent,
+    DynamicCodeSynthesizer,
     MultiAgentTaskCompleter,
     SynapticBlackboard,
     TaskExecutionResult,
 )
+from .model.conversational_cognition import ConversationalCognition, ConversationalIntent
 from .sdk.engine import CortexEngine, RecallResult, TenantSession
 from .sdk.llm_bridge import CortexLLMBridge
 from .security.critic import NeuromodulatorySafetyCritic

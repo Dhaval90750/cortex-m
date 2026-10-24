@@ -110,7 +110,7 @@ class EnergyGroundedGenerator(nn.Module):
                 source=source,
                 resonance_pct=res_pct,
                 dorsal_meta=dorsal_meta,
-                include_badge=True,
+                include_badge=False,
             )
         else:
             response = f"Grounded memory state active in attractor '{memory_id}' (Pathway Resonance: {res_pct}%)."

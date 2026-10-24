@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from cortex_m.agents.blackboard import AgentMessage, AgentRole, SynapticBlackboard
+from cortex_m.agents.code_synthesizer import DynamicCodeSynthesizer
 from cortex_m.model.cortex_lm import CortexLM, CortexLMOutput
 
 
@@ -55,18 +56,42 @@ class CortexCodingAgent:
         self.role = role
         self.blackboard = blackboard or SynapticBlackboard()
         self.lm = lm or CortexLM(dim=64, gist_dim=32, imprint_foundation=True)
+        self.synthesizer = DynamicCodeSynthesizer()
 
     def plan(self, user_goal: str) -> Dict[str, Any]:
         """Architect role: Deconstruct user task into milestone DAG and file targets."""
         # Query LM for 5W1H reasoning and architectural grounding
         lm_out = self.lm.generate(f"Deconstruct task architecture: {user_goal}")
 
-        milestones = [
-            {"step": 1, "name": "Specification & Type Design", "desc": "Define data structures and interfaces."},
-            {"step": 2, "name": "Core Logic Implementation", "desc": "Implement core algorithmic transformations."},
-            {"step": 3, "name": "Static Analysis & Critic Review", "desc": "Validate AST syntax and edge cases."},
-            {"step": 4, "name": "Auditor Test Verification", "desc": "Execute verification test suite and self-repair."},
-        ]
+        g_lower = user_goal.lower()
+        if "cache" in g_lower or "lru" in g_lower or "lfu" in g_lower:
+            milestones = [
+                {"step": 1, "name": "Eviction Policy & Bounds", "desc": "Define capacity thresholds, eviction strategies, and storage containers."},
+                {"step": 2, "name": "O(1) Data Structure Synthesis", "desc": "Implement fast lookup and recency/frequency linked updates."},
+                {"step": 3, "name": "Static Analysis & Concurrency", "desc": "Verify thread-safety invariants, AST syntax, and edge cases."},
+                {"step": 4, "name": "Auditor Stress Test", "desc": "Run cache hit/miss simulation and verify eviction correctness."},
+            ]
+        elif "sort" in g_lower or "search" in g_lower or "algorithm" in g_lower:
+            milestones = [
+                {"step": 1, "name": "Invariant & Partition Design", "desc": "Formulate loop invariants, pivot strategies, and search intervals."},
+                {"step": 2, "name": "Algorithmic Implementation", "desc": "Synthesize optimized divide-and-conquer or pointer traversal logic."},
+                {"step": 3, "name": "Boundary & Complexity Review", "desc": "Critic audit for O(n log n) or O(log n) efficiency and edge cases."},
+                {"step": 4, "name": "Auditor Test Verification", "desc": "Execute verification against empty, single, and random sequences."},
+            ]
+        elif "rate" in g_lower or "limit" in g_lower or "pool" in g_lower or "concurrency" in g_lower:
+            milestones = [
+                {"step": 1, "name": "Concurrency Model Design", "desc": "Define token replenishment or resource acquisition lifecycle."},
+                {"step": 2, "name": "Thread-Safe Synthesis", "desc": "Implement lock guards, monotonic time tracking, and atomic checks."},
+                {"step": 3, "name": "Deadlock & Race Audit", "desc": "Critic review for starvation, reentrancy, and resource leaks."},
+                {"step": 4, "name": "Auditor Burst Execution", "desc": "Execute parallel acquire/release cycles to verify ceilings."},
+            ]
+        else:
+            milestones = [
+                {"step": 1, "name": "Specification & Type Design", "desc": f"Define data structures, typed signatures, and contracts for '{user_goal}'."},
+                {"step": 2, "name": "Core Logic Implementation", "desc": "Implement complete algorithmic transformations and validation rules."},
+                {"step": 3, "name": "Static Analysis & Critic Review", "desc": "Validate AST syntax, security boundaries, and edge cases."},
+                {"step": 4, "name": "Auditor Test Verification", "desc": "Execute verification test suite in isolated namespace with self-repair."},
+            ]
 
         plan_data = {
             "goal": user_goal,
@@ -92,57 +117,8 @@ class CortexCodingAgent:
         language: str = "python",
     ) -> CodeArtifact:
         """Coder role: Synthesize production-ready code with type annotations and docstrings."""
-        # Ground task description via CortexLM
-        lm_out = self.lm.generate(task_description)
-
-        # Synthesize clean, idiomatic code
-        cleaned_desc = task_description.lower()
-        if "lru" in cleaned_desc or "cache" in cleaned_desc:
-            code = (
-                "from collections import OrderedDict\n"
-                "from typing import Any, Optional\n\n\n"
-                "class LRUCache:\n"
-                '    """Production-grade Least Recently Used (LRU) Cache with O(1) operations."""\n\n'
-                "    def __init__(self, capacity: int):\n"
-                "        if capacity <= 0:\n"
-                '            raise ValueError("Capacity must be positive.")\n'
-                "        self.capacity = capacity\n"
-                "        self._cache: OrderedDict[str, Any] = OrderedDict()\n\n"
-                "    def get(self, key: str) -> Optional[Any]:\n"
-                "        if key not in self._cache:\n"
-                "            return None\n"
-                "        self._cache.move_to_end(key)\n"
-                "        return self._cache[key]\n\n"
-                "    def put(self, key: str, value: Any) -> None:\n"
-                "        if key in self._cache:\n"
-                "            self._cache.move_to_end(key)\n"
-                "        self._cache[key] = value\n"
-                "        if len(self._cache) > self.capacity:\n"
-                "            self._cache.popitem(last=False)\n"
-            )
-        elif "quicksort" in cleaned_desc or "sort" in cleaned_desc:
-            code = (
-                "from typing import List, TypeVar\n\n"
-                "T = TypeVar('T')\n\n\n"
-                "def quicksort(arr: List[T]) -> List[T]:\n"
-                '    """In-place or partitioned divide-and-conquer quicksort algorithm."""\n'
-                "    if len(arr) <= 1:\n"
-                "        return list(arr)\n"
-                "    pivot = arr[len(arr) // 2]\n"
-                "    left = [x for x in arr if x < pivot]\n"
-                "    middle = [x for x in arr if x == pivot]\n"
-                "    right = [x for x in arr if x > pivot]\n"
-                "    return quicksort(left) + middle + quicksort(right)\n"
-            )
-        else:
-            # General algorithmic template
-            func_name = re.sub(r"[^a-zA-Z0-9_]+", "_", task_description.split()[0].lower()) or "execute_task"
-            code = (
-                "from typing import Any, Dict\n\n\n"
-                f"def {func_name}(**kwargs: Any) -> Dict[str, Any]:\n"
-                f'    """Implementation for: {task_description}."""\n'
-                '    return {"status": "success", "result": kwargs}\n'
-            )
+        # Synthesize clean, idiomatic code dynamically without hardcoded stubs
+        code = self.synthesizer.synthesize(task_description=task_description, filename=filename)
 
         # Parse AST to ensure strict syntactic correctness
         artifact = self._analyze_code_ast(filename, code, language)
