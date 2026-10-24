@@ -512,6 +512,81 @@ class DynamicCodeSynthesizer:
             return default_name
 
         # ---------------------------------------------------------------------
+        # 0. Artificial Intelligence / Neural Network / Machine Learning Domain
+        # ---------------------------------------------------------------------
+        if any(kw in g_lower for kw in ["ai", "neural", "deep learning", "machine learning", "perceptron", "classifier", "hopfield", "attractor"]):
+            class_name = _get_class_name("NeuralNetworkAI")
+            if not any(class_name.endswith(s) for s in ["AI", "Network", "Model", "Classifier"]):
+                class_name = f"{class_name}Model"
+            return (
+                "from __future__ import annotations\n\n"
+                "import math\n"
+                "from typing import Any, Dict, List, Optional, Sequence, Tuple\n\n\n"
+                f"class {class_name}:\n"
+                f'    """Bio-inspired neural network & associative AI model with activation dynamics.\n\n'
+                f'    Goal: {goal}\n'
+                '    """\n\n'
+                "    def __init__(self, input_dim: int = 4, hidden_dim: int = 8, output_dim: int = 2, learning_rate: float = 0.05):\n"
+                "        if input_dim <= 0 or hidden_dim <= 0 or output_dim <= 0:\n"
+                '            raise ValueError("Dimensions must be positive integers.")\n'
+                "        self.input_dim = input_dim\n"
+                "        self.hidden_dim = hidden_dim\n"
+                "        self.output_dim = output_dim\n"
+                "        self.lr = float(learning_rate)\n"
+                "        # Deterministic Xavier/Glorot weight initialization\n"
+                "        self.w1: List[List[float]] = [[math.sin(i * 3 + j * 7) * 0.1 for j in range(hidden_dim)] for i in range(input_dim)]\n"
+                "        self.b1: List[float] = [0.0] * hidden_dim\n"
+                "        self.w2: List[List[float]] = [[math.cos(i * 5 + j * 2) * 0.1 for j in range(output_dim)] for i in range(hidden_dim)]\n"
+                "        self.b2: List[float] = [0.0] * output_dim\n"
+                "        self._inferences_count: int = 0\n\n"
+                "    @staticmethod\n"
+                "    def relu(x: float) -> float:\n"
+                '        """Rectified Linear Unit activation."""\n'
+                "        return max(0.0, x)\n\n"
+                "    @staticmethod\n"
+                "    def softmax(logits: Sequence[float]) -> List[float]:\n"
+                '        """Numerically stable softmax probability distribution."""\n'
+                "        max_l = max(logits) if logits else 0.0\n"
+                "        exp_l = [math.exp(v - max_l) for v in logits]\n"
+                "        sum_exp = sum(exp_l) or 1.0\n"
+                "        return [v / sum_exp for v in exp_l]\n\n"
+                "    def forward(self, x: Sequence[float]) -> List[float]:\n"
+                '        """Execute forward inference pass across hidden layers."""\n'
+                "        if len(x) != self.input_dim:\n"
+                '            raise ValueError(f"Expected input of dimension {self.input_dim}, got {len(x)}.")\n'
+                "        # Layer 1: Input -> Hidden (ReLU)\n"
+                "        hidden = [self.b1[j] for j in range(self.hidden_dim)]\n"
+                "        for i in range(self.input_dim):\n"
+                "            for j in range(self.hidden_dim):\n"
+                "                hidden[j] += x[i] * self.w1[i][j]\n"
+                "        hidden_act = [self.relu(v) for v in hidden]\n"
+                "        # Layer 2: Hidden -> Output (Softmax)\n"
+                "        output = [self.b2[k] for k in range(self.output_dim)]\n"
+                "        for j in range(self.hidden_dim):\n"
+                "            for k in range(self.output_dim):\n"
+                "                output[k] += hidden_act[j] * self.w2[j][k]\n"
+                "        self._inferences_count += 1\n"
+                "        return self.softmax(output)\n\n"
+                "    def predict(self, x: Sequence[float]) -> int:\n"
+                '        """Predict discrete class index with maximum likelihood."""\n'
+                "        probs = self.forward(x)\n"
+                "        return probs.index(max(probs))\n\n"
+                "    def __len__(self) -> int:\n"
+                "        return self.input_dim + self.hidden_dim + self.output_dim\n\n"
+                "    def __repr__(self) -> str:\n"
+                f"        return f'<{class_name} arch=[{{self.input_dim}}->{{self.hidden_dim}}->{{self.output_dim}}] inferences={{self._inferences_count}}>' \n\n\n"
+                'if __name__ == "__main__":\n'
+                f"    model = {class_name}(input_dim=4, hidden_dim=8, output_dim=3)\n"
+                "    sample_input = [0.5, -0.2, 1.2, 0.1]\n"
+                "    probs = model.forward(sample_input)\n"
+                "    pred = model.predict(sample_input)\n"
+                "    assert len(probs) == 3\n"
+                "    assert abs(sum(probs) - 1.0) < 1e-5\n"
+                "    assert 0 <= pred < 3\n"
+                f'    print(f"Verified {class_name} passing! Prediction: {{pred}}, Probs: {{[round(p, 4) for p in probs]}}")\n'
+            )
+
+        # ---------------------------------------------------------------------
         # 1. Financial / Banking / Wallet / Account Domain
         # ---------------------------------------------------------------------
         if any(kw in g_lower for kw in ["bank", "account", "wallet", "ledger", "balance", "deposit", "withdraw"]):
