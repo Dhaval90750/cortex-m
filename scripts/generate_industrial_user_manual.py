@@ -373,10 +373,11 @@ def build_pdf(filename: str):
         ["Class / Function", "Module", "Primary Method", "Key Output / Behavior"],
         ["CortexM", "cortex_m.cortex", "learn(text, id), recall(cue)", "Hebbian potentiation & energy descent"],
         ["CortexLM", "cortex_m.model", "generate(prompt), chat(msg)", "Continuous language model with ELI5 & 5W1H"],
+        ["CortexCode", "cortex_m.agents", "synthesize_code(), plan()", "Autonomous coding agent with AST self-repair"],
+        ["MultiAgentTaskCompleter", "cortex_m.agents", "execute_task(goal)", "Autonomous plan -> code -> review -> audit"],
         ["DatabaseKnowledgeTrainer", "cortex_m.database", "learn_ddl_schema(ddl)", "Parses SQL DDL directly into synapses"],
         ["RealDataTrainer", "cortex_m.model", "learn_jsonl_dataset(path)", "Ingests real-world JSONL conversation turns"],
         ["SynapticBlackboard", "cortex_m.agents", "post(role, topic), query()", "Zero-DB multi-agent message exchange"],
-        ["MultiAgentTaskCompleter", "cortex_m.agents", "execute_task(goal)", "Autonomous plan -> code -> review -> audit"],
         ["CognitiveAnalyzer", "cortex_m.analytics", "analyze_hallucination_risk()", "Evaluates basin overlap and confidence"],
         ["SynapticConsolidator", "cortex_m.pathway", "sleep_replay_cycle()", "Biological synaptic pruning to 86%+ sparsity"],
     ]

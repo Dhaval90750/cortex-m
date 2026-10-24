@@ -26,6 +26,7 @@ Every component across the system derives systematically from the core **CORTEX-
 | **Pre-Verbal Bottleneck** | **CORTEX-Gist** | 128-D factored invariant latent bottleneck separating intent across 4 orthogonal heads |
 | **Multi-Agent Blackboard** | **CORTEX-Blackboard** | Zero-DB multi-agent communication substrate synchronizing agent states through attractor basins |
 | **Autonomous Swarm** | **CORTEX-Swarm** | Multi-agent task completer coordinating Architect, Coder, Critic, and Auditor personas |
+| **Coding Agent** | **CortexCode** / **CORTEX-Coder** | Autonomous industrial software engineer synthesizing AST-verified code with self-repair |
 | **Database Ingestion** | **CORTEX-DB** | Direct SQL DDL schema parser imprinting tables, relations, and indexes into synaptic weights |
 | **Foundation Bridge** | **CORTEX-Bridge** | Zero-database prompt augmentation and hallucination scoring bridge for external LLMs |
 | **Edge Mobile Kernel** | **CORTEX-Mobile** | Microsecond smartphone inference kernel ($<15$ MB RAM, $20.8$ KB binary, $203\ \mu$s latency) |
@@ -312,6 +313,16 @@ result = completer.execute_task(
 print(result.status)              # "completed"
 print(result.audit_summary)       # {'is_valid_syntax': True, 'runtime_verified': True, ...}
 print(result.execution_time_sec)  # ~0.05 seconds
+```
+
+### Interactive Coding Terminal (`cortex_code.py`)
+Launch the interactive coding terminal with live multi-agent execution:
+```bash
+python scripts/cortex_code.py
+```
+Or run one-shot autonomous completion:
+```bash
+python scripts/cortex_code.py --goal "Implement an LRU cache" --output lru_cache.py
 ```
 
 ---

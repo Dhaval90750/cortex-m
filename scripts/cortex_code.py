@@ -1,10 +1,10 @@
-"""Interactive Terminal CLI for CORTEX-Swarm & Industrial Coding Agent.
+"""Interactive Terminal CLI for CortexCode (CORTEX-Coder) & Multi-Agent Swarm.
 
 Run natively with:
-    python scripts/cortex_coding_cli.py
+    python scripts/cortex_code.py
 
 Or one-shot execution:
-    python scripts/cortex_coding_cli.py --goal "Implement an LRU cache" --output lru_cache.py
+    python scripts/cortex_code.py --goal "Implement an LRU cache" --output lru_cache.py
 """
 
 from __future__ import annotations
@@ -24,12 +24,13 @@ from cortex_m.model.cortex_lm import CortexLM
 
 BANNER = r"""
 ================================================================================
-   ______ ____  ____  ______ _______  __      _____ _       _____     ____  __  ___
-  / ____// __ \/ __ \/_  __// ____/ |/ /     / ___/| |     / /   |   / __ \/  |/  /
- / /    / / / / / / / / /  / __/  |   /______\__ \ | | /| / / /| |  / /_/ / /|_/ / 
-/ /___ / /_/ / /_/ / / /  / /___ /   |/_____/__/ / | |/ |/ / ___ | / _, _/ /  / /  
-\____/ \____/_____/ /_/  /_____//_/|_|     /____/  |__/|__/_/  |_|/_/ |_/_/  /_/   
-  CORTEX-M Industrial Multi-Agent Coding Swarm | Zero-DB Synaptic Blackboard
+   ______           __              ______          __
+  / ____/___  _____/ /____  _  __  / ____/___  ____/ /__ 
+ / /   / __ \/ ___/ __/ _ \| |/_/ / /   / __ \/ __  / _ \
+/ /___/ /_/ / /  / /_/  __/>  <  / /___/ /_/ / /_/ /  __/
+\____/\____/_/   \__/\___/_/|_|  \____/\____/\__,_/\___/ 
+  CortexCode (CORTEX-Coder) | Autonomous Industrial Coding Agent
+  Context-Oriented Routing and Trace Exchange for MIMO (CORTEX-M)
 ================================================================================
   * Architect Agent : 5W1H decomposition, milestone DAG, and interface design
   * Coder Agent     : Idiomatic, type-annotated code with AST syntax validation
@@ -52,14 +53,14 @@ Commands:
 
 def run_interactive(completer: MultiAgentTaskCompleter):
     print(BANNER)
-    print("[CORTEX-Swarm] Multi-agent neural team initialized and ready.")
+    print("[CortexCode] Autonomous industrial coding agent initialized and ready.")
     print("Type any coding task or command below (or '/exit' to quit):\n")
 
     while True:
         try:
-            user_input = input("cortex-agent >> ").strip()
+            user_input = input("cortex-code >> ").strip()
         except (KeyboardInterrupt, EOFError):
-            print("\nExiting CORTEX-Swarm.")
+            print("\nExiting CortexCode.")
             break
 
         if not user_input:
@@ -67,7 +68,7 @@ def run_interactive(completer: MultiAgentTaskCompleter):
 
         cmd = user_input.lower()
         if cmd in ("/exit", "/quit", "exit", "quit"):
-            print("Exiting CORTEX-Swarm. Goodbye!")
+            print("Exiting CortexCode. Goodbye!")
             break
         elif cmd in ("/help", "help"):
             print(BANNER)
@@ -128,7 +129,7 @@ def run_interactive(completer: MultiAgentTaskCompleter):
             print()
         else:
             # Full autonomous multi-agent task completion
-            print(f"\n[CORTEX-Swarm] Executing task: '{user_input}'...")
+            print(f"\n[CortexCode] Executing task: '{user_input}'...")
             t0 = time.perf_counter()
             res = completer.execute_task(
                 goal=user_input,
@@ -153,7 +154,7 @@ def run_interactive(completer: MultiAgentTaskCompleter):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CORTEX-M Industrial Coding Agent CLI")
+    parser = argparse.ArgumentParser(description="CortexCode (CORTEX-Coder) Industrial CLI")
     parser.add_argument("--goal", type=str, help="Coding goal to complete in one-shot mode")
     parser.add_argument("--output", type=str, default="solution.py", help="Output filename for code")
     args = parser.parse_args()
@@ -161,7 +162,7 @@ def main():
     completer = MultiAgentTaskCompleter()
 
     if args.goal:
-        print(f"[CORTEX-Swarm] One-Shot Execution: '{args.goal}'")
+        print(f"[CortexCode] One-Shot Execution: '{args.goal}'")
         res = completer.execute_task(goal=args.goal, filename=args.output, verify_executable=True)
         print(f"Status: {res.status} in {res.execution_time_sec*1000:.1f}ms")
         if res.artifacts:
