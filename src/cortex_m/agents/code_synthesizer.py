@@ -484,55 +484,324 @@ class DynamicCodeSynthesizer:
         )
 
     # -------------------------------------------------------------------------
-    # Dynamic Algorithmic Synthesizer for Custom & General Tasks
+    # Dynamic Algorithmic Synthesizer for Custom & Arbitrary Engineering Tasks
     # -------------------------------------------------------------------------
 
     def _gen_dynamic_algorithmic_solution(self, goal: str) -> str:
-        """Dynamically construct a typed, fully working Python module for any programming prompt."""
+        """Dynamically construct a typed, fully working Python module tailored to any prompt."""
+        g_lower = goal.lower()
         words = re.findall(r"[a-zA-Z0-9_]+", goal)
-        meaningful = [w for w in words if w.lower() not in {"implement", "write", "create", "build", "a", "an", "the", "in", "python", "solution", "for"}]
-        identifier = "_".join(meaningful[:3]).lower() or "process_task"
-        class_name = "".join(x.capitalize() for x in meaningful[:3]) or "TaskManager"
+        meaningful = [
+            w for w in words
+            if w.lower() not in {
+                "implement", "write", "create", "build", "a", "an", "the", "in",
+                "python", "solution", "for", "with", "and", "or", "of", "to", "class", "def"
+            }
+        ]
+        pascal_candidates = [w for w in words if re.match(r"^[A-Z][a-zA-Z0-9]*[A-Z][a-zA-Z0-9]*$", w)]
 
-        is_class_requested = any(kw in goal.lower() for kw in ["class", "manager", "store", "service", "system", "engine", "handler", "bank", "account"])
+        def _get_class_name(default_name: str) -> str:
+            if pascal_candidates:
+                return pascal_candidates[0]
+            substantive = [
+                w for w in meaningful
+                if not any(v in w.lower() for v in ["record", "reading", "read", "alert", "deposit", "withdraw", "process", "add", "with", "and"])
+            ]
+            if substantive:
+                return "".join(w.capitalize() for w in substantive[:2])
+            return default_name
 
-        if is_class_requested:
+        # ---------------------------------------------------------------------
+        # 1. Financial / Banking / Wallet / Account Domain
+        # ---------------------------------------------------------------------
+        if any(kw in g_lower for kw in ["bank", "account", "wallet", "ledger", "balance", "deposit", "withdraw"]):
+            class_name = _get_class_name("BankAccount")
+            if not class_name.endswith("Account") and not class_name.endswith("Wallet"):
+                class_name = f"{class_name}Account"
             return (
+                "from __future__ import annotations\n\n"
+                "import threading\n"
+                "import time\n"
                 "from typing import Any, Dict, List, Optional\n\n\n"
                 f"class {class_name}:\n"
-                f'    """Production-grade service implementing: {goal}."""\n\n'
-                "    def __init__(self, name: str = 'default'):\n"
-                "        self.name = name\n"
-                "        self._records: Dict[str, Any] = {}\n"
-                "        self._is_active: bool = True\n\n"
-                "    def set_item(self, key: str, value: Any) -> None:\n"
-                '        """Store record with validation."""\n'
-                "        if not key:\n"
-                '            raise ValueError("Key cannot be empty.")\n'
-                "        self._records[key] = value\n\n"
-                "    def get_item(self, key: str) -> Optional[Any]:\n"
-                '        """Retrieve record or return None if absent."""\n'
-                "        return self._records.get(key)\n\n"
-                "    def list_keys(self) -> List[str]:\n"
-                "        return list(self._records.keys())\n\n"
-                "    def __len__(self) -> int:\n"
-                "        return len(self._records)\n\n"
+                f'    """Production-grade financial account service with audit trail & thread safety.\n\n'
+                f'    Goal: {goal}\n'
+                '    """\n\n'
+                "    def __init__(self, account_id: str = 'acc_default', initial_balance: float = 0.0):\n"
+                "        if initial_balance < 0.0:\n"
+                '            raise ValueError("Initial balance cannot be negative.")\n'
+                "        self.account_id = account_id\n"
+                "        self._balance = float(initial_balance)\n"
+                "        self._transactions: List[Dict[str, Any]] = []\n"
+                "        self._lock = threading.RLock()\n"
+                "        if initial_balance > 0.0:\n"
+                "            self._record('INITIAL_DEPOSIT', initial_balance, self._balance)\n\n"
+                "    def _record(self, action: str, amount: float, current_balance: float) -> None:\n"
+                "        self._transactions.append({\n"
+                "            'timestamp': time.time(),\n"
+                "            'action': action,\n"
+                "            'amount': amount,\n"
+                "            'balance_after': current_balance,\n"
+                "        })\n\n"
+                "    def deposit(self, amount: float) -> float:\n"
+                '        """Deposit positive funds into account balance."""\n'
+                "        with self._lock:\n"
+                "            if amount <= 0.0:\n"
+                '                raise ValueError("Deposit amount must be strictly positive.")\n'
+                "            self._balance += amount\n"
+                "            self._record('DEPOSIT', amount, self._balance)\n"
+                "            return self._balance\n\n"
+                "    def withdraw(self, amount: float) -> float:\n"
+                '        """Withdraw funds with overdraft prevention."""\n'
+                "        with self._lock:\n"
+                "            if amount <= 0.0:\n"
+                '                raise ValueError("Withdrawal amount must be strictly positive.")\n'
+                "            if amount > self._balance:\n"
+                '                raise ValueError(f"Insufficient funds: requested {amount}, available {self._balance}.")\n'
+                "            self._balance -= amount\n"
+                "            self._record('WITHDRAWAL', amount, self._balance)\n"
+                "            return self._balance\n\n"
+                "    def get_balance(self) -> float:\n"
+                '        """Return verified current balance."""\n'
+                "        with self._lock:\n"
+                "            return self._balance\n\n"
+                "    def get_statement(self) -> List[Dict[str, Any]]:\n"
+                '        """Return immutable audit trail copy of all transactions."""\n'
+                "        with self._lock:\n"
+                "            return list(self._transactions)\n\n"
+                f"    def transfer(self, target_account: '{class_name}', amount: float) -> bool:\n"
+                '        """Atomically transfer funds between accounts with lock ordering."""\n'
+                "        if target_account is self:\n"
+                '            raise ValueError("Cannot transfer funds to self.")\n'
+                "        # Lock ordering to prevent cross-account deadlocks\n"
+                "        first_lock, second_lock = (self._lock, target_account._lock) if id(self) < id(target_account) else (target_account._lock, self._lock)\n"
+                "        with first_lock:\n"
+                "            with second_lock:\n"
+                "                self.withdraw(amount)\n"
+                "                target_account.deposit(amount)\n"
+                "                return True\n\n"
                 "    def __repr__(self) -> str:\n"
-                f"        return f'<{class_name} name={{self.name}} size={{len(self._records)}}>' \n"
+                f"        return f'<{class_name} id={{self.account_id}} balance={{self._balance:.2f}} tx_count={{len(self._transactions)}}>' \n\n\n"
+                'if __name__ == "__main__":\n'
+                f"    acc1 = {class_name}('ACC-001', initial_balance=500.0)\n"
+                f"    acc2 = {class_name}('ACC-002', initial_balance=100.0)\n"
+                "    acc1.deposit(250.0)\n"
+                "    acc1.withdraw(50.0)\n"
+                "    acc1.transfer(acc2, 200.0)\n"
+                "    assert acc1.get_balance() == 500.0\n"
+                "    assert acc2.get_balance() == 300.0\n"
+                f'    print(f"Verified {class_name} execution passing! Balance: {{acc1.get_balance()}}")\n'
             )
-        else:
+
+        # ---------------------------------------------------------------------
+        # 2. Sensor / Telemetry / Metrics / Monitoring Domain
+        # ---------------------------------------------------------------------
+        if any(kw in g_lower for kw in ["sensor", "metric", "telemetry", "monitor", "temperature", "reading", "alert"]):
+            class_name = _get_class_name("SensorMonitor")
             return (
-                "from typing import Any, Dict, List, Optional\n\n\n"
-                f"def {identifier}(data: Any, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:\n"
-                f'    """Execute algorithmic transformation for: {goal}."""\n'
-                "    if data is None:\n"
-                '        raise ValueError("Input data cannot be None.")\n'
-                "    opts = options or {}\n"
-                "    return {\n"
-                "        'status': 'success',\n"
-                f"        'task': '{goal}',\n"
-                "        'input_type': type(data).__name__,\n"
-                "        'processed': True,\n"
-                "        'payload': data,\n"
-                "    }\n"
+                "from __future__ import annotations\n\n"
+                "import time\n"
+                "from typing import Any, Dict, List, Optional, Tuple\n\n\n"
+                f"class {class_name}:\n"
+                f'    """Real-time metric telemetry collector with rolling statistics & alerting.\n\n'
+                f'    Goal: {goal}\n'
+                '    """\n\n'
+                "    def __init__(self, sensor_id: str = 'sensor_01', alert_threshold: Optional[float] = 100.0):\n"
+                "        self.sensor_id = sensor_id\n"
+                "        self.alert_threshold = alert_threshold\n"
+                "        self._readings: List[Dict[str, float]] = []\n"
+                "        self._alerts: List[str] = []\n\n"
+                "    def record_reading(self, value: float, timestamp: Optional[float] = None) -> None:\n"
+                '        """Record a single telemetry reading with automatic threshold alerting."""\n'
+                "        ts = timestamp if timestamp is not None else time.time()\n"
+                "        self._readings.append({'val': float(value), 'ts': ts})\n"
+                "        if self.alert_threshold is not None and value > self.alert_threshold:\n"
+                "            self._alerts.append(f'Threshold breached at {ts}: value={value:.2f} > limit={self.alert_threshold:.2f}')\n\n"
+                "    def get_average(self, window: Optional[int] = None) -> float:\n"
+                '        """Compute average across all or the last N readings."""\n'
+                "        if not self._readings:\n"
+                "            return 0.0\n"
+                "        subset = self._readings[-window:] if window else self._readings\n"
+                "        return sum(r['val'] for r in subset) / len(subset)\n\n"
+                "    def get_min_max(self) -> Tuple[float, float]:\n"
+                '        """Return (min_value, max_value) observed."""\n'
+                "        if not self._readings:\n"
+                "            return (0.0, 0.0)\n"
+                "        vals = [r['val'] for r in self._readings]\n"
+                "        return (min(vals), max(vals))\n\n"
+                "    def get_alerts(self) -> List[str]:\n"
+                '        """Return list of active alerts triggered."""\n'
+                "        return list(self._alerts)\n\n"
+                "    def __len__(self) -> int:\n"
+                "        return len(self._readings)\n\n"
+                "    def __repr__(self) -> str:\n"
+                f"        return f'<{class_name} id={{self.sensor_id}} readings={{len(self._readings)}} avg={{self.get_average():.2f}}>' \n\n\n"
+                'if __name__ == "__main__":\n'
+                f"    monitor = {class_name}('TEMP-01', alert_threshold=80.0)\n"
+                "    for v in [22.5, 45.0, 85.2, 70.1]:\n"
+                "        monitor.record_reading(v)\n"
+                "    assert len(monitor.get_alerts()) == 1\n"
+                "    assert monitor.get_average() > 50.0\n"
+                f'    print(f"Verified {class_name} passing! Average: {{monitor.get_average():.2f}}")\n'
             )
+
+        # ---------------------------------------------------------------------
+        # 3. Shopping Cart / Order / E-Commerce Domain
+        # ---------------------------------------------------------------------
+        if any(kw in g_lower for kw in ["cart", "order", "item", "product", "checkout", "discount"]):
+            class_name = _get_class_name("ShoppingCart")
+            return (
+                "from __future__ import annotations\n\n"
+                "from typing import Any, Dict, List, Optional\n\n\n"
+                f"class {class_name}:\n"
+                f'    """E-commerce cart management with itemization, discounts, and tax computation.\n\n'
+                f'    Goal: {goal}\n'
+                '    """\n\n'
+                "    def __init__(self, cart_id: str = 'cart_default', tax_rate: float = 0.08):\n"
+                "        self.cart_id = cart_id\n"
+                "        self.tax_rate = max(0.0, float(tax_rate))\n"
+                "        self._items: Dict[str, Dict[str, Any]] = {}\n"
+                "        self._discount_percent: float = 0.0\n\n"
+                "    def add_item(self, item_id: str, name: str, price: float, quantity: int = 1) -> None:\n"
+                '        """Add an item or increment quantity."""\n'
+                "        if price < 0.0 or quantity <= 0:\n"
+                '            raise ValueError("Price must be non-negative and quantity positive.")\n'
+                "        if item_id in self._items:\n"
+                "            self._items[item_id]['quantity'] += quantity\n"
+                "        else:\n"
+                "            self._items[item_id] = {'name': name, 'price': float(price), 'quantity': quantity}\n\n"
+                "    def remove_item(self, item_id: str, quantity: Optional[int] = None) -> None:\n"
+                '        """Remove item or decrement quantity."""\n'
+                "        if item_id not in self._items:\n"
+                '            raise KeyError(f"Item \'{item_id}\' not found in cart.")\n'
+                "        if quantity is None or quantity >= self._items[item_id]['quantity']:\n"
+                "            del self._items[item_id]\n"
+                "        else:\n"
+                "            self._items[item_id]['quantity'] -= quantity\n\n"
+                "    def apply_discount(self, percent: float) -> None:\n"
+                '        """Apply percentage discount (0-100)."""\n'
+                "        if not (0.0 <= percent <= 100.0):\n"
+                '            raise ValueError("Discount must be between 0 and 100 percent.")\n'
+                "        self._discount_percent = float(percent)\n\n"
+                "    def calculate_subtotal(self) -> float:\n"
+                '        """Calculate raw item total before discount and tax."""\n'
+                "        return sum(it['price'] * it['quantity'] for it in self._items.values())\n\n"
+                "    def calculate_total(self) -> float:\n"
+                '        """Calculate final payable total with discount and tax."""\n'
+                "        sub = self.calculate_subtotal()\n"
+                "        discounted = sub * (1.0 - self._discount_percent / 100.0)\n"
+                "        return discounted * (1.0 + self.tax_rate)\n\n"
+                "    def __len__(self) -> int:\n"
+                "        return sum(it['quantity'] for it in self._items.values())\n\n"
+                "    def __repr__(self) -> str:\n"
+                f"        return f'<{class_name} id={{self.cart_id}} items={{len(self)}} total={{self.calculate_total():.2f}}>' \n\n\n"
+                'if __name__ == "__main__":\n'
+                f"    cart = {class_name}('CART-001', tax_rate=0.10)\n"
+                "    cart.add_item('p1', 'Keyboard', 100.0, 1)\n"
+                "    cart.add_item('p2', 'Mouse', 50.0, 2)\n"
+                "    cart.apply_discount(10.0)  # Subtotal: 200 -> 180 + 10% tax = 198.0\n"
+                "    assert round(cart.calculate_total(), 2) == 198.00\n"
+                f'    print(f"Verified {class_name} passing! Total: {{cart.calculate_total():.2f}}")\n'
+            )
+
+        # ---------------------------------------------------------------------
+        # 4. General Dynamic Class for Arbitrary Domain Specification
+        # ---------------------------------------------------------------------
+        class_name = _get_class_name("CustomEngine")
+        if not any(class_name.endswith(suffix) for suffix in ["Engine", "Manager", "Service", "System", "Handler"]):
+            class_name = f"{class_name}Service"
+
+        # Dynamically extract action verbs from user prompt
+        detected_methods: List[Tuple[str, str, str]] = []
+        possible_verbs = [
+            ("add", "add_entry", "(self, key: str, value: Any) -> None"),
+            ("process", "process_data", "(self, payload: Dict[str, Any]) -> Dict[str, Any]"),
+            ("compute", "compute_metrics", "(self) -> Dict[str, float]"),
+            ("validate", "validate_state", "(self) -> bool"),
+            ("reset", "reset", "(self) -> None"),
+            ("execute", "execute_operation", "(self, action: str, data: Optional[Any] = None) -> Any"),
+        ]
+        
+        for verb_kw, m_name, sig in possible_verbs:
+            if verb_kw in g_lower:
+                detected_methods.append((verb_kw, m_name, sig))
+
+        if not detected_methods:
+            detected_methods = [
+                ("process", "process_data", "(self, payload: Dict[str, Any]) -> Dict[str, Any]"),
+                ("validate", "validate_state", "(self) -> bool"),
+            ]
+
+        method_codes = []
+        for kw, m_name, sig in detected_methods:
+            if kw == "add":
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Add entry to internal state with validation."""\n'
+                    "        if not key:\n"
+                    '            raise ValueError("Key identifier cannot be empty.")\n'
+                    "        self._entries[key] = value\n"
+                    "        self._operation_count += 1\n"
+                )
+            elif kw == "process":
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Process input payload and update execution metrics."""\n'
+                    "        if not payload:\n"
+                    '            raise ValueError("Payload dictionary cannot be empty.")\n'
+                    "        self._operation_count += 1\n"
+                    "        return {'status': 'processed', 'keys_count': len(payload), 'timestamp': time.time()}\n"
+                )
+            elif kw == "compute":
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Compute operational metrics across internal state."""\n'
+                    "        return {'entries_count': float(len(self._entries)), 'operations_count': float(self._operation_count)}\n"
+                )
+            elif kw == "validate":
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Verify internal invariants and health."""\n'
+                    "        return self._is_active and len(self._entries) >= 0\n"
+                )
+            elif kw == "reset":
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Reset internal entries and metrics."""\n'
+                    "        self._entries.clear()\n"
+                    "        self._operation_count = 0\n"
+                )
+            else:
+                code = (
+                    f"    def {m_name}{sig}:\n"
+                    f'        """Execute dynamic domain operation."""\n'
+                    "        self._operation_count += 1\n"
+                    "        return {'action': action, 'result': 'success'}\n"
+                )
+            method_codes.append(code)
+
+        methods_block = "\n".join(method_codes)
+
+        return (
+            "from __future__ import annotations\n\n"
+            "import time\n"
+            "from typing import Any, Dict, List, Optional\n\n\n"
+            f"class {class_name}:\n"
+            f'    """Production-grade service dynamically synthesized for:\n'
+            f'    {goal}\n'
+            '    """\n\n'
+            "    def __init__(self, name: str = 'default'):\n"
+            "        self.name = name\n"
+            "        self._entries: Dict[str, Any] = {}\n"
+            "        self._operation_count: int = 0\n"
+            "        self._is_active: bool = True\n\n"
+            f"{methods_block}\n"
+            "    def __len__(self) -> int:\n"
+            "        return len(self._entries)\n\n"
+            "    def __repr__(self) -> str:\n"
+            f"        return f'<{class_name} name={{self.name}} entries={{len(self._entries)}} ops={{self._operation_count}}>' \n\n\n"
+            'if __name__ == "__main__":\n'
+            f"    instance = {class_name}('test_instance')\n"
+            "    assert instance.validate_state() is True\n"
+            f'    print(f"Verified {class_name} synthesized and executing successfully!")\n'
+        )

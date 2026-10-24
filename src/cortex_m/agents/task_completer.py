@@ -47,6 +47,16 @@ class MultiAgentTaskCompleter:
         self.coder = CortexCodingAgent(AgentRole.CODER, self.blackboard, self.lm)
         self.critic = CortexCodingAgent(AgentRole.CRITIC, self.blackboard, self.lm)
         self.auditor = CortexCodingAgent(AgentRole.AUDITOR, self.blackboard, self.lm)
+        self.skills = self.blackboard.cortex.skills
+
+    def execute_skill(
+        self,
+        skill_name: str,
+        target: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Execute a specialized modular skill across the swarm."""
+        return self.skills.execute(skill_name, target, context)
 
     def execute_task(
         self,

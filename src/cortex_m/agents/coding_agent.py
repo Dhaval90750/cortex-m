@@ -57,6 +57,11 @@ class CortexCodingAgent:
         self.blackboard = blackboard or SynapticBlackboard()
         self.lm = lm or CortexLM(dim=64, gist_dim=32, imprint_foundation=True)
         self.synthesizer = DynamicCodeSynthesizer()
+        self.skills = self.blackboard.cortex.skills
+
+    def execute_skill(self, skill_name: str, target: str, context: Optional[Dict[str, Any]] = None) -> Any:
+        """Execute a registered modular skill."""
+        return self.skills.execute(skill_name, target, context)
 
     def plan(self, user_goal: str) -> Dict[str, Any]:
         """Architect role: Deconstruct user task into milestone DAG and file targets."""

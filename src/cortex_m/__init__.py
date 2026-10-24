@@ -42,6 +42,26 @@ from .agents import (
     TaskExecutionResult,
 )
 from .model.conversational_cognition import ConversationalCognition, ConversationalIntent
+from .skills import (
+    AlignerSkill,
+    ApiScaffoldingSkill,
+    AskingSkill,
+    BaseSkill,
+    ComplexityAnalysisSkill,
+    DocumentationSkill,
+    GoalSkill,
+    GrillingSkill,
+    PlanningSkill,
+    RefactoringSkill,
+    SchedulingSkill,
+    SecurityAuditSkill,
+    SkillRegistry,
+    SkillResult,
+    SqlOptimizationSkill,
+    SuggestingSkill,
+    SynapticMemorySkill,
+    TestGenerationSkill,
+)
 from .sdk.engine import CortexEngine, RecallResult, TenantSession
 from .sdk.llm_bridge import CortexLLMBridge
 from .security.critic import NeuromodulatorySafetyCritic
@@ -87,5 +107,23 @@ __all__ = [
     "MIMOPathwaySystem",
     "CortexMemory",
     "MemoryStore",
+    "BaseSkill",
+    "SkillResult",
+    "SkillRegistry",
+    "PlanningSkill",
+    "AskingSkill",
+    "SuggestingSkill",
+    "GrillingSkill",
+    "SchedulingSkill",
+    "GoalSkill",
+    "AlignerSkill",
+    "SecurityAuditSkill",
+    "TestGenerationSkill",
+    "RefactoringSkill",
+    "ComplexityAnalysisSkill",
+    "ApiScaffoldingSkill",
+    "DocumentationSkill",
+    "SqlOptimizationSkill",
+    "SynapticMemorySkill",
 ]
 

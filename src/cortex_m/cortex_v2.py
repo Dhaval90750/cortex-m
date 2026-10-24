@@ -33,6 +33,7 @@ from .pathway.tenant_paging import SynapticTenantManager
 from .pathway.tracer import PathwayTrace, PathwayTracer
 from .pathway.working_memory import WorkingMemoryBuffer
 from .security.critic import NeuromodulatorySafetyCritic
+from .skills.registry import SkillRegistry
 
 
 class CortexV2:
@@ -84,6 +85,18 @@ class CortexV2:
 
         # Dual-Stream Dorsal/Ventral Processor (Code/Math literals + 128-D Factored Gist)
         self.dual_stream = DualStreamProcessor(dim=dim, head_dim=32, seed=seed).to(device)
+
+        # Modular Cognitive & Engineering Skills Engine
+        self.skills = SkillRegistry(cortex=self)
+
+    def execute_skill(
+        self,
+        skill_name: str,
+        target: str,
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Any:
+        """Execute a specialized cognitive or software engineering skill."""
+        return self.skills.execute(skill_name, target, context)
 
     def learn(
         self,
