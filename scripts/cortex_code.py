@@ -18,8 +18,12 @@ import os
 import sys
 import time
 
-# Ensure src is in python path
-sys.path.insert(0, "src")
+# Ensure src is in python path regardless of where the command is invoked from
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, ".."))
+_SRC_DIR = os.path.join(_PROJECT_ROOT, "src")
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
 
 from cortex_m.agents.blackboard import AgentRole, SynapticBlackboard
 from cortex_m.agents.coding_agent import CortexCodingAgent
