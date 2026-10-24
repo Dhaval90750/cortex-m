@@ -1,0 +1,21 @@
+{
+  "probe": "scale-probe-20261023T183231Z",
+  "created_utc": "2026-10-23T18:32:34.015800+00:00",
+  "python": "3.12.10",
+  "rows_requested": 10000,
+  "rows_accepted": 10000,
+  "rows_after_database_reopen": 10000,
+  "known_key_recalled_after_reopen": true,
+  "action": "answer",
+  "gist_token_budget_respected": true,
+  "write_seconds": 0.9810440000001108,
+  "reopen_load_seconds": 0.1927468000067165,
+  "retrieval_seconds": 0.9425589000020409,
+  "sqlite_file_bytes": 5586944,
+  "python_traced_peak_bytes": 31591530,
+  "status": "PASS",
+  "limits": [
+    "Synthetic fact rows inserted directly into SQLite; this does not test natural-language extraction of arbitrary long documents.",
+    "One local run is a scale probe, not a production capacity or latency guarantee."
+  ]
+}

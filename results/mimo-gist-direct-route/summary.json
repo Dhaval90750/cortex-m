@@ -1,0 +1,43 @@
+{
+  "benchmark": "M2M N=8 two task modes selected independently of numeric input; task mode supplied by retrieved gist",
+  "created_utc": "2026-10-24T00:50:28.277652+00:00",
+  "device": "cpu",
+  "torch_version": "2.13.0+cpu",
+  "config": {
+    "TR": 4000,
+    "TE": 1200,
+    "EPOCHS": 500,
+    "BS": 128,
+    "LR": 0.0012,
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505,
+      606,
+      707,
+      808,
+      909,
+      1001
+    ],
+    "train_seed": 35001,
+    "test_seed": 36001
+  },
+  "means": {
+    "No-gist MSE": 0.8845467329025268,
+    "No-gist exact graph": 0.00016666667070239783,
+    "True-gist MSE": 0.08436520038849267,
+    "True-gist exact graph": 0.7495000004768372,
+    "Flipped-gist MSE": 3.4168760776519775,
+    "Flipped-gist exact graph": 0.0,
+    "Zero-gist MSE": 2.13790876865387,
+    "Zero-gist exact graph": 0.0
+  },
+  "csv_sha256": "2627bc21a7ebcf9df47329ed090f5e06be6fb4e30abc2844ba9b9c405aaa575f",
+  "data_hashes": {
+    "train": "633749091bd798865caa51bacdf8f8dffc99011ce5ae1a60ccb569bb0ad21e40",
+    "test": "1ecc2059f8233ad01c498204388af8b4bdcdd96a6509c5991e98321997ed6310"
+  },
+  "claim_limit": "Synthetic relational task only; causal perturbations establish sensitivity to the stored mode for this task, not general reasoning."
+}

@@ -1,0 +1,11 @@
+{
+  "CollectedUTC": "2026-10-23T18:21:00.8206528Z",
+  "RAM_GiB": 7.7,
+  "CPU": "11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz",
+  "GPU": [
+    "Intel(R) Iris(R) Xe Graphics",
+    "NVIDIA GeForce MX350"
+  ],
+  "Python": "3.12.10",
+  "Dependencies": "Python standard library; no model package"
+}

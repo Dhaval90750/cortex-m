@@ -172,6 +172,57 @@ class MemoryTests(unittest.TestCase):
             "I have not told you my preferred editor is Vim.", 6)
         self.assertEqual(records, [])
 
+    def test_open_vocabulary_name_is_extracted_without_lexicon_value(self):
+        records = self.rule_extractor.extract("my name is dhaval", 1)
+        self.assertEqual([(record.key, record.value) for record in records],
+                         [("name", "dhaval")])
+
+    def test_name_extraction_rejects_uncertain_or_denied_statements(self):
+        for text in ("Maybe my name is Dhaval.", "My name is not Dhaval.",
+                     "I think my name is Dhaval."):
+            with self.subTest(text=text):
+                self.assertEqual(self.rule_extractor.extract(text, 1), [])
+
+    def test_name_memory_end_to_end_through_persistent_store(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "memory.sqlite"
+            first = RuleBasedCortex(["preferred editor"], ["Vim"], MemoryStore(path))
+            try:
+                self.assertEqual(first.observe("my name is dhaval"), 1)
+                stored = first.store.facts()
+                self.assertEqual([(item.key, item.value, item.status)
+                                  for item in stored], [("name", "dhaval", "active")])
+            finally:
+                first.close()
+
+            second = RuleBasedCortex(["preferred editor"], ["Vim"], MemoryStore(path))
+            try:
+                plan = second.plan("what's my name?")
+                self.assertEqual(plan.action, "answer")
+                self.assertEqual(plan.evidence[0].fact.value, "dhaval")
+                self.assertEqual(second.respond("what's my name?"),
+                                 "Your recorded name is dhaval.")
+            finally:
+                second.close()
+
+    def test_new_assistant_instance_continues_persisted_turn_sequence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "memory.sqlite"
+            first = RuleBasedCortex(["preferred editor", "usual drink"],
+                                    ["Vim", "green tea"], MemoryStore(path))
+            try:
+                self.assertEqual(first.observe("My preferred editor is Vim."), 1)
+            finally:
+                first.close()
+            second = RuleBasedCortex(["preferred editor", "usual drink"],
+                                     ["Vim", "green tea"], MemoryStore(path))
+            try:
+                self.assertEqual(second.observe("My usual drink is green tea."), 1)
+                self.assertEqual({(fact.key, fact.source_turn) for fact in second.store.facts()},
+                                 {("preferred editor", 1), ("usual drink", 2)})
+            finally:
+                second.close()
+
     def test_rule_extractor_rejects_uncertain_or_quoted_values(self):
         for text in (
             "Maybe my preferred editor is Vim.",

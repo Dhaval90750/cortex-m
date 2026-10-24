@@ -1,0 +1,63 @@
+{
+  "benchmark": "M2M-SparseRoute v1 / M2M-35D archived N=8 task",
+  "created_utc": "2026-10-23T18:46:49.367580+00:00",
+  "device": "cpu",
+  "torch_version": "2.13.0+cpu",
+  "pandas_version": "3.0.5",
+  "config": {
+    "N_IN": 8,
+    "N_OUT": 4,
+    "ROLE_DIM": 8,
+    "HIDDEN": 32,
+    "K": 2,
+    "TR": 4000,
+    "TE": 1200,
+    "EPOCHS": 500,
+    "BS": 128,
+    "LR": 0.0012,
+    "TAU_START": 2.0,
+    "TAU_DECAY": 0.985,
+    "TAU_MIN": 0.08,
+    "seeds": [
+      101,
+      202,
+      303,
+      404,
+      505,
+      606,
+      707,
+      808,
+      909,
+      1001
+    ]
+  },
+  "metrics_mean": {
+    "MSE": 0.06914805062115192,
+    "Exact graph": 0.9665833294391633,
+    "Exact output": 0.9740833282470703,
+    "Precision": 0.9803645789623261,
+    "Recall": 0.9803645789623261,
+    "Context accuracy": 0.5384166717529297,
+    "Gate zero rate": 0.724239581823349,
+    "Attention entropy": 1.4501881718635559
+  },
+  "metrics_median": {
+    "MSE": 0.06850883364677429,
+    "Exact graph": 0.9662499725818634,
+    "Exact output": 0.9755208194255829,
+    "Precision": 0.981249988079071,
+    "Recall": 0.981249988079071,
+    "Context accuracy": 0.503333330154419,
+    "Gate zero rate": 0.7279166579246521,
+    "Attention entropy": 1.4548088312149048
+  },
+  "seeds_over_95pct_exact_graph": 10,
+  "seed_count": 10,
+  "source_script_sha256": "6BD4DDF174E9BC6B1D0B4BAD396C404991A8975929567D60E312C2E23CD1A524",
+  "saved_csv_sha256": "50de000d83c7a9050adabf81313f9040d321aef00f45240cfefd281d00027a17",
+  "limitations": [
+    "Synthetic fixed rule-family benchmark only; does not establish universal language or coding ability.",
+    "Q is withheld from the model but the dataset generator is a known fixed benchmark.",
+    "Reported graph metric is top-K exact edge selection, evaluated on the fixed 1200-example test set."
+  ]
+}

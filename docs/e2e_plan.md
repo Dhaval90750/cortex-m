@@ -24,7 +24,7 @@ Implement SQLite facts with source text, explicit-only storage, correction and
 conflict transitions, lexical retrieval, bounded gist, response plans, a
 template renderer, and fail-closed behavior for unavailable or corrupt storage.
 
-**Status:** 23 tests pass for transitions, retrieval, source preservation,
+**Status:** 44 total tests pass for transitions, retrieval, source preservation,
 ordering, serialization, clearing, conflict/correction, context budget,
 unsupported values, unknown queries, and outage/corruption handling.
 
@@ -46,6 +46,8 @@ API is called.
 
 **Status:** implemented in `src/cortex_m/rules.py`, `assistant.py`, and
 `render.py`; the corpus validator confirms extracted facts match annotations.
+The visualizer now has one input and automatically routes supported statements
+and questions. This UI convenience does not add general language understanding.
 
 ## Phase 5 — Paired deterministic evaluation
 
@@ -69,14 +71,23 @@ adversarial evidence, unrelated conflict, unknown query, corrupt database,
 outage, context budget, and unsupported value. Expand tests for more varied
 phrasing and long-lived database sessions before production use.
 
-## Phase 7 — M2M revalidation
+## Phase 7 — Unified MIMO × gist research
 
-M2M remains a separate optional research track. Integrate only after a corrected
-multi-seed benchmark demonstrates compositional gain under matched controls and
-causal route perturbations.
+MIMO sparse routing and compact gist/memory are one Cortex-M research program,
+but remain separately measured until a valid integration experiment is run.
+See `unified_research_plan.md` for the shared hypothesis, component baselines,
+corrected benchmark, causal routing gate, and matched gist × MIMO experiment.
+Archived M2M-91/92/93 interventions are mixed and do not establish causal
+benefit; historical MIMO/SLM proxy concerns are in `system_audit.md`.
 
-**Status:** not integrated. Read-only review of archived M2M-91/92/93 evidence
-did not pass the gate. No fresh corrected M2M experiment was run.
+**Status (2026-10-24):** the archived M2M-35D champion has been fully rerun on
+its original N=8 benchmark (96.66% mean exact graph over ten seeds; matching
+CSV hash across two runs), and checkpoints are saved. A trained gist-conditioned
+variant now receives a mode fact retrieved from Cortex-M on every task request.
+True, missing and flipped-gist controls show a large bounded synthetic-task
+effect, but one of ten seeds is weak and the runtime schema remains alpha/beta.
+Broad dynamic gist and sparse-routing mechanism gates remain open. See
+`unified_research_plan.md` and `dynamic_gist_methods.md` for next steps.
 
 ## Artifact contract
 

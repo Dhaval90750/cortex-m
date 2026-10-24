@@ -1,0 +1,181 @@
+{
+  "audit_type": "read-only arithmetic verification; not an experiment reproduction",
+  "archive_root": "E:\\Research\\Old MIMO\\workspace_snapshot_2026-10-23",
+  "source_script": "E:\\Research\\Old MIMO\\workspace_snapshot_2026-10-23\\m2m_93_counterfactual_route_swaps.py",
+  "raw_csv": "E:\\Research\\Old MIMO\\workspace_snapshot_2026-10-23\\M2M-93-results\\M2M-93-counterfactual-route-all-results.csv",
+  "summary_csv": "E:\\Research\\Old MIMO\\workspace_snapshot_2026-10-23\\M2M-93-results\\M2M-93-counterfactual-route-summary.csv",
+  "sha256": {
+    "source_script": "bd58ae6293de5f1c8a2748d04bc467cd56afdac0092b3d06198c6ead46d1ea93",
+    "raw_csv": "a06b284ec8185ceb4c5059fa1b7c0c63e37a4985132c09fbf749a1691c80c5fa",
+    "summary_csv": "38eea84905eff8cce602647e07d56e2d3df718878c3f3a474ab4d118ced1a281"
+  },
+  "raw_rows": 72,
+  "seed_ids": [
+    111,
+    222,
+    333
+  ],
+  "mechanism_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23
+  ],
+  "rows_per_seed": {
+    "111": 24,
+    "222": 24,
+    "333": 24
+  },
+  "derived_field_checks": 1512,
+  "derived_column_mismatches": [],
+  "conditions": [
+    {
+      "condition": "clean",
+      "n_rows": 72,
+      "raw_mean": 1.276271594895257,
+      "saved_mean": 1.276271594895257,
+      "mean_matches": true,
+      "sample_sd": 0.25036729811086544,
+      "recomputed_pooled_iid_95_half_width": 0.05783189533197198,
+      "saved_95_half_width": 0.05783189533197198,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_1",
+      "n_rows": 72,
+      "raw_mean": 1.2895587591661348,
+      "saved_mean": 1.2895587591661348,
+      "mean_matches": true,
+      "sample_sd": 0.25136009687233285,
+      "recomputed_pooled_iid_95_half_width": 0.0580612201459238,
+      "saved_95_half_width": 0.0580612201459238,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_2",
+      "n_rows": 72,
+      "raw_mean": 1.2819470440347989,
+      "saved_mean": 1.2819470440347989,
+      "mean_matches": true,
+      "sample_sd": 0.24793460573860115,
+      "recomputed_pooled_iid_95_half_width": 0.05726997206280214,
+      "saved_95_half_width": 0.05726997206280215,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_3",
+      "n_rows": 72,
+      "raw_mean": 1.2843483140071232,
+      "saved_mean": 1.2843483140071232,
+      "mean_matches": true,
+      "sample_sd": 0.24696053857259656,
+      "recomputed_pooled_iid_95_half_width": 0.05704497402665389,
+      "saved_95_half_width": 0.05704497402665389,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_4",
+      "n_rows": 72,
+      "raw_mean": 1.2841084086232715,
+      "saved_mean": 1.2841084086232715,
+      "mean_matches": true,
+      "sample_sd": 0.2441186067583223,
+      "recomputed_pooled_iid_95_half_width": 0.056388521269189806,
+      "saved_95_half_width": 0.056388521269189806,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_8",
+      "n_rows": 72,
+      "raw_mean": 1.286113145450751,
+      "saved_mean": 1.286113145450751,
+      "mean_matches": true,
+      "sample_sd": 0.24446894467154218,
+      "recomputed_pooled_iid_95_half_width": 0.05646944519847701,
+      "saved_95_half_width": 0.05646944519847702,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "rank_16",
+      "n_rows": 72,
+      "raw_mean": 1.3134060154358547,
+      "saved_mean": 1.3134060154358547,
+      "mean_matches": true,
+      "sample_sd": 0.2537809647478229,
+      "recomputed_pooled_iid_95_half_width": 0.05862041209568826,
+      "saved_95_half_width": 0.05862041209568826,
+      "ci_matches_script_formula": true
+    },
+    {
+      "condition": "random",
+      "n_rows": 72,
+      "raw_mean": 1.2903359159827232,
+      "saved_mean": 1.2903359159827232,
+      "mean_matches": true,
+      "sample_sd": 0.2421619926909267,
+      "recomputed_pooled_iid_95_half_width": 0.05593656647795114,
+      "saved_95_half_width": 0.05593656647795113,
+      "ci_matches_script_formula": true
+    }
+  ],
+  "per_seed_means": [
+    {
+      "seed": 111,
+      "n_rows": 24,
+      "clean_mean": 1.2284194976091385,
+      "rank_1_mean": 1.2448932056625683,
+      "rank_2_mean": 1.2299143349130948,
+      "rank_3_mean": 1.2294310679038365,
+      "rank_4_mean": 1.2229534809788067,
+      "rank_8_mean": 1.2289417038361232,
+      "rank_16_mean": 1.235501264532407,
+      "random_mean": 1.2300380170345306
+    },
+    {
+      "seed": 222,
+      "n_rows": 24,
+      "clean_mean": 1.371901996433735,
+      "rank_1_mean": 1.3762591282526653,
+      "rank_2_mean": 1.3857388148705165,
+      "rank_3_mean": 1.3861455967028935,
+      "rank_4_mean": 1.3916662087043126,
+      "rank_8_mean": 1.3865992700060208,
+      "rank_16_mean": 1.412807936469714,
+      "random_mean": 1.397180825471878
+    },
+    {
+      "seed": 333,
+      "n_rows": 24,
+      "clean_mean": 1.2284932906428974,
+      "rank_1_mean": 1.2475239435831706,
+      "rank_2_mean": 1.2301879823207855,
+      "rank_3_mean": 1.2374682774146397,
+      "rank_4_mean": 1.237705536186695,
+      "rank_8_mean": 1.242798462510109,
+      "rank_16_mean": 1.2919088453054428,
+      "random_mean": 1.243788905441761
+    }
+  ],
+  "interval_note": "The archived script computes 1.96 * sample_sd / sqrt(72) over pooled rows. Rows are nested within three trained seeds (24 mechanisms per seed), so this is a pooled-IID interval, not a seed-clustered uncertainty estimate.",
+  "arithmetic_pass": true
+}

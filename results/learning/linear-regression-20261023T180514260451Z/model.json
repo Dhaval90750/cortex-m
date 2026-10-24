@@ -1,0 +1,25 @@
+{
+  "algorithm": "ordinary_least_squares",
+  "feature_names": [
+    "ad_spend",
+    "website_visits"
+  ],
+  "means": [
+    10.266666666666667,
+    8.2
+  ],
+  "scales": [
+    5.79041353349559,
+    5.528109984434101
+  ],
+  "coefficients_standardized": [
+    11.58082706699118,
+    2.76405499221705
+  ],
+  "intercept": 27.633333333333336,
+  "raw_coefficients": [
+    2.0,
+    0.49999999999999994
+  ],
+  "raw_intercept": 3.0000000000000036
+}

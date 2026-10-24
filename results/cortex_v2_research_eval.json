@@ -1,0 +1,162 @@
+{
+  "timestamp": "2026-10-24 15:47:49",
+  "elapsed_seconds": 0.899,
+  "all_passed": true,
+  "total_iterations": 100,
+  "benchmarks": {
+    "benchmark_1_semantic_denoising": {
+      "mean_qa_similarity": 0.7185,
+      "mean_unrelated_similarity": 0.0879,
+      "denoising_curve": [
+        {
+          "noise_pct": 0.2,
+          "sim_before": 0.466,
+          "sim_after": 1.0,
+          "recovered": true
+        },
+        {
+          "noise_pct": 0.4,
+          "sim_before": 0.264,
+          "sim_after": 1.0,
+          "recovered": true
+        },
+        {
+          "noise_pct": 0.6,
+          "sim_before": 0.154,
+          "sim_after": 1.0,
+          "recovered": true
+        }
+      ],
+      "passed": true
+    },
+    "benchmark_2_anti_hebbian_unlearning": {
+      "unlearned_memory_id": "mem_alice",
+      "post_unlearn_recalled_id": "mem_bob",
+      "untouched_memory_recalled_id": "mem_color",
+      "synaptic_delta_norm": 0.9999999403953552,
+      "passed": true
+    },
+    "benchmark_3_pathway_resonance_and_source": {
+      "mean_matching_resonance": 0.7,
+      "mean_mismatch_resonance": 0.0516,
+      "source_attribution_accuracy": 0.8,
+      "passed": true
+    },
+    "benchmark_4_gist_bottleneck": {
+      "compression_ratio": 2.0,
+      "items": [
+        {
+          "text": "Task mode is alpha: execute routing",
+          "expected": "mode_alpha",
+          "nearest": "mode_alpha",
+          "similarity": 0.777
+        },
+        {
+          "text": "Task mode is beta: execute routing",
+          "expected": "mode_beta",
+          "nearest": "mode_beta",
+          "similarity": 0.769
+        },
+        {
+          "text": "Task mode is gamma: novel unseen experimental mode",
+          "expected": "unseen",
+          "nearest": "mode_beta",
+          "similarity": 0.7827
+        }
+      ],
+      "passed": true
+    },
+    "benchmark_5_causality_crisis_resolution": {
+      "trials": 20,
+      "mean_clean_mse": 0.0,
+      "mean_scrambled_mse": 2.592383,
+      "mean_causality_ratio": 2592382.8022,
+      "old_m2m_93_ratio": 1.01,
+      "passed": true
+    },
+    "benchmark_6_hierarchical_scaling": {
+      "scales": [
+        {
+          "N": 8,
+          "levels": 1,
+          "clusters": 1,
+          "execution_ms": 1.0,
+          "passed": true
+        },
+        {
+          "N": 16,
+          "levels": 2,
+          "clusters": 2,
+          "execution_ms": 3.0,
+          "passed": true
+        },
+        {
+          "N": 32,
+          "levels": 2,
+          "clusters": 4,
+          "execution_ms": 5.703,
+          "passed": true
+        }
+      ],
+      "passed": true
+    },
+    "benchmark_7_sleep_consolidation": {
+      "sleep_report": {
+        "status": "consolidated",
+        "replayed_memories": 4,
+        "quarantined_memories": 0,
+        "pruned_synapses": 3653,
+        "sprouted_synapses": 109,
+        "sparsity_pct": 86.52,
+        "initial_weight_norm": 1.8557,
+        "final_weight_norm": 1.5492,
+        "replay_summary": [
+          {
+            "memory_id": "mem_rust",
+            "energy_drop": 0.2186,
+            "steps": 2
+          },
+          {
+            "memory_id": "mem_hop",
+            "energy_drop": 0.1629,
+            "steps": 2
+          },
+          {
+            "memory_id": "mem_nodb",
+            "energy_drop": 0.1981,
+            "steps": 2
+          },
+          {
+            "memory_id": "mem_port",
+            "energy_drop": 0.2019,
+            "steps": 2
+          }
+        ]
+      },
+      "post_sleep_recall": "mem_rust",
+      "passed": true
+    },
+    "benchmark_8_working_memory_multiturn": {
+      "turn_1": "agent_project",
+      "turn_2_resolved_attractor": "agent_project",
+      "verbal_response": "I am developing an autonomous agent in Python (remembered from developer_log, pathway resonance 0.70).",
+      "passed": true
+    },
+    "benchmark_9_m2m_100_iterations": {
+      "m2m_94_direct_gist": true,
+      "m2m_95_cross_attention": true,
+      "m2m_96_rate_distortion": {
+        "beta_ib": 1.25,
+        "compression_ratio": 2.0,
+        "rate_bits": 1.2331,
+        "distortion_mse": 0.101208,
+        "lagrangian_loss": 1.3596
+      },
+      "m2m_97_consistency_loss": 0.07835978269577026,
+      "m2m_98_gist_hierarchical_time_ms": 5.0,
+      "m2m_99_recurrent_wm": true,
+      "m2m_100_causality_ratio": 14810.5798,
+      "passed": true
+    }
+  }
+}

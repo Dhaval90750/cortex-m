@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Cortex-M execution visualizer</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0b1017; --surface:#121b26; --surface2:#172331; --line:#253647; --ink:#ecf3f8; --muted:#9eb0bf; --cyan:#72d7e8; --green:#62d69a; --amber:#ffc36b; --red:#ff7d82; --blue:#83aaff; }
+    * { box-sizing:border-box } body { margin:0; background:radial-gradient(ellipse at 12% -15%,#183348 0,transparent 48%),var(--bg); color:var(--ink); font:15px/1.5 ui-sans-serif,system-ui,"Segoe UI",sans-serif }
+    button,input,textarea { font:inherit } button { cursor:pointer } .shell { width:min(1320px,100%); margin:auto; padding:26px 24px 48px }
+    header { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:24px } .brand { display:flex; align-items:center; gap:14px } .mark { display:grid; place-items:center; width:46px;height:46px;border:1px solid #376278;border-radius:13px;background:#112a38;color:var(--cyan);font-weight:800;letter-spacing:-2px;box-shadow:0 0 28px #54c3dc20 }
+    h1 { font-size:clamp(22px,3vw,30px);line-height:1.1;margin:0;letter-spacing:-.035em } .sub { color:var(--muted);font-size:13px;margin-top:5px } .local { color:#b8e8ce;border:1px solid #2d5c4a;background:#10241c;padding:7px 11px;border-radius:999px;font-size:12px;white-space:nowrap }
+    .layout { display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.85fr);gap:18px;align-items:start } .column { display:grid;gap:18px;min-width:0 }
+    .card { background:linear-gradient(145deg,#131e2a,#101822);border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 12px 36px #0002 } .card-head { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px } h2 { margin:0;font-size:15px;letter-spacing:.01em } .eyebrow { color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em }
+    textarea { width:100%;resize:vertical;min-height:80px;border-radius:10px;border:1px solid #304254;background:#0b131c;color:var(--ink);padding:13px;outline:none } textarea:focus { border-color:var(--cyan);box-shadow:0 0 0 3px #72d7e81a }
+    .compose-bottom { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px } .helper { color:var(--muted);font-size:12px } .primary { background:var(--cyan);color:#071219;border:0;border-radius:8px;padding:9px 15px;font-weight:750 } .secondary,.danger { background:#182533;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12px } .danger { color:#ffafb2 }
+    .examples { display:flex;flex-wrap:wrap;gap:7px;margin-top:12px } .example { background:#111a24;color:#c4d1dc;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:11px }
+    .pipe { display:grid;grid-template-columns:repeat(6,minmax(92px,1fr));gap:7px;overflow-x:auto;padding:2px 1px 9px } .node { position:relative;min-width:94px;border:1px solid #2a3949;border-radius:10px;padding:10px 9px;background:#111a24;transition:.2s ease } .node:not(:last-child)::after { content:"›";position:absolute;right:-9px;top:14px;z-index:2;color:#6c8294;font-size:18px } .node-num { font:11px ui-monospace,monospace;color:#7f93a4 } .node-name { display:block;margin-top:4px;font-size:12px;font-weight:650;color:#b9c8d4;line-height:1.25 } .node.active { border-color:var(--cyan);background:#112a35;box-shadow:0 0 18px #72d7e81a;transform:translateY(-2px) } .node.active .node-name { color:var(--cyan) } .node.done { border-color:#28523f;background:#11231c } .node.done .node-name { color:var(--green) }
+    .exec-layout { display:grid;grid-template-columns:minmax(0,1fr);gap:10px } .stage-list { display:grid;gap:9px } .stage { background:#0e1720;border:1px solid #263646;border-radius:11px;overflow:hidden } .stage.active { border-color:#68bdce;box-shadow:0 0 20px #56bdd414 } .stage-top { display:flex;align-items:center;gap:10px;padding:11px 12px } .stage-icon { display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#1c2c3b;color:var(--blue);font:11px ui-monospace,monospace;flex:none } .stage.active .stage-icon { background:#183541;color:var(--cyan);animation:pulse 1s infinite alternate } .stage.done .stage-icon { color:var(--green);background:#153126 } .stage.skipped .stage-icon,.stage.empty .stage-icon { color:var(--amber);background:#352b1a } .stage-title { font-weight:650;font-size:13px } .stage-detail { color:var(--muted);font-size:12px;margin-left:auto;text-align:right } .stage-data { border-top:1px solid #253442;padding:10px 12px;margin:0;color:#b8c8d5;font:11px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre-wrap;overflow:auto;max-height:245px }
+    .answer { border:1px solid #356074;background:linear-gradient(120deg,#122b38,#13212c);border-radius:12px;padding:15px;margin-top:12px } .answer-label { color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:.13em } .answer-text { font-size:17px;margin-top:5px }
+    .facts { display:grid;gap:8px;max-height:540px;overflow:auto } .fact { border:1px solid #273645;border-radius:10px;padding:11px;background:#0f1720 } .fact-line { display:flex;gap:8px;align-items:center;justify-content:space-between } .fact-key { font-weight:650 } .fact-value { color:var(--cyan);font-weight:700 } .fact-meta { color:var(--muted);font-size:11px;margin-top:4px } .fact-source { color:#b6c4d0;font-size:11px;margin-top:7px;overflow-wrap:anywhere } .badge { font-size:10px;padding:3px 7px;border-radius:999px;border:1px solid #41634f;color:#a9ebc7;background:#14271e;white-space:nowrap } .badge.conflicted { color:#ffd391;border-color:#76582f;background:#292217 } .badge.superseded { color:#a2afba;border-color:#3c4b58;background:#1b252e }
+    .empty { color:var(--muted);border:1px dashed #344657;border-radius:10px;padding:22px 14px;text-align:center;font-size:13px } .status-line { min-height:18px;color:var(--muted);font-size:12px } .status-line.error { color:var(--red) } .legend { display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin-top:11px } .dot { display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-right:5px } .explain { color:var(--muted);font-size:12px;margin:0 0 13px } .foot { text-align:center;color:#75899a;font-size:11px;margin-top:20px }
+    @keyframes pulse { from{box-shadow:0 0 0 0 #72d7e822} to{box-shadow:0 0 0 5px #72d7e800} } @media(max-width:900px){.layout{grid-template-columns:1fr}.pipe{grid-template-columns:repeat(6,minmax(94px,1fr))}} @media(max-width:560px){.shell{padding:17px 12px 30px}header{align-items:flex-start}.local{font-size:10px}.card{padding:14px}.stage-detail{max-width:46%}.compose-bottom{align-items:flex-end}.helper{max-width:55%}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand"><div class="mark" aria-hidden="true">CM</div><div><h1>Cortex-M execution</h1><div class="sub">Watch the real memory pipeline work, one stage at a time.</div></div></div>
+      <div class="local">● LOCAL · RULE MEMORY · OPTIONAL MIMO SPECIALIST</div>
+    </header>
+    <div class="layout">
+      <section class="column" aria-label="Cortex-M execution">
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">Chat with Cortex-M</div><h2 style="margin-top:3px">One prompt for statements, questions, and requests</h2></div></div>
+          <label class="eyebrow" for="task">INPUT TEXT</label>
+          <textarea id="task" placeholder="Tell Cortex-M something, ask a question, or describe a task…" aria-label="Message"></textarea>
+          <div class="compose-bottom"><div class="helper" id="mode-help">One input. The gist-conditioned MIMO route retrieves your stored mode fact on each task; change or correct that fact and the route changes. Structured N=8 input is still required.</div><button class="primary" id="run" type="button">Send →</button></div>
+          <div class="examples" aria-label="Example inputs">
+            <button class="example" data-text="My preferred editor is Vim.">Remember: editor is Vim</button>
+            <button class="example" data-text="What is my preferred editor?">Ask: preferred editor?</button>
+            <button class="example" data-text="My name is Dhaval.">Remember: my name</button>
+            <button class="example" data-text="What's my name?">Ask: my name?</button>
+            <button class="example" data-text='{"task":"mimo_n8","gist_query":"what is my name?","values":[0.1,-0.4,0.2,0.5,-0.1,0.7,-0.3,0.8],"role_ids":[0,1,2,3,4,5,6,7]}'>Run MIMO N=8 example</button>
+            <button class="example" data-text="My mode is alpha.">Set gist mode: alpha</button>
+            <button class="example" data-text="Correction: set mode to beta, replacing alpha.">Change gist mode: beta</button>
+            <button class="example" data-text='{"task":"mimo_gist_n8","gist_query":"what is my mode?","values":[0.1,-0.4,0.2,0.5,-0.1,0.7,-0.3,0.8],"role_ids":[0,1,2,3,4,5,6,7]}'>Run with retrieved gist</button>
+            <button class="example" data-text="Correction: set preferred editor to Emacs, replacing Vim.">Correct: editor is Emacs</button>
+            <button class="example" data-text="I prefer Vim for preferred editor.">Conflict: prefer Vim</button>
+            <button class="example" data-text="Maybe my usual drink is green tea.">Uncertain statement</button>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">Execution path</div><h2 style="margin-top:3px">Recorded execution trace</h2></div><div class="status-line" id="run-status" aria-live="polite">Ready for input</div></div>
+          <p class="explain">The trace comes from the same extractor, SQLite store, retriever, planner, and renderer used by Cortex-M, then plays each captured stage in order.</p>
+          <div class="pipe" id="pipeline" aria-label="Execution stages"></div>
+          <div class="stage-list" id="stages"><div class="empty">Run a statement or question to see its execution trace.</div></div>
+          <div id="answer"></div>
+          <div class="legend"><span><i class="dot"></i>completed stage</span><span>Amber = safely skipped / no evidence</span></div>
+        </article>
+      </section>
+      <aside class="column" aria-label="Memory inspection">
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">Persistent SQLite memory</div><h2 style="margin-top:3px">What Cortex-M currently remembers</h2></div><button class="danger" id="clear" type="button">Clear memory</button></div>
+          <p class="explain">Statements persist locally between runs. Corrections keep superseded history; conflicts remain visible until corrected or cleared.</p>
+          <div class="facts" id="facts"><div class="empty">Loading local memory…</div></div>
+        </article>
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">How to read this</div><h2 style="margin-top:3px">The decision path</h2></div></div>
+          <div class="stage-list">
+            <div class="stage"><div class="stage-top"><span class="stage-icon">01</span><span class="stage-title">Rule scan</span><span class="stage-detail">key · value · assertion</span></div></div>
+            <div class="stage"><div class="stage-top"><span class="stage-icon">02</span><span class="stage-title">Explicit fact only</span><span class="stage-detail">unknown / uncertain → skip</span></div></div>
+            <div class="stage"><div class="stage-top"><span class="stage-icon">03</span><span class="stage-title">Evidence retrieval</span><span class="stage-detail">rank stored facts</span></div></div>
+            <div class="stage"><div class="stage-top"><span class="stage-icon">04</span><span class="stage-title">Plan a safe reply</span><span class="stage-detail">answer · clarify · abstain</span></div></div>
+          </div>
+        </article>
+      </aside>
+    </div>
+    <div class="foot">Memory and gist use deterministic local rules. The optional gist-conditioned MIMO checkpoint consumes a retrieved mode fact for its narrow synthetic numeric task; it is not a general language model. No hosted API is used.</div>
+  </main>
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+    const stageLabels = {auto:['Input','Automatic routing','Cortex-M execution']};
+    document.querySelectorAll('.example').forEach(b => b.addEventListener('click', () => { $('#task').value = b.dataset.text; $('#task').focus(); }));
+    async function api(path, body) { const response = await fetch(path, {method:body ? 'POST':'GET', headers:body ? {'Content-Type':'application/json'}:{}, body:body ? JSON.stringify(body):undefined}); const data = await response.json(); if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`); return data; }
+    function pipeline(labels, active=-1) { $('#pipeline').innerHTML = labels.map((n,i) => `<div class="node ${i<active?'done':i===active?'active':''}"><span class="node-num">${String(i+1).padStart(2,'0')}</span><span class="node-name">${escapeHtml(n)}</span></div>`).join(''); }
+    function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    function renderFacts(facts) { const box=$('#facts'); if (!facts?.length) { box.innerHTML='<div class="empty">No facts stored yet. Try a statement such as “My preferred editor is Vim.”</div>'; return; } box.innerHTML=facts.slice().reverse().map(f=>`<div class="fact"><div class="fact-line"><span class="fact-key">${escapeHtml(f.key)}</span><span class="fact-value">${escapeHtml(f.value)}</span><span class="badge ${escapeHtml(f.status)}">${escapeHtml(f.status)}</span></div><div class="fact-meta">Turn ${f.source_turn}${f.correction?' · correction':''}</div><div class="fact-source">“${escapeHtml(f.evidence_text)}”</div></div>`).join(''); }
+    function renderStage(stage,index) { const payload = JSON.stringify(stage.data, null, 2); const classes = ['done','skipped','empty','warning'].includes(stage.status) ? stage.status : 'done'; return `<div class="stage ${classes}" id="stage-${index}"><div class="stage-top"><span class="stage-icon">${String(index+1).padStart(2,'0')}</span><span class="stage-title">${escapeHtml(stage.name)}</span><span class="stage-detail">${escapeHtml(stage.detail || '')}</span></div><pre class="stage-data">${escapeHtml(payload)}</pre></div>`; }
+    async function run() { const text=$('#task').value.trim(); if (!text) { $('#task').focus(); return; } $('#run').disabled=true; $('#run-status').className='status-line'; $('#run-status').textContent='Executing…'; $('#answer').innerHTML=''; pipeline(stageLabels.auto,0); $('#stages').innerHTML='<div class="empty">Cortex-M is running the task…</div>'; try { const trace=await api('/api/task',{mode:'auto',text}); const labels=trace.stages.map(stage=>stage.name); pipeline(labels,0); $('#stages').innerHTML=trace.stages.map(renderStage).join(''); for(let i=0;i<trace.stages.length;i++){ pipeline(labels,i); document.querySelectorAll('.stage').forEach((el,j)=>{el.classList.toggle('active',j===i); if(j<i)el.classList.add('done')}); $('#stage-'+i)?.scrollIntoView({block:'nearest',behavior:'smooth'}); await new Promise(resolve=>setTimeout(resolve,260)); document.querySelector('#stage-'+i+' .stage-icon').textContent='✓'; } pipeline(labels,labels.length); renderFacts(trace.facts); if(trace.response) $('#answer').innerHTML=`<div class="answer"><div class="answer-label">Cortex-M response · ${escapeHtml(trace.action)}</div><div class="answer-text">${escapeHtml(trace.response)}</div></div>`; $('#run-status').textContent=trace.kind==='statement'?`${trace.accepted_count} fact(s) stored`:trace.kind==='unsupported'?'Request not supported yet':`Action: ${trace.action}`; } catch(error) { $('#run-status').textContent=error.message; $('#run-status').classList.add('error'); $('#stages').innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`; } finally { $('#run').disabled=false; } }
+    $('#run').addEventListener('click',run); $('#task').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='Enter')run()});
+    $('#clear').addEventListener('click',async()=>{if(!confirm('Clear all Cortex-M facts and history in the visualizer database?'))return; try { await api('/api/clear',{}); await refresh(); $('#run-status').textContent='Memory cleared'; } catch(error) { $('#run-status').textContent=error.message; $('#run-status').classList.add('error'); }});
+    async function refresh(){ try {const state=await api('/api/state');renderFacts(state.facts);if(!state.available)$('#run-status').textContent='Memory unavailable';}catch(error){$('#facts').innerHTML=`<div class="empty">${escapeHtml(error.message)}</div>`;} }
+    pipeline(stageLabels.auto); refresh();
+  </script>
+</body>
+</html>

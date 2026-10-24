@@ -2,7 +2,7 @@
 
 | Decision | Choice | Reason |
 |---|---|---|
-| Mainline system | No model, no AI inference, no hosted API | Must run on the available machine without weights or external calls. |
+| Core/runtime split | Dependency-free memory core plus optional local CPU MIMO experiment; no hosted API | Keep fact memory usable without model dependencies while allowing the user-authorized trainable specialist research path. |
 | Language handling | Explicit lexicon and deterministic phrase rules | Predictable, inspectable behavior; unknown facts are not guessed. |
 | Output generation | Fixed evidence-bound templates | Every answer can be traced to a stored fact; clarification and abstention are deterministic. |
 | First research task | Multi-turn factual continuity | Exercises recall, correction, conflict handling, and abstention. |
@@ -10,16 +10,19 @@
 | User fact policy | Persist only lexicon-matched explicit assertions; preserve source evidence | Avoid promoting inference into a remembered user fact. |
 | Evaluation data | Versioned synthetic conversations with machine-readable labels | Enables paired controls without personal data. Labels are used for scoring and corpus validation, not runtime extraction. |
 | Baselines | Current-turn rules, full-transcript rules, gist-only, Cortex-M | Isolates history access, conflict state, and provenance behavior without AI. |
-| M2M placement | Separate, not integrated | Existing routing summaries do not pass the corrected multi-seed causal gate. |
-| LLM evaluation | Out of current scope | The current objective is model-free software and benchmarking. |
+| M2M placement | Optional task specialist behind explicit task routing; not a general assistant | Archived champion passes its narrow N=8 benchmark. A gist-conditioned variant has bounded causal evidence, but seed robustness and wider task coverage remain open. |
+| Language-model evaluation | Not yet selected or benchmarked | Small MIMO experiments are not language models; broad chat and coding capability cannot be inferred from these results. |
 
-## Model-free system boundary
+## Runtime boundary
 
-The program uses Python standard-library modules only. It does not load model
-weights, call an AI service, or need network access. Extraction recognizes
-configured key/value phrases. Unsupported or ambiguous wording should produce
-no stored fact, followed by abstention or clarification. Expanding the lexicon
-changes coverage; it does not add general language understanding.
+The Cortex-M fact-memory core uses Python standard-library modules only. The
+optional research environment uses CPU PyTorch for the M2M specialist and loads
+small trained checkpoints. Neither path calls a hosted AI service. Memory
+extraction recognizes configured key/value phrases. Unsupported, missing, or
+conflicted gist should stop solver dispatch and produce abstention or
+clarification. Adding more fixed labels expands only that schema; it does not
+add open-ended language understanding. Dynamic support-example gist is the
+planned path beyond fixed mode values.
 
 ## Benchmark thresholds and reporting
 
@@ -31,7 +34,9 @@ must be stated; do not claim broad language ability or an AI performance gain.
 
 ## Archived M2M evidence
 
-Keep M2M out of Cortex-M response path unless a corrected benchmark provides
-repeatable compositional gain, matched controls, and causal route evidence.
-The saved M2M-91/92/93 tables do not meet that gate; see
-`docs/evidence_ledger.md`.
+The archived M2M-35D champion is available as an explicitly invoked numeric
+specialist. The new retrieved-gist variant demonstrates a conditional effect
+on the synthetic two-mode task, but is not enabled for arbitrary prompts. Keep
+general/default routing gated on robustness, variable-support-set evaluation,
+and broader matched controls. The saved M2M-91/92/93 tables remain separate and
+do not establish a causal routing benefit; see `docs/evidence_ledger.md`.

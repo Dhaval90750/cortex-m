@@ -23,10 +23,11 @@ SQLite event store -----> lexical key retrieval
 ## Input boundary
 
 `RuleFactExtractor` accepts a configured list of fact keys and values. It
-recognizes exact lexical matches and correction cues. It does not infer a
-missing value, paraphrase unknown terms, or use an AI model. The vocabulary is
-editable at the call site; broader coverage requires explicit lexicon and rule
-work. Unrecognized input produces no fact.
+recognizes exact lexical matches and correction cues, plus a built-in explicit
+`my name is <name>` field whose value does not need to be enumerated in the
+lexicon. It does not infer a missing value, paraphrase unknown terms, or use an
+AI model. Other vocabulary coverage requires explicit lexicon and rule work.
+Unrecognized input produces no fact.
 
 ## Stored state
 

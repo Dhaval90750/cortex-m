@@ -1,0 +1,5 @@
+# Optional dependencies for reproducing archived MIMO/M2M experiments.
+# PyTorch is installed separately from the official CPU-only wheel index by
+# scripts/setup_mimo.ps1. The core Cortex-M runtime remains standard-library-only.
+numpy==2.5.2
+pandas==3.0.5

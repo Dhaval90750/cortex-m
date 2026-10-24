@@ -1,0 +1,159 @@
+{
+  "report_id": "acceptance-20261023T185109Z",
+  "created_utc": "2026-10-23T18:51:10.135546+00:00",
+  "overall": "PARTIAL",
+  "scope": "model-free deterministic Cortex-M functional and saved-benchmark acceptance",
+  "ai_used": false,
+  "cases": [
+    {
+      "name": "explicit recall",
+      "status": "PASS",
+      "accepted_facts": 1,
+      "action": "answer",
+      "response": "Your recorded preferred editor is Vim."
+    },
+    {
+      "name": "correction and superseded history",
+      "status": "PASS",
+      "history": [
+        {
+          "value": "Vim",
+          "status": "superseded"
+        },
+        {
+          "value": "Emacs",
+          "status": "active"
+        }
+      ],
+      "response": "Your recorded preferred editor is Emacs."
+    },
+    {
+      "name": "conflict triggers clarification",
+      "status": "PASS",
+      "accepted_facts": [
+        1,
+        1
+      ],
+      "action": "clarify",
+      "conflict_values": [
+        "Emacs",
+        "Vim"
+      ],
+      "response": "I have conflicting details. Which value should I use?"
+    },
+    {
+      "name": "uncertain statement is rejected",
+      "status": "PASS",
+      "statement": "Maybe my preferred editor is Vim.",
+      "accepted_facts": 0,
+      "action": "abstain",
+      "response": "I don't have that detail recorded, so I won't guess."
+    },
+    {
+      "name": "unlisted value is rejected",
+      "status": "PASS",
+      "statement": "My preferred editor is VS Code.",
+      "accepted_facts": 0,
+      "action": "abstain",
+      "response": "I don't have that detail recorded, so I won't guess."
+    },
+    {
+      "name": "SQLite persistence after reopen",
+      "status": "PASS",
+      "action_after_reopen": "answer",
+      "response_after_reopen": "Your recorded preferred editor is Vim."
+    },
+    {
+      "name": "clear removes stored fact",
+      "status": "PASS",
+      "deleted": 1,
+      "action_after_clear": "abstain"
+    },
+    {
+      "name": "open-vocabulary name survives persistence and is recalled",
+      "status": "PASS",
+      "statement": "my name is dhaval",
+      "accepted_facts": 1,
+      "action_after_reopen": "answer",
+      "response_after_reopen": "Your recorded name is dhaval.",
+      "stored_value": "dhaval"
+    },
+    {
+      "name": "unavailable storage falls back safely",
+      "status": "PASS",
+      "action": "fallback",
+      "response": "Memory is unavailable. Please repeat that detail."
+    },
+    {
+      "name": "corrupt database fails closed",
+      "status": "PASS",
+      "store_available": false,
+      "action": "fallback"
+    }
+  ],
+  "functional_cases_passed": 10,
+  "functional_cases_total": 10,
+  "benchmark": {
+    "source": "E:\\Research\\Cortex-M\\results\\rule-20261023T181742571252Z\\summary.json",
+    "run_id": "rule-20261023T181742571252Z",
+    "split": "holdout",
+    "cases": 240,
+    "cortex_m_exact_success": 1,
+    "cortex_m_unsupported_rate": 0,
+    "context_word_reduction_vs_full": 0.7292753225363711,
+    "p95_latency_ratio_vs_full": 2.054924200202012,
+    "category_success": {
+      "conflict": 1,
+      "correction": 1,
+      "recall": 1,
+      "unknown": 1
+    },
+    "gates": [
+      {
+        "name": "exact success at least full-transcript baseline",
+        "status": "PASS",
+        "observed": 1,
+        "target": 1,
+        "operator": ">="
+      },
+      {
+        "name": "unsupported answer rate <= 2%",
+        "status": "PASS",
+        "observed": 0,
+        "target": 0.02,
+        "operator": "<="
+      },
+      {
+        "name": "approximate context-word reduction >= 30%",
+        "status": "PASS",
+        "observed": 0.7292753225363711,
+        "target": 0.3,
+        "operator": ">="
+      },
+      {
+        "name": "p95 latency ratio vs full transcript <= 2.0",
+        "status": "FAIL",
+        "observed": 2.054924200202012,
+        "target": 2.0,
+        "operator": "<="
+      },
+      {
+        "name": "recall, correction, conflict, unknown each >= 95%",
+        "status": "PASS",
+        "observed": {
+          "conflict": 1,
+          "correction": 1,
+          "recall": 1,
+          "unknown": 1
+        },
+        "target": 0.95,
+        "operator": "each >="
+      }
+    ]
+  },
+  "reproduce": [
+    ".\\scripts\\python.ps1 scripts\\walkthrough.py",
+    ".\\scripts\\python.ps1 scripts\\check_success.py",
+    ".\\scripts\\python.ps1 -m unittest discover -s tests -v"
+  ]
+}
