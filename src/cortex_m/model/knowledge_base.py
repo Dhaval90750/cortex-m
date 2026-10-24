@@ -190,7 +190,7 @@ FOUNDATIONAL_KNOWLEDGE_CORPUS: List[Dict[str, str]] = [
     # --- Identity & Foundation ---
     {
         "memory_id": "cortex_lm_identity",
-        "text": "CortexLM is a bio-inspired continuous neural language model powered natively by Cortex-M, featuring zero-database synaptic memory, energy-guided hallucination immunity, and causal explainability.",
+        "text": "CORTEX-M stands for Context-Oriented Routing and Trace Exchange for MIMO. CortexLM is the native bio-inspired continuous neural language model powered directly by CORTEX-M, featuring zero-database synaptic memory, energy-guided hallucination immunity, and verifiable causal explainability.",
         "source": "cortex_lm_specification",
     },
 ]

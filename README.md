@@ -1,4 +1,4 @@
-# Cortex-M: Bio-Inspired Neural Substrate & Cognitive AI Platform
+# CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python: 3.12](https://img.shields.io/badge/Python-3.12-brightgreen.svg)](https://www.python.org/)
@@ -7,7 +7,28 @@
 [![Empirical Benchmarks](https://img.shields.io/badge/Benchmarks-9%2F9%20Passing-success.svg)](results/cortex_v2_research_eval.json)
 [![Zero External DBs](https://img.shields.io/badge/Database-Zero%20External%20DBs-purple.svg)](#architecture-pillars)
 
-**Cortex-M** is a bio-inspired neural architecture and cognitive AI platform that replaces external relational/vector databases with a continuous synaptic memory substrate. Designed for **both software engineers and everyday normal users**, it unifies **Continuous Modern Hopfield associative retrieval**, **causal MIMO sparse routing**, **128-D factored pre-verbal gist**, and **biological sleep consolidation** with a turnkey developer SDK and the native **CortexLM** continuous language model.
+**CORTEX-M** (**C**ontext-**O**riented **R**outing and **T**race **EX**change for **M**IMO) is a bio-inspired continuous neural architecture and cognitive AI platform that replaces external relational and vector databases with an in-memory physical synaptic substrate. Emphasizing **context-oriented sparse routing**, **verifiable pathway trace exchange**, and **continuous Hopfield energy attractors**, CORTEX-M powers **CortexLM** (the native continuous language model) and a zero-database autonomous multi-agent swarm for production software engineering and edge devices.
+
+---
+
+## 🏷️ Canonical Taxonomy: The CORTEX-M Family
+
+Every component across the system derives systematically from the core **CORTEX-M** research programme:
+
+| Subsystem Name | Canonical Term | Scientific Role & Responsibility |
+|---|---|---|
+| **Core Architecture** | **CORTEX-M** | **C**ontext-**O**riented **R**outing and **T**race **EX**change for **M**IMO continuous substrate |
+| **Language Model** | **CortexLM** | Continuous neural language model operating over Hopfield attractor basins with Lyapunov shielding |
+| **Trace Exchange Engine** | **CORTEX-Trace** | Pathway activation trajectory logger delivering verifiable causal provenance ($\mathcal{R}$) |
+| **Context Routing Matrix** | **CORTEX-Router** | Causal MIMO sparse router executing $O(k \log N)$ hierarchical routing across $N=32, 1024$ |
+| **Synaptic Memory** | **CORTEX-Synapse** | Continuous Hopfield substrate executing instant Hebbian plasticity ($\Delta W = \eta z z^T$) |
+| **Hallucination Shield** | **CORTEX-Shield** | Lyapunov energy boundary preventing confabulation via mathematical epistemic abstention |
+| **Pre-Verbal Bottleneck** | **CORTEX-Gist** | 128-D factored invariant latent bottleneck separating intent across 4 orthogonal heads |
+| **Multi-Agent Blackboard** | **CORTEX-Blackboard** | Zero-DB multi-agent communication substrate synchronizing agent states through attractor basins |
+| **Autonomous Swarm** | **CORTEX-Swarm** | Multi-agent task completer coordinating Architect, Coder, Critic, and Auditor personas |
+| **Database Ingestion** | **CORTEX-DB** | Direct SQL DDL schema parser imprinting tables, relations, and indexes into synaptic weights |
+| **Foundation Bridge** | **CORTEX-Bridge** | Zero-database prompt augmentation and hallucination scoring bridge for external LLMs |
+| **Edge Mobile Kernel** | **CORTEX-Mobile** | Microsecond smartphone inference kernel ($<15$ MB RAM, $20.8$ KB binary, $203\ \mu$s latency) |
 
 ---
 

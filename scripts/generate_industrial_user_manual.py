@@ -136,22 +136,20 @@ def build_pdf(filename: str):
     # ==========================================
     # COVER / HEADER
     # ==========================================
-    story.append(Paragraph("CORTEX-M & CORTEXLM", title_style))
-    story.append(Paragraph("Industrial User Manual, Technical Specification & Edge Blueprint", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=2, color=c_accent, spaceAfter=12))
+    story.append(Paragraph("CORTEX-M &amp; CortexLM", title_style))
+    story.append(Paragraph("Context-Oriented Routing and Trace Exchange for MIMO &mdash; Industrial Specification &amp; User Manual", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=2, color=c_accent, spaceAfter=10))
 
     summary_text = (
-        "<b>Executive Overview:</b> Cortex-M is a bio-inspired neural architecture that eliminates external "
-        "relational and vector databases in favor of a <b>continuous physical synaptic memory substrate</b>. "
-        "It combines Continuous Modern Hopfield associative retrieval, causal MIMO sparse routing, "
-        "Lyapunov energy hallucination shielding, and biological sleep consolidation into a unified "
-        "platform. This manual documents both the foundational architecture and its production extensions: "
-        "<b>CortexLM</b> (native language model), <b>Synaptic Database Schema Learning</b>, "
-        "<b>Everyday Normal User Reasoning</b>, <b>Autonomous Multi-Agent Coding Swarms</b>, and "
-        "<b>Smartphone / Edge Device Deployment</b>."
+        "<b>Executive Overview:</b> <b>CORTEX-M</b> (<b>C</b>ontext-<b>O</b>riented <b>R</b>outing and <b>T</b>race <b>EX</b>change "
+        "for <b>M</b>IMO) is a bio-inspired continuous neural architecture that replaces external relational and vector databases "
+        "with an in-memory physical synaptic memory substrate. Emphasizing context-oriented sparse routing and verifiable "
+        "pathway trace exchange, CORTEX-M powers <b>CortexLM</b> (continuous language model), <b>CORTEX-DB</b> (SQL DDL synaptic "
+        "schema learning), <b>CORTEX-Swarm</b> (autonomous multi-agent coding engine), <b>CORTEX-Blackboard</b> (zero-DB agent "
+        "coordination), and <b>CORTEX-Mobile</b> (&lt;15 MB RAM, 203 &mu;s smartphone execution)."
     )
     story.append(Paragraph(summary_text, body_style))
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
     # ==========================================
     # SECTION 1: ARCHITECTURAL FOUNDATIONS

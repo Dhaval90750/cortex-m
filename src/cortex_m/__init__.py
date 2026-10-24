@@ -1,10 +1,15 @@
-"""Cortex-M: Neural Pathway Architecture for Associative Memory, Sparse Routing, and Cognitive Analysis."""
+"""CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO.
+
+Continuous neural architecture for associative memory, causal MIMO sparse routing,
+and zero-database cognitive intelligence.
+"""
 
 from .analytics.cognitive_analyzer import CognitiveAnalyzer
 from .cortex_v2 import CortexV2
 
-# Unified, canonical Cortex-M class (Zero versioning)
+# Unified, canonical CORTEX-M class (Zero versioning)
 CortexM = CortexV2
+CORTEX_M = CortexV2
 
 from .legacy_v1.memory import CortexMemory
 from .legacy_v1.store import MemoryStore
@@ -38,6 +43,7 @@ from .sdk.llm_bridge import CortexLLMBridge
 from .security.critic import NeuromodulatorySafetyCritic
 
 __all__ = [
+    "CORTEX_M",
     "CortexM",
     "CortexLM",
     "CortexLMOutput",

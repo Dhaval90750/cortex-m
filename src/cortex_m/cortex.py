@@ -1,11 +1,12 @@
-"""Cortex-M: Unified Continuous Attractor Substrate.
+"""CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO.
 
-Clean, version-free export for the entire Cortex-M framework.
+Canonical, version-free export for the entire CORTEX-M framework.
 """
 
 from .cortex_v2 import CortexV2
 
 # Unified canonical class
 CortexM = CortexV2
+CORTEX_M = CortexV2
 
-__all__ = ["CortexM", "CortexV2"]
+__all__ = ["CORTEX_M", "CortexM", "CortexV2"]
