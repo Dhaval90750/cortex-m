@@ -60,6 +60,20 @@ class ConceptualExplainer:
                 "* **Authentication**: Securing access via API keys, Bearer tokens, or OAuth2."
             )
 
+        # 3. "what is mail" / "what is email"
+        if any(kw in cleaned for kw in ["what is mail", "what is email", "explain email", "meaning of mail", "what is an email"]):
+            return (
+                "**Mail** (Electronic Mail or Email) is a digital communication system that enables users to compose, "
+                "transmit, receive, and store messages across computer networks and the global Internet.\n\n"
+                "### Foundational Protocols & Mechanics:\n"
+                "* **SMTP (Simple Mail Transfer Protocol)**: The outbound transmission protocol that routes messages from your client to destination mail transfer agents (MTAs).\n"
+                "* **IMAP / POP3**: Retrieval protocols where **IMAP** keeps mail synchronized across multiple clients/servers and **POP3** downloads messages locally.\n"
+                "* **Structure (MIME Standard)**:\n"
+                "  * *Headers*: Envelope metadata containing Sender (`From`), Recipient (`To`), Subject, and Date.\n"
+                "  * *Body*: The message payload, either plain text or formatted HTML with multipart attachments.\n"
+                "* **DNS Routing**: Uses **MX (Mail Exchange)** DNS resource records to discover the authoritative destination server for any given email domain."
+            )
+
         # 3. "what is cortex-m" / "how does cortex-m work"
         if any(kw in cleaned for kw in ["what is cortex-m", "how does cortex-m work", "explain cortex-m"]):
             return (

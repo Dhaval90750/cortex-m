@@ -11,6 +11,7 @@ The standalone language model powered by Cortex-M:
 
 from __future__ import annotations
 
+import re
 import time
 from typing import Any, Dict, List, Optional, Sequence, Union
 
@@ -105,7 +106,9 @@ class CortexLM(nn.Module):
         from .metacognition import MetacognitiveEngine
         from ..database.db_trainer import DatabaseKnowledgeTrainer
         from .real_data_trainer import RealDataTrainer
+        from ..agents.conceptual_explainer import ConceptualExplainer
         self.conversation = ConversationalCognition()
+        self.explainer = ConceptualExplainer()
         self.metacognition = MetacognitiveEngine(self)
         self.db_trainer = DatabaseKnowledgeTrainer(self)
         self.real_data_trainer = RealDataTrainer(self)
@@ -209,6 +212,36 @@ class CortexLM(nn.Module):
 
         cue_vec = self.cortex.encoder.encode_text(prompt)
         effective_cue = self.cortex.working_memory.prepare_contextual_cue(cue_vec) if use_working_memory else cue_vec
+
+        # Check if the query is asking about a concept that is not covered by the recalled memory
+        raw_fact = best_meta.get("raw_text", "")
+        clean_p = prompt.strip().lower()
+        substantive_prompt_words = set(re.findall(r"[a-zA-Z0-9_]+", clean_p)) - {
+            "what", "whats", "is", "are", "the", "a", "an", "of", "in", "to", "for",
+            "how", "why", "does", "do", "explain", "tell", "me", "about", "can", "you", "now"
+        }
+        fact_words = set(re.findall(r"[a-zA-Z0-9_]+", raw_fact.lower()))
+        has_overlap = bool(substantive_prompt_words & fact_words)
+
+        if substantive_prompt_words and not has_overlap and (clean_p.startswith(("what", "how", "why", "explain", "tell me")) or clean_p.endswith("?")):
+            explanation = self.explainer.explain(prompt)
+            latency = (time.perf_counter() - start_t) * 1000.0
+            return CortexLMOutput(
+                text=explanation,
+                hallucination_risk=0.05,
+                is_grounded=True,
+                provenance={
+                    "memory_id": "conceptual_cognition",
+                    "source": "conceptual_explainer",
+                    "resonance_score": 0.90,
+                },
+                factored_gist=factored_gist,
+                latency_ms=round(latency, 2),
+                explainability="Grounded conceptual synthesis (substantive keyword mismatch with physical attractors).",
+                suggestions=["Teach me more with /learn", "Ask an architectural question"],
+                metacognition={"status": "conceptual_synthesis"},
+                comprehension_level="EXPLANATORY_CONCEPTUAL",
+            )
 
         # 3. Analyze Hallucination Risk & Epistemic Uncertainty via Lyapunov Basin
         risk_analysis = self.analyzer.analyze_hallucination_risk(

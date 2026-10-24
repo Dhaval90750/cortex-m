@@ -33,6 +33,7 @@ class ConversationalCognition:
         """Dynamically classify conversational intent from prompt with human-first resonance."""
         raw = prompt.strip()
         cleaned = raw.lower()
+        normalized = cleaned.replace("'", "").replace("’", "")
         words = re.findall(r"[a-zA-Z0-9_]+", cleaned)
         word_count = len(words)
 
@@ -43,7 +44,23 @@ class ConversationalCognition:
                 response="I'm here and listening! What would you like to explore or build today?",
             )
 
-        # 1. Incomplete / Fragmented Prompts (e.g. "my name is", "my name is ?", "you are", "can you")
+        # 1. Live Clock & Temporal Inquiries: "whats time now", "what time is it", "current time", "what date"
+        time_patterns = [
+            "time now", "whats time", "what time", "what is the time", "current time",
+            "time is it", "tell me the time", "what date", "today date", "current date", "todays date"
+        ]
+        if any(p in normalized for p in time_patterns) or ("time" in words and any(w in words for w in ["what", "whats", "tell", "now"])):
+            import datetime
+            now = datetime.datetime.now()
+            time_str = now.strftime("%I:%M %p")
+            date_str = now.strftime("%A, %B %d, %Y")
+            return ConversationalIntent(
+                is_conversational=True,
+                category="temporal",
+                response=f"The current local time is **{time_str}** on **{date_str}**.",
+            )
+
+        # 2. Incomplete / Fragmented Prompts
         if cleaned in ("my name is", "my name is ?", "my name is?", "name is", "call me"):
             return ConversationalIntent(
                 is_conversational=True,
@@ -65,7 +82,15 @@ class ConversationalCognition:
                 response="Yes, absolutely! I can help you design architectures, synthesize production-grade code, solve algorithms, or explore continuous neural dynamics. What do you have in mind?",
             )
 
-        # 2. User Profile Disclosure: "my name is <Name>", "i am <Name>", "call me <Name>"
+        # 3. Conversational Transitions (e.g. "now", "ok", "next", "then")
+        if cleaned in ("now", "so now", "and now", "then", "next", "what next", "whats next", "what's next"):
+            return ConversationalIntent(
+                is_conversational=True,
+                category="transition",
+                response="Ready when you are! What systems, algorithms, or concepts would you like to explore next?",
+            )
+
+        # 4. User Profile Disclosure: "my name is <Name>", "i am <Name>", "call me <Name>"
         name_match = re.search(r"\b(?:my name is|i am called|call me)\s+([A-Za-z]+)\b", raw, re.IGNORECASE)
         if name_match:
             name = name_match.group(1).strip().capitalize()
@@ -77,8 +102,12 @@ class ConversationalCognition:
                 extracted_data={"user_name": name},
             )
 
-        # 3. User Inquiries About Stored Profile: "what is my name?", "who am i?", "do you remember my name?"
-        if any(p in cleaned for p in ["what is my name", "what's my name", "who am i", "remember my name", "do you know my name"]):
+        # 5. User Inquiries About Stored Profile: "what is my name?", "whats my name", "who am i?"
+        profile_inquiries = [
+            "what is my name", "what's my name", "whats my name", "who am i",
+            "remember my name", "do you know my name", "my name"
+        ]
+        if any(p in normalized for p in profile_inquiries) or (word_count <= 4 and "my" in words and "name" in words):
             user_name = self.user_profile.get("user_name")
             if user_name:
                 return ConversationalIntent(
@@ -93,13 +122,13 @@ class ConversationalCognition:
                     response="I don't have your name in active session memory yet. Please tell me your name (e.g., 'My name is Alex') and I'll remember it!",
                 )
 
-        # 4. Identity Inquiries: "who are you", "what is your name", "what is cortex-m", "what is cortexlm"
+        # 6. Identity Inquiries: "who are you", "what is your name", "whats your name", "what is cortexlm"
         identity_patterns = [
-            "who are you", "what are you", "what is your name", "what's your name",
+            "who are you", "what are you", "what is your name", "what's your name", "whats your name",
             "tell me about yourself", "what is cortex-m", "what is cortex m",
-            "what is cortexlm", "what is cortex lm", "who made you", "introduce yourself"
+            "what is cortexlm", "what is cortex lm", "who made you", "introduce yourself", "your name"
         ]
-        if any(p in cleaned for p in identity_patterns) or (word_count <= 4 and "who" in words and "you" in words):
+        if any(p in normalized for p in identity_patterns) or (word_count <= 4 and (("who" in words and "you" in words) or ("your" in words and "name" in words))):
             return ConversationalIntent(
                 is_conversational=True,
                 category="identity",
@@ -116,12 +145,27 @@ class ConversationalCognition:
                 ),
             )
 
-        # 5. Wellbeing Inquiries: "how are you", "how are you doing", "how's it going", "how do you feel"
+        # 7. User Fact Declaration / Teaching: e.g. "mail is email", "X is Y"
+        def_match = re.match(r"^([a-zA-Z0-9_\s]{2,25})\s+(?:is|means|stands for|refers to)\s+([a-zA-Z0-9_\s\.,'-]{2,100})$", cleaned)
+        if def_match and not any(cleaned.startswith(p) for p in ["what", "whats", "who", "why", "how", "where", "my name", "your name", "you"]):
+            subject = def_match.group(1).strip()
+            predicate = def_match.group(2).strip()
+            return ConversationalIntent(
+                is_conversational=True,
+                category="user_definition",
+                response=(
+                    f"Understood! I've noted that **{subject} is {predicate}** in our active session memory.\n\n"
+                    f"Tip: To commit this permanently into continuous synaptic weights W across sessions, use: `/learn {raw}`"
+                ),
+                extracted_data={"subject": subject, "predicate": predicate},
+            )
+
+        # 8. Wellbeing Inquiries: "how are you", "how are you doing", "how's it going", "how do you feel"
         wellbeing_patterns = [
             "how are you", "how are you doing", "how do you feel", "how is it going",
             "hows it going", "how's it going", "how are things", "are you okay", "what's up", "whats up"
         ]
-        if any(p in cleaned for p in wellbeing_patterns) or (word_count <= 4 and "how" in words and "you" in words):
+        if any(p in normalized for p in wellbeing_patterns) or (word_count <= 4 and "how" in words and "you" in words):
             user_name = self.user_profile.get("user_name")
             greeting_prefix = f"Hello {user_name}! " if user_name else "Hello! "
             return ConversationalIntent(
@@ -134,7 +178,7 @@ class ConversationalCognition:
                 ),
             )
 
-        # 6. Greetings: "hi", "hello", "hey", "good morning", "greetings"
+        # 9. Greetings: "hi", "hello", "hey", "good morning", "greetings"
         greetings_list = ["hi", "hello", "hey", "howdy", "sup", "greetings", "good morning", "good evening", "good afternoon"]
         if cleaned in greetings_list or (word_count <= 2 and any(w in greetings_list for w in words)):
             user_name = self.user_profile.get("user_name")
