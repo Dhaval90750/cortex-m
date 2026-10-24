@@ -37,5 +37,15 @@ def cortex_substrate_main():
     cortex_cli.main()
 
 
+def cortex_lm_main():
+    """Entry point for `cortexlm` and `cortex-lm`."""
+    _ROOT_DIR = os.path.dirname(_SRC_DIR)
+    _SCRIPTS_DIR = os.path.join(_ROOT_DIR, "scripts")
+    if _SCRIPTS_DIR not in sys.path:
+        sys.path.insert(0, _SCRIPTS_DIR)
+    import cortex_lm_chat
+    cortex_lm_chat.main()
+
+
 if __name__ == "__main__":
     cortex_code_main()

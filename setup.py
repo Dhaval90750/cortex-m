@@ -17,6 +17,8 @@ setup(
             "cortexcode = cortex_m.cli:cortex_code_main",
             "cortex-code = cortex_m.cli:cortex_code_main",
             "cortex-substrate = cortex_m.cli:cortex_substrate_main",
+            "cortexlm = cortex_m.cli:cortex_lm_main",
+            "cortex-lm = cortex_m.cli:cortex_lm_main",
         ],
     },
 )
