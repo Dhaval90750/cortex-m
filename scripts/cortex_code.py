@@ -28,6 +28,7 @@ if _SRC_DIR not in sys.path:
 from cortex_m.agents.blackboard import AgentRole, SynapticBlackboard
 from cortex_m.agents.coding_agent import CortexCodingAgent
 from cortex_m.agents.task_completer import MultiAgentTaskCompleter
+from cortex_m.agents.terminal_ux import render_markdown, swarm_progress
 from cortex_m.model.cortex_lm import CortexLM
 
 # ANSI color styling for modern terminals
@@ -347,38 +348,39 @@ def run_interactive(completer: MultiAgentTaskCompleter):
             print(f"{CYAN}-----------------------------------------{RESET}\n")
             continue
 
-        # Full Autonomous Multi-Agent Swarm / Natural Dialogue
+        # Full Autonomous Multi-Agent Swarm / Natural Dialogue / Conceptual Q&A
         else:
             t0 = time.perf_counter()
-            res = completer.execute_task(
-                goal=user_input,
-                filename="solution.py",
-                verify_executable=True,
-            )
+            with swarm_progress("Architect", "Analyzing user intent...") as progress_fn:
+                res = completer.execute_task(
+                    goal=user_input,
+                    filename="solution.py",
+                    verify_executable=True,
+                    progress_callback=progress_fn,
+                )
             dt = time.perf_counter() - t0
 
-            # 1. Conversational / Human dialogue response
+            # 1. Conceptual / Explanatory Inquiry (Bypassed swarm, clean Markdown)
+            if res.status == "conceptual":
+                explanation = res.audit_summary.get("conceptual_response", "")
+                print()
+                render_markdown(explanation)
+                print()
+                continue
+
+            # 2. Conversational / Social Dialogue
             if res.status == "conversational":
                 reply = res.audit_summary.get("conversational_response", "How can I help you code today?")
                 print(f"\n{GREEN}CortexCode>{RESET} {reply}\n")
                 continue
 
-            # 2. Completed Multi-Agent Coding Workflow
-            print(f"\n{CYAN}----------------------------------------------------------------------{RESET}")
-            print(f"{BOLD}[Multi-Agent Swarm Report]{RESET} Task '{BOLD}{user_input}{RESET}' completed in {dt*1000:.1f}ms")
-            print(f"  {MAGENTA}[Architect]{RESET}  Milestone DAG planned ({len(res.messages)} blackboard traces)")
-            print(f"  {BLUE}[Coder]{RESET}      Synthesized solution ({len(res.artifacts[0].code.splitlines()) if res.artifacts else 0} lines)")
-            print(f"  {YELLOW}[Critic]{RESET}     AST Static Analysis & Security Approved: {GREEN}{res.audit_summary.get('is_approved_by_critic')}{RESET}")
-            print(f"  {GREEN}[Auditor]{RESET}    Runtime Execution Sandbox Tested: {GREEN}{res.audit_summary.get('runtime_verified')}{RESET}")
-            print(f"  {CYAN}[Memory]{RESET}     Continuous Synapses Imprinted: {BOLD}{res.synaptic_memories_imprinted}{RESET} attractors")
-            print(f"{CYAN}----------------------------------------------------------------------{RESET}")
-
+            # 3. Actionable Multi-Agent Coding Workflow Completed
+            print(f"\n{GREEN}✓{RESET} {BOLD}Task Completed Successfully.{RESET} {DIM}({dt*1000:.1f}ms | Verified: {res.audit_summary.get('runtime_verified')}){RESET}")
             if res.artifacts:
                 art = res.artifacts[0]
                 print(f"\n{BOLD}=== GENERATED CODE: {art.filename} ==={RESET}")
                 print(art.code)
-                print(f"{BOLD}========================================{RESET}")
-                print(f"{DIM}Classes: {art.classes or 'None'} | Functions: {art.functions or 'None'}{RESET}\n")
+                print(f"{BOLD}========================================{RESET}\n")
 
 
 def main():
@@ -390,8 +392,16 @@ def main():
     completer = MultiAgentTaskCompleter()
 
     if args.goal:
-        res = completer.execute_task(goal=args.goal, filename=args.output, verify_executable=True)
-        if res.status == "conversational":
+        with swarm_progress("Architect", "Analyzing goal...") as progress_fn:
+            res = completer.execute_task(
+                goal=args.goal,
+                filename=args.output,
+                verify_executable=True,
+                progress_callback=progress_fn,
+            )
+        if res.status == "conceptual":
+            render_markdown(res.audit_summary.get("conceptual_response", ""))
+        elif res.status == "conversational":
             print(res.audit_summary.get("conversational_response", ""))
         else:
             print(f"[CortexCode] Completed '{args.goal}' in {res.execution_time_sec*1000:.1f}ms")

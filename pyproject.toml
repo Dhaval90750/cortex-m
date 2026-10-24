@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cortex-m"
+version = "2.0.0"
+description = "CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO & CortexCode Autonomous Swarm"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0.0",
+    "rich>=13.0.0",
+    "numpy>=1.24.0",
+    "matplotlib>=3.7.0",
+]
+
+[project.scripts]
+cortex = "cortex_m.cli:cortex_code_main"
+cortexcode = "cortex_m.cli:cortex_code_main"
+cortex-code = "cortex_m.cli:cortex_code_main"
+cortex-substrate = "cortex_m.cli:cortex_substrate_main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

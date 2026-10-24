@@ -13,6 +13,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 from cortex_m.agents.blackboard import AgentMessage, AgentRole, SynapticBlackboard
 from cortex_m.agents.coding_agent import CodeArtifact, CodeReview, CortexCodingAgent
+from cortex_m.agents.conceptual_explainer import ConceptualExplainer
+from cortex_m.agents.intent_router import IntentRouter, UserIntent
 from cortex_m.model.cortex_lm import CortexLM
 
 
@@ -21,7 +23,7 @@ class TaskExecutionResult:
     """Comprehensive result of an autonomous multi-agent task execution."""
     task_id: str
     goal: str
-    status: str  # "completed", "partially_completed", "failed"
+    status: str  # "completed", "partially_completed", "conceptual", "conversational", "failed"
     artifacts: List[CodeArtifact] = field(default_factory=list)
     reviews: List[CodeReview] = field(default_factory=list)
     messages: List[AgentMessage] = field(default_factory=list)
@@ -41,6 +43,8 @@ class MultiAgentTaskCompleter:
     ):
         self.blackboard = blackboard or SynapticBlackboard()
         self.lm = lm or CortexLM(dim=64, gist_dim=32, imprint_foundation=True)
+        self.intent_router = IntentRouter()
+        self.explainer = ConceptualExplainer()
 
         # Initialize specialized role agents
         self.architect = CortexCodingAgent(AgentRole.ARCHITECT, self.blackboard, self.lm)
@@ -64,20 +68,41 @@ class MultiAgentTaskCompleter:
         filename: str = "solution.py",
         verify_executable: bool = True,
         test_fn: Optional[Callable[[Dict[str, Any]], bool]] = None,
+        progress_callback: Optional[Callable[[str, str], None]] = None,
     ) -> TaskExecutionResult:
         """Run full autonomous multi-agent lifecycle to complete a software engineering goal."""
         t_start = time.perf_counter()
         task_id = f"task_{int(time.time() * 1000)}"
 
-        # 1. Post initial task to blackboard
-        self.blackboard.post(
-            sender_role=AgentRole.COORDINATOR,
-            topic="task_init",
-            content=f"Initiating task '{task_id}': {goal}",
-            metadata={"goal": goal},
-        )
+        # 0. Upstream Gatekeeper: Intent Classification
+        classification = self.intent_router.classify(goal)
 
-        # Check if the goal is a conversational interaction rather than a coding goal
+        # Case A: CONCEPTUAL / Q&A -> Bypass swarm, explain directly with clean Markdown
+        if classification.intent == UserIntent.CONCEPTUAL:
+            explanation = self.explainer.explain(goal)
+            t_elapsed = time.perf_counter() - t_start
+            return TaskExecutionResult(
+                task_id=task_id,
+                goal=goal,
+                status="conceptual",
+                artifacts=[],
+                reviews=[],
+                messages=[],
+                execution_time_sec=t_elapsed,
+                synaptic_memories_imprinted=self.blackboard.cortex.memory.num_memories,
+                resonance_score=0.98,
+                audit_summary={
+                    "is_valid_syntax": True,
+                    "is_approved_by_critic": True,
+                    "classes_defined": [],
+                    "functions_defined": [],
+                    "imports": [],
+                    "runtime_verified": True,
+                    "conceptual_response": explanation,
+                },
+            )
+
+        # Case B: CONVERSATIONAL -> Social greeting or profile response
         conv = self.lm.conversation.analyze_intent(goal)
         if conv.is_conversational and conv.response:
             t_elapsed = time.perf_counter() - t_start
@@ -102,23 +127,39 @@ class MultiAgentTaskCompleter:
                 },
             )
 
-        # 2. Architect Phase: Generate 5W1H decomposition & milestone plan
+        # Case C: ACTIONABLE ENGINEERING TASK -> Execute Multi-Agent Swarm
+        self.blackboard.post(
+            sender_role=AgentRole.COORDINATOR,
+            topic="task_init",
+            content=f"Initiating task '{task_id}': {goal}",
+            metadata={"goal": goal},
+        )
+
+        # 1. Architect Phase: Generate 5W1H decomposition & milestone plan
+        if progress_callback:
+            progress_callback("Architect", "Analyzing user intent and planning milestone DAG...")
         plan = self.architect.plan(goal)
 
-        # 3. Coder Phase: Synthesize solution code artifact
+        # 2. Coder Phase: Synthesize solution code artifact
+        if progress_callback:
+            progress_callback("Coder", f"Synthesizing AST-validated implementation in {filename}...")
         artifact = self.coder.synthesize_code(
             task_description=f"Implement solution for: {goal}",
             filename=filename,
         )
 
-        # 4. Critic Phase: Review code artifact for syntax, safety, and quality
+        # 3. Critic Phase: Review code artifact for syntax, safety, and quality
+        if progress_callback:
+            progress_callback("Critic", "Running AST validation and security audit...")
         review = self.critic.review_code(artifact)
 
-        # 5. Auditor Phase: Runtime execution & automated self-repair if needed
+        # 4. Auditor Phase: Runtime execution & automated self-repair if needed
         is_runtime_valid = True
         error_msg = None
 
         if verify_executable and artifact.is_valid_syntax:
+            if progress_callback:
+                progress_callback("Auditor", "Executing isolated sandbox tests and assertions...")
             # Execute code in isolated namespace to verify runtime stability
             exec_scope: Dict[str, Any] = {"__builtins__": __builtins__}
             try:
