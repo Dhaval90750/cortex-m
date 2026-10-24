@@ -23,6 +23,16 @@ from .pathway.working_memory import WorkingMemoryBuffer
 from .model.cortex_lm import CortexLM, CortexLMOutput
 from .model.real_data_trainer import RealDataTrainer, EVERYDAY_USER_KNOWLEDGE
 from .database.db_trainer import DatabaseKnowledgeTrainer, DatabaseSchemaMetadata
+from .agents import (
+    AgentMessage,
+    AgentRole,
+    CodeArtifact,
+    CodeReview,
+    CortexCodingAgent,
+    MultiAgentTaskCompleter,
+    SynapticBlackboard,
+    TaskExecutionResult,
+)
 from .sdk.engine import CortexEngine, RecallResult, TenantSession
 from .sdk.llm_bridge import CortexLLMBridge
 from .security.critic import NeuromodulatorySafetyCritic
@@ -31,6 +41,14 @@ __all__ = [
     "CortexM",
     "CortexLM",
     "CortexLMOutput",
+    "MultiAgentTaskCompleter",
+    "CortexCodingAgent",
+    "SynapticBlackboard",
+    "AgentRole",
+    "AgentMessage",
+    "CodeArtifact",
+    "CodeReview",
+    "TaskExecutionResult",
     "RealDataTrainer",
     "EVERYDAY_USER_KNOWLEDGE",
     "DatabaseKnowledgeTrainer",
