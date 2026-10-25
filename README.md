@@ -28,6 +28,10 @@ CORTEX-M unites six core cognitive systems under one modular monolith runtime:
 5. **CortexCode**: Repository-aware autonomous software engineering agent with Git integration, AST symbol indexing, unified diffs, 5.0s sandboxed execution, and human approval gates.
 6. **CortexLM**: Continuous attractor neural language model operating natively on PyTorch or acting as a grounded gateway for local SLMs (Ollama/GGUF) and external models.
 
+<p align="center">
+  <img src="assets/ui_previews/cortex_brand_grid.png" alt="CORTEX-M Ecosystem UI Suite" width="100%" />
+</p>
+
 ---
 
 ## 🏷️ Canonical Taxonomy: The CORTEX-M Family
@@ -113,6 +117,21 @@ cortex-m/platforms/
 ├── health/      # CORTEX-Health: Non-clinical neural signal processing, EEG/ECoG & BCI research
 └── space/       # CORTEX-Space: Orbital satellite telemetry, anomaly tracking & NASA SP-8000
 ```
+
+### Visual Platform Gallery
+
+| Platform | Interface Preview & Architecture | Key Specialization |
+|---|---|---|
+| **Cortex Studio Hub** | [![Cortex Studio](assets/ui_previews/cortex_studio_dashboard.png)](platforms/personal/) | 3D Hopfield Attractor Energy Basin & Epistemic Verification Badges |
+| **CortexCode IDE** | [![CortexCode](assets/ui_previews/cortex_code_ide.png)](platforms/ide/) | Side-by-Side Unified Diff Reviewer & Sandboxed Subprocess Test Runner |
+| **CortexResearch** | [![CortexResearch](assets/ui_previews/cortex_research_dashboard.png)](docs/master_plan/cortex_m_master_engineering_and_product_blueprint_full.md#8-layer-5--knowledge-ingestion-and-retrieval) | Citation Provenance Graph & Multi-Source Contradiction Matrix |
+| **CortexLab** | [![CortexLab](assets/ui_previews/cortex_lab_dashboard.png)](docs/master_plan/cortex_m_master_engineering_and_product_blueprint_full.md#11-the-full-language-model-training-programme) | Pre-training & LoRA Fine-Tuning Loss Curves & Attractor Basin Depth |
+| **CORTEX-Fin** | [![CORTEX-Fin](assets/ui_previews/cortex_fin_dashboard.png)](platforms/fin/) | >140k tx/sec Transaction Replay & Explainable Attractor Waterfall |
+| **CORTEX-Robotics** | [![CORTEX-Robotics](assets/ui_previews/cortex_robotics_console.png)](platforms/robotics/) | 6-DOF Manipulator Digital Twin & ISO 10218-1/2 Safety Interlocks |
+| **CORTEX-Mesh** | [![CORTEX-Mesh](assets/ui_previews/cortex_mesh_command.png)](platforms/mesh/) | Decentralized Swarm Topology & BFT Consensus Routing Stream |
+| **CORTEX-Space** | [![CORTEX-Space](assets/ui_previews/cortex_space_mission.png)](platforms/space/) | 3D Orbital Ground Track & NASA SP-8000 Telemetry Anomaly Console |
+| **CORTEX-Health** | [![CORTEX-Health](assets/ui_previews/cortex_health_bci.png)](platforms/health/) | 16-Channel Microvolt Neural Oscilloscope & Wavelet Spectrogram |
+| **CORTEX-OS** | [![CORTEX-OS](assets/ui_previews/cortex_os_dashboard.png)](platforms/os/) | Associative Omnibar Search & Dynamic Cognitive Affinity Clusters |
 
 ---
 

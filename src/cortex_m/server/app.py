@@ -588,6 +588,12 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             cleaned = "index.html"
 
         file_path = _STUDIO_DIR / cleaned
+        if not file_path.exists() and (cleaned.startswith("assets/") or cleaned.startswith("References/")):
+            repo_root = Path(__file__).resolve().parent.parent.parent.parent
+            candidate = repo_root / cleaned
+            if candidate.exists() and not candidate.is_dir():
+                file_path = candidate
+
         if not file_path.exists() or file_path.is_dir():
             # Fallback to index.html for SPA routing
             file_path = _STUDIO_DIR / "index.html"

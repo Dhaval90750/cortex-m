@@ -364,6 +364,78 @@
       transition: all 0.2s ease;
     }
     .mimo-cell.active { background: var(--cyan); color: #070c12; font-weight: 700; box-shadow: 0 0 10px var(--cyan-glow); }
+
+    /* Ecosystem Platform Showcase */
+    .eco-selector-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .eco-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(15, 23, 36, 0.7);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .eco-pill:hover {
+      background: var(--bg-card-hover);
+      color: var(--text);
+      border-color: var(--border-bright);
+    }
+    .eco-pill.active {
+      background: linear-gradient(135deg, rgba(84, 195, 220, 0.2) 0%, rgba(84, 195, 220, 0.05) 100%);
+      color: var(--cyan);
+      border-color: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .eco-display-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .eco-img-container {
+      width: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+    .eco-img-container img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .eco-specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .spec-card {
+      background: rgba(10, 16, 26, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+    .spec-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .spec-value { font-size: 13.5px; font-weight: 600; color: var(--text); }
   </style>
 </head>
 <body>
@@ -390,6 +462,9 @@
       </button>
       <button class="nav-btn" onclick="switchTab('code')">
         <span class="icon">💻</span> Coding Swarm
+      </button>
+      <button class="nav-btn" onclick="switchTab('ecosystem')">
+        <span class="icon">🌐</span> Industrial Ecosystem
       </button>
       <button class="nav-btn" onclick="switchTab('settings')">
         <span class="icon">⚙️</span> Configuration
@@ -611,6 +686,63 @@
           </div>
         </div>
       </div>
+    <!-- 5. INDUSTRIAL ECOSYSTEM PLATFORM SHOWCASE -->
+    <section id="tab-ecosystem" class="view-panel">
+      <div class="top-header">
+        <div>
+          <h2>Industrial Ecosystem Workstreams</h2>
+          <p>Production surfaces and domain-specific mission consoles across the 8 CORTEX-M industrial lines.</p>
+        </div>
+        <div class="status-badge" style="background:rgba(84, 195, 220, 0.15); border-color:var(--border-bright);">
+          <span style="color:var(--cyan); font-weight:700;">8 Platforms Active</span>
+        </div>
+      </div>
+
+      <div class="eco-selector-bar">
+        <button class="eco-pill active" onclick="selectEcosystem('robotics')">🤖 CORTEX-Robotics</button>
+        <button class="eco-pill" onclick="selectEcosystem('mesh')">🛰️ CORTEX-Mesh</button>
+        <button class="eco-pill" onclick="selectEcosystem('space')">🚀 CORTEX-Space</button>
+        <button class="eco-pill" onclick="selectEcosystem('fin')">📈 CORTEX-Fin</button>
+        <button class="eco-pill" onclick="selectEcosystem('health')">🧠 CORTEX-Health BCI</button>
+        <button class="eco-pill" onclick="selectEcosystem('os')">🖥️ CORTEX-OS</button>
+        <button class="eco-pill" onclick="selectEcosystem('code')">💻 CortexCode IDE</button>
+        <button class="eco-pill" onclick="selectEcosystem('research')">🔬 CortexResearch</button>
+        <button class="eco-pill" onclick="selectEcosystem('lab')">🧪 CortexLab</button>
+        <button class="eco-pill" onclick="selectEcosystem('brand')">🎨 Design System</button>
+      </div>
+
+      <div class="eco-display-card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h3 id="eco-title" style="font-size:18px; font-weight:700; margin-bottom:4px;">CORTEX-Robotics Industrial Console</h3>
+            <p id="eco-desc" style="color:var(--text-muted); font-size:13px;">Supervisory joint state telemetry, digital twin simulation, and ISO 10218-1/2 deterministic safety interlocks.</p>
+          </div>
+          <span id="eco-standard" class="badge grounded">ISO 10218-1/2:2025</span>
+        </div>
+
+        <div class="eco-img-container">
+          <img id="eco-image" src="/assets/ui_previews/cortex_robotics_console.png" alt="Ecosystem Console">
+        </div>
+
+        <div class="eco-specs-grid">
+          <div class="spec-card">
+            <div class="spec-label">Execution Boundary</div>
+            <div class="spec-value" id="eco-boundary">Deterministic RTOS & PLC Loop</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-label">Latency Profile</div>
+            <div class="spec-value" id="eco-latency">1.2ms (Worst-case bounded)</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-label">Qualification Standard</div>
+            <div class="spec-value" id="eco-qual">ISO 10218-1/2:2025</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-label">Simulation Mode</div>
+            <div class="spec-value" id="eco-sim">Hardware-in-the-Loop Active</div>
+          </div>
+        </div>
+      </div>
     </section>
 
   </main>
@@ -640,6 +772,126 @@
       if (tabId === 'vault') loadVaultMemories();
       if (tabId === 'mimo') runMIMOSimulation();
       if (tabId === 'settings') loadSettings();
+    }
+
+    const ECOSYSTEM_DATA = {
+      robotics: {
+        title: "CORTEX-Robotics Industrial Console",
+        desc: "Supervisory joint state telemetry, 6-DOF digital twin simulation, and ISO 10218-1/2 deterministic safety interlocks.",
+        standard: "ISO 10218-1/2:2025",
+        img: "/assets/ui_previews/cortex_robotics_console.png",
+        boundary: "Deterministic RTOS & PLC Loop",
+        latency: "1.2ms (Worst-case bounded)",
+        qual: "ISO 10218-1/2:2025 Safety",
+        sim: "6-DOF Digital Twin Active"
+      },
+      mesh: {
+        title: "CORTEX-Mesh Swarm Command Center",
+        desc: "Decentralized cooperative logistics swarm, node health monitoring, and Byzantine Fault Tolerant consensus stream.",
+        standard: "BFT Consensus v2",
+        img: "/assets/ui_previews/cortex_mesh_command.png",
+        boundary: "Civilian Transparent P2P",
+        latency: "4.8ms Distributed Consensus",
+        qual: "RFC 793 / Civilian BFT",
+        sim: "32-Node Simulation Active"
+      },
+      space: {
+        title: "CORTEX-Space Mission Control Dashboard",
+        desc: "3D orbital ground track, EPS/ADCS satellite subsystem telemetry, and radiation latchup anomaly detection.",
+        standard: "NASA NPR 7150.2 / SP-8000",
+        img: "/assets/ui_previews/cortex_space_mission.png",
+        boundary: "CCSDS Telemetry Stream",
+        latency: "<100μs Frame Synchronization",
+        qual: "NASA Flight Software Class B",
+        sim: "Orbital Ground Track Active"
+      },
+      fin: {
+        title: "CORTEX-Fin Replay & Fraud Analytics",
+        desc: "High-throughput transaction replay, multi-dimensional anomaly clustering, and shadow-mode risk attribution.",
+        standard: "Shadow-Mode Isolation",
+        img: "/assets/ui_previews/cortex_fin_dashboard.png",
+        boundary: "Zero Direct Fund Movement",
+        latency: "120μs Scoring Latency",
+        qual: "FCRA / Shadow-Mode Audit",
+        sim: ">140k tx/sec Stream Active"
+      },
+      health: {
+        title: "CORTEX-Health BCI Monitoring Suite",
+        desc: "16-channel microvolt neural oscilloscope, continuous time-frequency spectrogram, and attractor state-space decoding.",
+        standard: "FDA Non-Clinical Research",
+        img: "/assets/ui_previews/cortex_health_bci.png",
+        boundary: "Non-Invasive EEG Waveforms",
+        latency: "Sub-microsecond Timebase",
+        qual: "IEC 62304 / FDA BCI Guidance",
+        sim: "16-Ch Spectrogram Active"
+      },
+      os: {
+        title: "CORTEX-OS Cognitive Workspace",
+        desc: "Semantic memory affinity cluster exploration, associative Omnibar spotlight search, and userspace scheduler.",
+        standard: "Userspace Sandbox",
+        img: "/assets/ui_previews/cortex_os_dashboard.png",
+        boundary: "Userspace Memory Protection",
+        latency: "<250μs Associative Lookup",
+        qual: "POSIX / Native Userspace",
+        sim: "Cognitive Dock Active"
+      },
+      code: {
+        title: "CortexCode Repository-Aware IDE",
+        desc: "AST symbol tree indexing, side-by-side unified diff review, 5.0s sandboxed test runner, and human approval gates.",
+        standard: "Sandboxed Gate",
+        img: "/assets/ui_previews/cortex_code_ide.png",
+        boundary: "Subprocess Sandbox Isolation",
+        latency: "0.84s Test Suite Execution",
+        qual: "Zero Unapproved Writes",
+        sim: "Multi-Agent Swarm Ready"
+      },
+      research: {
+        title: "CortexResearch Intelligence Platform",
+        desc: "Cross-source claim contradiction detection, citation node graph visualization, and verified source provenance.",
+        standard: "Epistemic Provenance",
+        img: "/assets/ui_previews/cortex_research_dashboard.png",
+        boundary: "Untrusted Content Isolation",
+        latency: "350ms Ingestion & Indexing",
+        qual: "NIST AI RMF Calibrated",
+        sim: "Citation Graph Active"
+      },
+      lab: {
+        title: "CortexLab Model Training Suite",
+        desc: "Cluster GPU telemetry, pre-training and LoRA fine-tuning loss curves, and Hopfield attractor well depth metrics.",
+        standard: "H100 Cluster Gateway",
+        img: "/assets/ui_previews/cortex_lab_dashboard.png",
+        boundary: "Isolated Training Workers",
+        latency: "Step 14,200 / 50,000",
+        qual: "PyTorch Distributed DDP",
+        sim: "Loss Convergence Monitored"
+      },
+      brand: {
+        title: "CORTEX-M Master Design System",
+        desc: "Figma-grade human-designed visual language: dark obsidian tokens, glassmorphism blur, and typography scales.",
+        standard: "Linear & Stripe Grade",
+        img: "/assets/ui_previews/cortex_brand_grid.png",
+        boundary: "Pixel-Perfect Web Standards",
+        latency: "60 FPS GPU Composition",
+        qual: "W3C CSS3 / Modern Glass",
+        sim: "Full Design System Active"
+      }
+    };
+
+    function selectEcosystem(key) {
+      const data = ECOSYSTEM_DATA[key];
+      if (!data) return;
+
+      document.querySelectorAll('.eco-pill').forEach(b => b.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      document.getElementById('eco-title').textContent = data.title;
+      document.getElementById('eco-desc').textContent = data.desc;
+      document.getElementById('eco-standard').textContent = data.standard;
+      document.getElementById('eco-image').src = data.img;
+      document.getElementById('eco-boundary').textContent = data.boundary;
+      document.getElementById('eco-latency').textContent = data.latency;
+      document.getElementById('eco-qual').textContent = data.qual;
+      document.getElementById('eco-sim').textContent = data.sim;
     }
 
     // Chatbot Implementation
