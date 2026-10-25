@@ -10,16 +10,16 @@ This directory houses the architectural specifications, safety boundaries, and s
 
 ## The 8 Planned Workstreams
 
-| Platform | Workspace | Target Domain & Architectural Scope | Qualification & Safety Standard |
-|---|---|---|---|
-| **CORTEX-IDE** | [`platforms/ide/`](ide/) | Autonomous repository engineering & patch validation | Sandboxed Execution & Human Approval Gate |
-| **CORTEX-Personal** | [`platforms/personal/`](personal/) | Edge & desktop personal cognitive assistant | Private Tenant Isolation & Zero Cloud Egress |
-| **CORTEX-Fin** | [`platforms/fin/`](fin/) | High-throughput transaction replay & fraud research | Shadow-Mode Isolation & Deterministic Ledgers |
-| **CORTEX-OS** | [`platforms/os/`](os/) | Userspace process scheduling & associative search | Userspace Sandbox & Semantic Affinity Clusters |
-| **CORTEX-Robotics** | [`platforms/robotics/`](robotics/) | Digital twin kinematic simulation & safety envelopes | ISO 10218-1/2:2025 Robotic Safety Standards |
-| **CORTEX-Mesh** | [`platforms/mesh/`](mesh/) | Cooperative logistics swarm & decentralized routing | Civilian Transparent Protocols & BFT Consensus |
-| **CORTEX-Health** | [`platforms/health/`](health/) | Non-clinical neural signal processing & BCI research | FDA Non-Clinical Guidance & IEC 62304 |
-| **CORTEX-Space** | [`platforms/space/`](space/) | Orbital satellite telemetry parsing & anomaly tracking | NASA Flight Software Qualification (NPR 7150.2) |
+| Platform | Workspace | Master PRD & SRS Specification | Target Domain & Architectural Scope | Qualification & Safety Standard |
+|---|---|---|---|---|
+| **CORTEX-IDE** | [`platforms/ide/`](ide/) | [Detailed PRD & SRS](ide/PRD_SRS.md) | Autonomous repository engineering & patch validation | Sandboxed Execution & Human Approval Gate |
+| **CORTEX-Personal** | [`platforms/personal/`](personal/) | [Detailed PRD & SRS](personal/PRD_SRS.md) | Edge & desktop personal cognitive assistant | Private Tenant Isolation & Zero Cloud Egress |
+| **CORTEX-Fin** | [`platforms/fin/`](fin/) | [Detailed PRD & SRS](fin/PRD_SRS.md) | High-throughput transaction replay & fraud research | Shadow-Mode Isolation & Deterministic Ledgers |
+| **CORTEX-OS** | [`platforms/os/`](os/) | [Detailed PRD & SRS](os/PRD_SRS.md) | Userspace process scheduling & associative search | Userspace Sandbox & Semantic Affinity Clusters |
+| **CORTEX-Robotics** | [`platforms/robotics/`](robotics/) | [Detailed PRD & SRS](robotics/PRD_SRS.md) | Digital twin kinematic simulation & safety envelopes | ISO 10218-1/2:2025 Robotic Safety Standards |
+| **CORTEX-Mesh** | [`platforms/mesh/`](mesh/) | [Detailed PRD & SRS](mesh/PRD_SRS.md) | Cooperative logistics swarm & decentralized routing | Civilian Transparent Protocols & BFT Consensus |
+| **CORTEX-Health** | [`platforms/health/`](health/) | [Detailed PRD & SRS](health/PRD_SRS.md) | Non-clinical neural signal processing & BCI research | FDA Non-Clinical Guidance & IEC 62304 |
+| **CORTEX-Space** | [`platforms/space/`](space/) | [Detailed PRD & SRS](space/PRD_SRS.md) | Orbital satellite telemetry parsing & anomaly tracking | NASA Flight Software Qualification (NPR 7150.2) |
 
 ---
 

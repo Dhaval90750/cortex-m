@@ -29,6 +29,7 @@ This directory contains the complete theoretical, architectural, empirical, and 
 ## 4. Architecture & Technical Specifications (`docs/architecture/`)
 - [Project Executive Summary](architecture/PROJECT_EXECUTIVE_SUMMARY.md)
 - [Core Architecture Guide](architecture/architecture.md)
+- [Human Developmental Learning, Synaptic Knowledge Grafting & Multimodal Embodiment](architecture/human_developmental_learning_and_multimodal_embodiment.md)
 - [Ecosystem Design System & Purpose-Driven Chromatic Identities](architecture/design_system.md)
 - [Architecture Decisions Record (ADR)](architecture/decisions.md)
 - [Dynamic Gist Methods](architecture/dynamic_gist_methods.md)
@@ -40,5 +41,14 @@ This directory contains the complete theoretical, architectural, empirical, and 
 
 ---
 
-## 5. Architectural Figures (`docs/figures/`)
+## 5. Master Product Requirements & Specifications (PRD / SRS) (`docs/specifications/`)
+- [Master Ecosystem PRD & SRS Specifications Index](specifications/README.md)
+- [CORTEX-M Core Substrate PRD & SRS](specifications/cortex_m_core/PRD_SRS.md)
+- [CortexLM Language Model PRD & SRS](specifications/cortex_lm/PRD_SRS.md)
+- [Industrial Platforms PRD & SRS Suite](../platforms/README.md)
+
+---
+
+## 6. Architectural Figures (`docs/figures/`)
 Diagrams and vector visualizations illustrating continuous Hopfield attractors, causal MIMO routing, and multi-tenant paging.
+
