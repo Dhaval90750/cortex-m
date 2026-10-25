@@ -1,6 +1,6 @@
 # CORTEX-M Application Entry Points
 
-This directory houses the user-facing application entry points for CORTEX-M. All applications share the same underlying [`cortex_m.core.runtime`](file:///e:/Research/Cortex-M/src/cortex_m/core/runtime.py) without duplicating application logic.
+This directory houses the user-facing application entry points for CORTEX-M. All applications share the same underlying [`cortex_m.core.runtime`](../src/cortex_m/core/runtime.py) without duplicating application logic.
 
 ---
 

@@ -204,17 +204,17 @@ All cognitive skills operate **dynamically** via semantic feature extraction (`_
 ## 7. Deliverables & Documentation Suite
 
 1. **Comprehensive Research Monograph:**  
-   [docs/research_paper.md](file:///e:/Research/Cortex-M/docs/research_paper.md) (11 comprehensive sections covering the full research arc from base foundations to current state).
+   [docs/papers/research_paper.md](../papers/research_paper.md) (11 comprehensive sections covering the full research arc from base foundations to current state).
 2. **Camera-Ready IEEE Transactions Paper:**  
-   [docs/cortex_m_ieee_research_paper.md](file:///e:/Research/Cortex-M/docs/cortex_m_ieee_research_paper.md) (Formatted for IEEE TNNLS).
+   [docs/papers/cortex_m_ieee_research_paper.md](../papers/cortex_m_ieee_research_paper.md) (Formatted for IEEE TNNLS).
 3. **IEEE LaTeX Submission Source:**  
-   [docs/cortex_m_ieee_research_paper.tex](file:///e:/Research/Cortex-M/docs/cortex_m_ieee_research_paper.tex) (Compilable `\documentclass[journal]{IEEEtran}` source).
+   [docs/papers/cortex_m_ieee_research_paper.tex](../papers/cortex_m_ieee_research_paper.tex) (Compilable `\documentclass[journal]{IEEEtran}` source).
 4. **Publication-Quality Rendered PDF:**  
-   [docs/cortex_m_ieee_research_paper.pdf](file:///e:/Research/Cortex-M/docs/cortex_m_ieee_research_paper.pdf) (Complete with title block, tables, equations, and embedded figures).
+   [docs/papers/cortex_m_ieee_research_paper.pdf](../papers/cortex_m_ieee_research_paper.pdf) (Complete with title block, tables, equations, and embedded figures).
 5. **Interactive Industrial CLI:**  
-   [scripts/cortex_code.py](file:///e:/Research/Cortex-M/scripts/cortex_code.py) (Full cognitive slash commands, swarm execution, and natural dialogue).
+   [scripts/cortex_code.py](../../scripts/cortex_code.py) (Full cognitive slash commands, swarm execution, and natural dialogue).
 6. **Mobile / Edge Substrate:**  
-   [dist_mobile/cortex_m_mobile.pt](file:///e:/Research/Cortex-M/dist_mobile/cortex_m_mobile.pt) ($20.8\text{ KB}$ binary).
+   [dist_mobile/cortex_m_mobile.pt](../../dist_mobile/cortex_m_mobile.pt) ($20.8\text{ KB}$ binary).
 
 ---
 

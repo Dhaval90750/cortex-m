@@ -1,0 +1,43 @@
+name: CORTEX-M Continuous Integration
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install -e .
+
+    - name: Run Core & Agent Test Suite (49 Tests)
+      run: |
+        python -m unittest discover -s tests
+
+    - name: Run MIMO Pathway & Synaptic Memory Suite (80 Tests)
+      run: |
+        python -m unittest discover -s tests_mimo
+
+    - name: Verify Comparative Epistemic Benchmark
+      run: |
+        python benchmarks/run_comparison_benchmark.py
