@@ -6,6 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "cortex-m"
 version = "2.0.0"
 description = "CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO & CortexCode Autonomous Swarm"
+authors = [
+    {name = "Dhaval Thaware", email = "thawaredhaval24@gmail.com"}
+]
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [

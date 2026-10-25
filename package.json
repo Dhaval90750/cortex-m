@@ -24,7 +24,7 @@
     "anti-hallucination",
     "hebbian-learning"
   ],
-  "author": "Cortex-M Team",
+  "author": "Dhaval Thaware <thawaredhaval24@gmail.com> (https://github.com/Dhaval90750)",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=16.0.0"

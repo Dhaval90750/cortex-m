@@ -3,6 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name="cortex-m",
     version="2.0.0",
+    author="Dhaval Thaware",
+    author_email="thawaredhaval24@gmail.com",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     install_requires=[
