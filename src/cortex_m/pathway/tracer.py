@@ -118,6 +118,8 @@ class PathwayTracer:
             trace.synaptic_delta = synaptic_delta.detach().clone()
             trace.synaptic_delta_norm = float(synaptic_delta.norm().item())
         self.history.append(trace)
+        if len(self.history) > 1000:
+            self.history.pop(0)
         return trace
 
     @staticmethod

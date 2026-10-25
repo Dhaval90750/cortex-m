@@ -69,7 +69,20 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 cortex.close()
         elif path == "/favicon.ico":
-            self._send(204, b"", "image/x-icon")
+            fav = ROOT / "assets" / "cortex_m_logo.png"
+            if fav.exists():
+                self._send(200, fav.read_bytes(), "image/png")
+            else:
+                self._send(204, b"", "image/x-icon")
+        elif path.startswith("/assets/"):
+            rel_file = path[len("/assets/"):]
+            asset_path = (ROOT / "assets" / rel_file).resolve()
+            if asset_path.exists() and asset_path.is_file() and str(asset_path).startswith(str((ROOT / "assets").resolve())):
+                ext = asset_path.suffix.lower()
+                content_type = "image/png" if ext == ".png" else "application/octet-stream"
+                self._send(200, asset_path.read_bytes(), content_type)
+            else:
+                self._json(404, {"error": "Asset not found"})
         else:
             self._json(404, {"error": "Not found"})
 

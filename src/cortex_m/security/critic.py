@@ -88,11 +88,14 @@ class NeuromodulatorySafetyCritic(nn.Module):
             self.blocked_poisoning_attempts += 1
             return False, 0.0, f"BLOCKED: Attempt to modify immutable system invariant '{target_memory_id}'"
 
-        # 2. Check lexical prompt-injection triggers
+        # 2. Check lexical prompt-injection triggers with normalized matching
         if raw_text:
             text_lower = raw_text.lower().strip()
+            text_normalized = re.sub(r"[^\w\s]", "", text_lower)
+            text_normalized = re.sub(r"\s+", " ", text_normalized)
             for trigger in self.ADVERSARIAL_TRIGGERS:
-                if trigger in text_lower:
+                trig_norm = re.sub(r"[^\w\s]", "", trigger)
+                if trigger in text_lower or trig_norm in text_normalized:
                     self.blocked_poisoning_attempts += 1
                     self.quarantined_patterns.append({
                         "raw_text": raw_text,

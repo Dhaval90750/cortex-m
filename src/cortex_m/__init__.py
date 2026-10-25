@@ -25,6 +25,7 @@ from .pathway.synaptic_memory import SynapticMemoryNetwork
 from .pathway.tenant_paging import SynapticTenantManager
 from .pathway.tracer import PathwayTrace, PathwayTracer
 from .pathway.working_memory import WorkingMemoryBuffer
+from .core import CortexConfig, CortexError, CortexEvent, CortexRuntime, EventBus, EventType
 from .model.cortex_lm import CortexLM, CortexLMOutput
 from .model.real_data_trainer import RealDataTrainer, EVERYDAY_USER_KNOWLEDGE
 from .database.db_trainer import DatabaseKnowledgeTrainer, DatabaseSchemaMetadata

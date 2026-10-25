@@ -375,18 +375,48 @@ def run_interactive(completer: MultiAgentTaskCompleter):
                 continue
 
             # 3. Actionable Multi-Agent Coding Workflow Completed
-            print(f"\n{GREEN}✓{RESET} {BOLD}Task Completed Successfully.{RESET} {DIM}({dt*1000:.1f}ms | Verified: {res.audit_summary.get('runtime_verified')}){RESET}")
+            print(f"\n{GREEN}✓{RESET} {BOLD}Task Completed Successfully.{RESET} {DIM}({dt*1000:.1f}ms | Sandbox Verified: {res.sandbox_test_passed}){RESET}")
+            if res.git_status and res.git_status.get("is_git_repo"):
+                print(f"  {DIM}Git: {res.git_status.get('branch')} ({res.git_status.get('commit_hash')}){RESET}")
+            
+            if res.patch_diff:
+                print(f"\n{CYAN}--- UNIFIED PATCH DIFF ({res.artifacts[0].filename if res.artifacts else 'code'}) ---{RESET}")
+                for dline in res.patch_diff.splitlines()[:25]:
+                    if dline.startswith("+"):
+                        print(f"{GREEN}{dline}{RESET}")
+                    elif dline.startswith("-"):
+                        print(f"{RED}{dline}{RESET}")
+                    elif dline.startswith("@"):
+                        print(f"{CYAN}{dline}{RESET}")
+                    else:
+                        print(f" {dline}")
+                if len(res.patch_diff.splitlines()) > 25:
+                    print(f"  {DIM}... ({len(res.patch_diff.splitlines()) - 25} more lines in patch diff) ...{RESET}")
+                print(f"{CYAN}-------------------------------------------------------{RESET}")
+
             if res.artifacts:
                 art = res.artifacts[0]
                 print(f"\n{BOLD}=== GENERATED CODE: {art.filename} ==={RESET}")
                 print(art.code)
                 print(f"{BOLD}========================================{RESET}\n")
 
+                try:
+                    prompt_write = input(f"Save code to '{art.filename}' on disk? [y/N]: ").strip().lower()
+                    if prompt_write in ("y", "yes"):
+                        with open(art.filename, "w", encoding="utf-8") as f:
+                            f.write(art.code)
+                        print(f"{GREEN}✓ Successfully saved code to {art.filename}{RESET}\n")
+                    else:
+                        print(f"{YELLOW}Skipped writing file to disk.{RESET}\n")
+                except (KeyboardInterrupt, EOFError):
+                    print(f"\n{YELLOW}Skipped writing file.{RESET}\n")
+
 
 def main():
     parser = argparse.ArgumentParser(description="CortexCode (CORTEX-Coder) Industrial CLI")
     parser.add_argument("--goal", type=str, help="Coding goal to complete in one-shot mode")
     parser.add_argument("--output", type=str, default="solution.py", help="Output filename for code")
+    parser.add_argument("--yes", "-y", action="store_true", help="Automatically accept and write patch to disk without prompt")
     args = parser.parse_args()
 
     completer = MultiAgentTaskCompleter()
@@ -405,10 +435,24 @@ def main():
             print(res.audit_summary.get("conversational_response", ""))
         else:
             print(f"[CortexCode] Completed '{args.goal}' in {res.execution_time_sec*1000:.1f}ms")
+            if res.patch_diff:
+                print("\n--- UNIFIED DIFF ---")
+                print(res.patch_diff[:500] + ("..." if len(res.patch_diff) > 500 else ""))
             if res.artifacts:
-                with open(args.output, "w", encoding="utf-8") as f:
-                    f.write(res.artifacts[0].code)
-                print(f"Saved generated code to: {args.output}")
+                should_save = args.yes
+                if not should_save:
+                    try:
+                        ans = input(f"Apply patch to '{args.output}'? [y/N]: ").strip().lower()
+                        should_save = ans in ("y", "yes")
+                    except (KeyboardInterrupt, EOFError):
+                        should_save = False
+
+                if should_save:
+                    with open(args.output, "w", encoding="utf-8") as f:
+                        f.write(res.artifacts[0].code)
+                    print(f"Saved generated code to: {args.output}")
+                else:
+                    print("Code previewed without saving to disk.")
                 print("-" * 60)
                 print(res.artifacts[0].code)
                 print("-" * 60)

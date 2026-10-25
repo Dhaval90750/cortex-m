@@ -41,6 +41,8 @@ class CortexLMOutput:
         suggestions: Optional[List[str]] = None,
         metacognition: Optional[Dict[str, Any]] = None,
         comprehension_level: str = "STANDARD_EXPERT",
+        evidence_report: Optional[Dict[str, Any]] = None,
+        evidence_status: Optional[str] = None,
     ):
         self.text = text
         self.hallucination_risk = hallucination_risk
@@ -52,10 +54,11 @@ class CortexLMOutput:
         self.suggestions = suggestions or []
         self.metacognition = metacognition or {}
         self.comprehension_level = comprehension_level
+        self.evidence_report = evidence_report or {}
+        self.evidence_status = evidence_status or ("VERIFIED" if is_grounded else "INSUFFICIENT_EVIDENCE")
 
     def __repr__(self) -> str:
-        status = "GROUNDED" if self.is_grounded else "ABSTAINED"
-        return f"<CortexLMOutput [{status}] risk={self.hallucination_risk:.3f} level={self.comprehension_level} text='{self.text[:60]}...'>"
+        return f"<CortexLMOutput [{self.evidence_status}] risk={self.hallucination_risk:.3f} level={self.comprehension_level} text='{self.text[:60]}...'>"
 
 
 class CortexLM(nn.Module):
@@ -213,17 +216,9 @@ class CortexLM(nn.Module):
         cue_vec = self.cortex.encoder.encode_text(prompt)
         effective_cue = self.cortex.working_memory.prepare_contextual_cue(cue_vec) if use_working_memory else cue_vec
 
-        # Check if the query is asking about a concept that is not covered by the recalled memory
-        raw_fact = best_meta.get("raw_text", "")
+        # Check if the query is asking about a known educational concept
         clean_p = prompt.strip().lower()
-        substantive_prompt_words = set(re.findall(r"[a-zA-Z0-9_]+", clean_p)) - {
-            "what", "whats", "is", "are", "the", "a", "an", "of", "in", "to", "for",
-            "how", "why", "does", "do", "explain", "tell", "me", "about", "can", "you", "now"
-        }
-        fact_words = set(re.findall(r"[a-zA-Z0-9_]+", raw_fact.lower()))
-        has_overlap = bool(substantive_prompt_words & fact_words)
-
-        if substantive_prompt_words and not has_overlap and (clean_p.startswith(("what", "how", "why", "explain", "tell me")) or clean_p.endswith("?")):
+        if not use_working_memory and self.explainer.is_specific_conceptual(clean_p):
             explanation = self.explainer.explain(prompt)
             latency = (time.perf_counter() - start_t) * 1000.0
             return CortexLMOutput(
@@ -237,7 +232,7 @@ class CortexLM(nn.Module):
                 },
                 factored_gist=factored_gist,
                 latency_ms=round(latency, 2),
-                explainability="Grounded conceptual synthesis (substantive keyword mismatch with physical attractors).",
+                explainability="Grounded conceptual synthesis from educational domain index.",
                 suggestions=["Teach me more with /learn", "Ask an architectural question"],
                 metacognition={"status": "conceptual_synthesis"},
                 comprehension_level="EXPLANATORY_CONCEPTUAL",
@@ -280,6 +275,9 @@ class CortexLM(nn.Module):
 
         latency = (time.perf_counter() - start_t) * 1000.0
 
+        ev_report = recall_data.get("evidence_report") if "recall_data" in locals() else None
+        ev_status = recall_data.get("evidence_status") if "recall_data" in locals() else ("VERIFIED" if gen_result["grounded"] else "INSUFFICIENT_EVIDENCE")
+
         return CortexLMOutput(
             text=gen_result["generated_text"],
             hallucination_risk=risk_analysis["hallucination_risk_score"],
@@ -298,6 +296,8 @@ class CortexLM(nn.Module):
                 "active_learning_prompt": meta_eval.active_learning_prompt,
             },
             comprehension_level=meta_eval.how_comprehension_level,
+            evidence_report=ev_report,
+            evidence_status=ev_status,
         )
 
     def chat(self, message: str, tenant_id: Optional[str] = None) -> CortexLMOutput:

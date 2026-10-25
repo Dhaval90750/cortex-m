@@ -33,6 +33,7 @@ from .pathway.tenant_paging import SynapticTenantManager
 from .pathway.tracer import PathwayTrace, PathwayTracer
 from .pathway.working_memory import WorkingMemoryBuffer
 from .security.critic import NeuromodulatorySafetyCritic
+from .security.evidence import EvidenceStatus, EvidenceVerificationReport, EvidenceVerifier
 from .skills.registry import SkillRegistry
 
 
@@ -88,6 +89,9 @@ class CortexV2:
 
         # Modular Cognitive & Engineering Skills Engine
         self.skills = SkillRegistry(cortex=self)
+
+        # Structured Evidence Verification Pipeline
+        self.evidence_verifier = EvidenceVerifier()
 
     def execute_skill(
         self,
@@ -210,12 +214,24 @@ class CortexV2:
             source_attribution=diag["source_attribution"],
         )
 
+        evidence = self.evidence_verifier.verify(
+            query=cue_text or "vector_query",
+            best_metadata=diag["best_metadata"],
+            attractor_similarity=diag.get("cue_similarity", diag["attractor_similarity"]),
+            resonance=diag["resonance"],
+            steps_taken=diag["steps_taken"],
+            energy_drop=diag["energy_drop"],
+            final_energy=trace.final_energy if hasattr(trace, "final_energy") else 0.0,
+        )
+
         return {
             "recalled_state": recalled_state,
             "cue_text": cue_text,
             "best_memory_id": diag["best_memory_id"],
             "best_metadata": diag["best_metadata"],
             "attractor_similarity": diag["attractor_similarity"],
+            "cue_similarity": diag.get("cue_similarity", diag["attractor_similarity"]),
+            "attractor_displacement": diag.get("attractor_displacement", 0.0),
             "resonance": diag["resonance"],
             "source_attribution": diag["source_attribution"],
             "gist": gist,
@@ -224,6 +240,8 @@ class CortexV2:
             "energy_drop": diag["energy_drop"],
             "steps_taken": diag["steps_taken"],
             "trace_summary": trace.summary(),
+            "evidence_report": evidence.to_dict(),
+            "evidence_status": evidence.status.value,
         }
 
     def forget(
@@ -397,18 +415,7 @@ class CortexV2:
         tenant = self.tenant_manager.get_or_create_tenant(tenant_id)
         effective_w = self.tenant_manager.get_effective_weights(tenant_id)
 
-        active_w = self.memory.synaptic_weights.clone()
-        active_attractors = self.memory.memory_attractors
-        active_metadata = list(self.memory.memory_metadata)
-
-        combined_attractors = active_attractors
-        combined_metadata = list(active_metadata)
-        if tenant.stored_patterns:
-            t_stack = torch.stack(tenant.stored_patterns, dim=0).to(self.device)
-            combined_attractors = torch.cat([combined_attractors, t_stack], dim=0) if combined_attractors.size(0) > 0 else t_stack
-            combined_metadata.extend(tenant.stored_metadata)
-
-        if combined_attractors.size(0) == 0:
+        if self.memory.num_memories == 0 and not tenant.stored_patterns:
             return {
                 "tenant_id": tenant_id,
                 "recalled_state": cue_vector,
@@ -421,15 +428,15 @@ class CortexV2:
                 "source_attribution": {"dominant_source": f"tenant_{tenant_id}"},
             }
 
-        self.memory.synaptic_weights.copy_(effective_w)
-        self.memory.memory_attractors = combined_attractors
-        self.memory.memory_metadata = combined_metadata
-        try:
-            recalled, trace, diag = self.memory.recall(cue_vector)
-        finally:
-            self.memory.synaptic_weights.copy_(active_w)
-            self.memory.memory_attractors = active_attractors
-            self.memory.memory_metadata = active_metadata
+        t_stack = torch.stack(tenant.stored_patterns, dim=0).to(self.device) if tenant.stored_patterns else None
+        t_meta = list(tenant.stored_metadata) if tenant.stored_metadata else None
+
+        recalled, trace, diag = self.memory.recall(
+            cue_vector,
+            synaptic_override=effective_w,
+            extra_attractors=t_stack,
+            extra_metadata=t_meta,
+        )
 
         return {
             "tenant_id": tenant_id,
@@ -447,3 +454,11 @@ class CortexV2:
         """Process input through Ventral (Factored Gist) + Dorsal (Verbatim Code/Math) streams."""
         encoded = self.encoder.encode_text(text_or_code)
         return self.dual_stream.process(text_or_code, encoded)
+
+    def save_synapses(self, filepath: str) -> Dict[str, Any]:
+        """Save synaptic network state to disk for persistent zero-DB recall."""
+        return self.memory.save_checkpoint(filepath)
+
+    def load_synapses(self, filepath: str) -> Dict[str, Any]:
+        """Load synaptic network state from disk."""
+        return self.memory.load_checkpoint(filepath)

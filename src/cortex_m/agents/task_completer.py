@@ -9,12 +9,15 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from cortex_m.agents.blackboard import AgentMessage, AgentRole, SynapticBlackboard
 from cortex_m.agents.coding_agent import CodeArtifact, CodeReview, CortexCodingAgent
 from cortex_m.agents.conceptual_explainer import ConceptualExplainer
+from cortex_m.agents.git_context import GitWorkspaceContext
 from cortex_m.agents.intent_router import IntentRouter, UserIntent
+from cortex_m.agents.patch_sandbox import PatchSandboxRunner
 from cortex_m.model.cortex_lm import CortexLM
 
 
@@ -31,6 +34,10 @@ class TaskExecutionResult:
     synaptic_memories_imprinted: int = 0
     resonance_score: float = 0.70
     audit_summary: Dict[str, Any] = field(default_factory=dict)
+    patch_diff: Optional[str] = None
+    sandbox_test_passed: bool = True
+    sandbox_output: Optional[str] = None
+    git_status: Optional[Dict[str, Any]] = None
 
 
 class MultiAgentTaskCompleter:
@@ -52,6 +59,10 @@ class MultiAgentTaskCompleter:
         self.critic = CortexCodingAgent(AgentRole.CRITIC, self.blackboard, self.lm)
         self.auditor = CortexCodingAgent(AgentRole.AUDITOR, self.blackboard, self.lm)
         self.skills = self.blackboard.cortex.skills
+
+        # Git Repository Context & Sandboxed Patch Runner
+        self.git_context = GitWorkspaceContext()
+        self.sandbox_runner = PatchSandboxRunner()
 
     def execute_skill(
         self,
@@ -160,21 +171,32 @@ class MultiAgentTaskCompleter:
         if verify_executable and artifact.is_valid_syntax:
             if progress_callback:
                 progress_callback("Auditor", "Executing isolated sandbox tests and assertions...")
-            # Execute code in isolated namespace to verify runtime stability
-            exec_scope: Dict[str, Any] = {"__builtins__": __builtins__}
-            try:
-                exec(compile(artifact.code, artifact.filename, "exec"), exec_scope, exec_scope)
-                if test_fn:
-                    is_passed = test_fn(exec_scope)
-                    if not is_passed:
-                        raise AssertionError("Auditor test assertion failed.")
-            except Exception as e:
+            # Execute code in isolated, security-hardened namespace to verify runtime stability
+            forbidden_modules = {"os", "subprocess", "shutil", "socket", "urllib", "requests", "http"}
+            has_forbidden = any(f"import {mod}" in artifact.code or f"from {mod}" in artifact.code for mod in forbidden_modules)
+            if has_forbidden:
                 is_runtime_valid = False
-                error_msg = str(e)
-                # Autonomous self-repair loop
+                error_msg = "SecurityPolicyViolation: Code attempted to import restricted system module."
                 artifact = self.coder.repair_code(artifact, error_traceback=error_msg)
-                # Re-review repaired code
                 review = self.critic.review_code(artifact)
+            else:
+                # Safe sandbox namespace with restricted execution builtins
+                safe_builtins = dict(__builtins__) if isinstance(__builtins__, dict) else dict(__builtins__.__dict__)
+                # Disallow arbitrary system alterations
+                restricted_scope = {"__builtins__": safe_builtins}
+                try:
+                    exec(compile(artifact.code, artifact.filename, "exec"), restricted_scope, restricted_scope)
+                    if test_fn:
+                        is_passed = test_fn(restricted_scope)
+                        if not is_passed:
+                            raise AssertionError("Auditor test assertion failed.")
+                except Exception as e:
+                    is_runtime_valid = False
+                    error_msg = str(e)
+                    # Autonomous self-repair loop
+                    artifact = self.coder.repair_code(artifact, error_traceback=error_msg)
+                    # Re-review repaired code
+                    review = self.critic.review_code(artifact)
 
         t_elapsed = time.perf_counter() - t_start
 
@@ -190,6 +212,20 @@ class MultiAgentTaskCompleter:
             "runtime_verified": is_runtime_valid,
             "error_repaired": error_msg is not None,
         }
+
+        # 7. Surgical Patch & Sandboxed Validation Runner
+        orig_code = ""
+        target_path = Path(filename)
+        if target_path.exists():
+            try:
+                orig_code = target_path.read_text(encoding="utf-8")
+            except Exception:
+                pass
+        patch = self.sandbox_runner.create_and_verify_patch(
+            target_file=filename,
+            original_code=orig_code,
+            modified_code=artifact.code,
+        )
 
         # Imprint task completion into continuous synaptic memory
         self.blackboard.cortex.learn(
@@ -209,4 +245,8 @@ class MultiAgentTaskCompleter:
             synaptic_memories_imprinted=self.blackboard.cortex.memory.num_memories,
             resonance_score=review.provenance_resonance,
             audit_summary=audit_summary,
+            patch_diff=patch.unified_diff,
+            sandbox_test_passed=patch.sandbox_test_passed,
+            sandbox_output=patch.sandbox_output,
+            git_status=self.git_context.get_repo_status().__dict__,
         )

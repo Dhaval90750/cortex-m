@@ -188,8 +188,49 @@ class CortexCodingAgent:
 
         # Analyze error and generate surgical fix
         repaired_code = artifact.code
+
+        # 1. NameError: Auto-inject missing standard imports
+        name_err_match = re.search(r"name '([a-zA-Z0-9_]+)' is not defined", error_traceback)
+        if name_err_match:
+            missing_sym = name_err_match.group(1)
+            import_map = {
+                "OrderedDict": "from collections import OrderedDict",
+                "deque": "from collections import deque",
+                "defaultdict": "from collections import defaultdict",
+                "Counter": "from collections import Counter",
+                "heapq": "import heapq",
+                "math": "import math",
+                "time": "import time",
+                "re": "import re",
+                "List": "from typing import List",
+                "Dict": "from typing import Dict",
+                "Tuple": "from typing import Tuple",
+                "Optional": "from typing import Optional",
+                "Any": "from typing import Any",
+                "Union": "from typing import Union",
+                "Set": "from typing import Set",
+                "TypeVar": "from typing import TypeVar",
+                "Generic": "from typing import Generic",
+            }
+            if missing_sym in import_map and import_map[missing_sym] not in repaired_code:
+                repaired_code = f"{import_map[missing_sym]}\n" + repaired_code
+
+        # 2. SyntaxError: Fix common missing colons on definition and control flow headers
+        if "SyntaxError" in error_traceback or "invalid syntax" in error_traceback:
+            fixed_lines = []
+            for line in repaired_code.splitlines():
+                stripped = line.rstrip()
+                if re.match(r"^\s*(def|class|if|elif|else|for|while|try|except|finally|with)\b", stripped) and not stripped.endswith(":") and not stripped.endswith("\\"):
+                    stripped += ":"
+                fixed_lines.append(stripped)
+            repaired_code = "\n".join(fixed_lines)
+
+        # 3. SecurityPolicyViolation: Strip dangerous system imports
+        if "SecurityPolicyViolation" in error_traceback:
+            repaired_code = re.sub(r"^\s*(import\s+(?:os|subprocess|shutil|socket)|from\s+(?:os|subprocess|shutil|socket)\s+import\s+.*)$", "# Restricted import removed by security auditor", repaired_code, flags=re.MULTILINE)
+
+        # 4. Boundary & Off-by-one repairs
         if "ValueError" in error_traceback or "Capacity must be positive" in error_traceback:
-            # Fix boundary check logic
             repaired_code = re.sub(
                 r"if capacity <= 0:",
                 "if capacity <= 0:\n            raise ValueError('Capacity must be positive.')",

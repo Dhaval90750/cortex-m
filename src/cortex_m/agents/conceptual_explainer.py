@@ -18,6 +18,19 @@ from typing import Any, Dict, Optional
 class ConceptualExplainer:
     """Delivers clear, structured conceptual teaching without software swarm overhead."""
 
+    def is_specific_conceptual(self, query: str) -> bool:
+        """Check if query specifically matches known educational concept domains."""
+        cleaned = query.strip().lower()
+        topics = [
+            "what is coding", "understand what is coding", "what is programming", "meaning of coding",
+            "what is an api", "what is api", "explain api", "what are apis",
+            "what is mail", "what is email", "explain email", "meaning of mail", "what is an email",
+            "what is cortex-m", "how does cortex-m work", "explain cortex-m",
+            "what is a compiler", "how does a compiler work", "explain compiler",
+            "process and thread", "process vs thread", "threads vs processes",
+        ]
+        return any(kw in cleaned for kw in topics)
+
     def explain(self, query: str, context: Optional[Dict[str, Any]] = None) -> str:
         """Synthesize a structured, readable Markdown explanation for a conceptual question."""
         cleaned = query.strip().lower()
@@ -116,15 +129,60 @@ class ConceptualExplainer:
                 "**Analogy**: Think of a process as a separate office building, while threads are coworkers collaborating inside the same room sharing the same whiteboards."
             )
 
-        # 6. General Conceptual Template
-        topic_title = query.strip().rstrip("?").capitalize()
+        # 6. Dynamic Conceptual Domain Synthesis
+        # Extract target subject
+        subject_match = re.search(r"(?:what is|what are|explain|how does|meaning of|difference between|understand what is)\s+(?:an?\s+)?(.+)", cleaned)
+        subject = subject_match.group(1).rstrip("?").strip() if subject_match else cleaned.rstrip("?").strip()
+        topic_title = subject.title()
+
+        # Domain classification for rich explanations
+        if any(w in cleaned for w in ["recur", "recursive", "base case", "induction"]):
+            return (
+                f"**{topic_title}** is a computational problem-solving technique where a function solves a problem "
+                f"by calling itself with progressively smaller instances of the same problem until reaching a termination condition.\n\n"
+                f"Think of it like **Russian Nesting Dolls (Matryoshka)**: each doll opens to reveal a smaller doll inside, "
+                f"until you reach the smallest solid doll at the center (the *base case*), at which point you stop.\n\n"
+                f"### Core Pillars:\n"
+                f"* **Base Case**: The non-recursive guard that halts recursion and prevents stack overflow.\n"
+                f"* **Recursive Step**: Reducing problem size towards the base case (e.g., `f(n) = n * f(n-1)`).\n"
+                f"* **Call Stack**: Each invocation pushes a stack frame; unwinding aggregates the return values.\n"
+                f"* **Trade-offs**: Elegant mathematical formulation vs. stack memory overhead ($O(n)$ space unless tail-call optimized)."
+            )
+        elif any(w in cleaned for w in ["index", "b-tree", "lsm", "database", "lookup", "query"]):
+            return (
+                f"A **{topic_title}** in database systems is a specialized auxiliary data structure that enables fast, "
+                f"sub-linear search and retrieval without scanning every record in a storage table.\n\n"
+                f"Think of it like the **alphabetical index at the back of a textbook**: instead of reading all 800 pages "
+                f"to find a specific term, you look up the keyword in the index and jump directly to the target page.\n\n"
+                f"### Architectural Pillars:\n"
+                f"* **B-Tree / B+ Tree**: Balanced multi-way trees optimal for block-based disk storage with $O(\\log n)$ point and range scans.\n"
+                f"* **LSM-Tree (Log-Structured Merge-Tree)**: Append-only write buffers (MemTable + SSTables) optimized for high write throughput.\n"
+                f"* **Hash Index**: $O(1)$ constant time exact-match lookups (no range queries).\n"
+                f"* **Trade-offs**: Accelerates read queries at the cost of additional disk space and write amplification during inserts/updates."
+            )
+        elif any(w in cleaned for w in ["concurrency", "parallel", "race", "mutex", "lock", "deadlock"]):
+            return (
+                f"**{topic_title}** is the architectural property of a system where multiple computational execution threads "
+                f"make progress over overlapping time periods, either by interleaving on a single core or executing simultaneously on multi-core hardware.\n\n"
+                f"Think of it like **multiple chefs working in a shared kitchen**: they share the same cutting boards, burners, "
+                f"and ingredients, requiring clear protocols (locks/mutexes) so two chefs don't pour different sauces into the same pan at the same time.\n\n"
+                f"### Core Invariants & Pillars:\n"
+                f"* **Mutual Exclusion (Mutex / Locks)**: Ensuring only one thread accesses critical shared memory sections at once.\n"
+                f"* **Atomicity**: Operations that either complete entirely or not at all, avoiding torn reads/writes.\n"
+                f"* **Deadlock Hazards**: Four Coffman conditions (Mutual exclusion, Hold and wait, No preemption, Circular wait).\n"
+                f"* **Modern Paradigms**: CSP (channels), Actor models, and software transactional memory."
+            )
+
+        # General structured conceptual synthesis
         return (
             f"### Understanding: {topic_title}\n\n"
-            f"Here is a structured conceptual overview addressing: **{query}**.\n\n"
-            f"1. **Foundational Principle**: At its core, this concept establishes a systematic way to solve structural, logical, or architectural problems by breaking them into manageable components.\n"
-            f"2. **Functional Mechanism**: Information, signals, or control flow are processed through defined stages, transforming raw inputs into verified, predictable outputs.\n"
-            f"3. **Trade-offs & Best Practices**:\n"
-            f"   * *Simplicity vs. Flexibility*: Avoid over-engineering abstractions before requirement boundaries are well understood.\n"
-            f"   * *Decoupling*: Keep discrete modules independent to improve testability and maintenance.\n\n"
-            f"Would you like to explore deeper theoretical proofs, see an architectural breakdown, or implement an example?"
+            f"Here is a structured conceptual breakdown addressing: **{query}**.\n\n"
+            f"1. **Definition & Intuition**: At its core, **{subject}** defines a principled mechanism for breaking complex computational or structural systems into manageable, deterministic abstractions.\n"
+            f"2. **Real-World Analogy**: Think of it as a standardized protocol or assembly line — decoupling upstream producers from downstream consumers via explicit contracts.\n"
+            f"3. **Operational Pillars**:\n"
+            f"   * *Invariants*: Predictable constraints that the system guarantees remain true before and after transitions.\n"
+            f"   * *Control Flow*: The deterministic pathway information traverses through inputs, transformations, and outputs.\n"
+            f"   * *Error Boundaries*: Clear isolation boundaries preventing localized faults from cascading across subsystems.\n"
+            f"4. **Engineering Trade-offs**:\n"
+            f"   * *Complexity vs. Maintainability*: Balancing modular abstraction layers against runtime performance and cognitive load."
         )

@@ -1,0 +1,33 @@
+{
+  "name": "cortex-m",
+  "version": "2.0.0",
+  "description": "Cortex-M: Autonomous Neural Memory, Causal MIMO Routing & Multi-Agent Swarm Studio",
+  "main": "bin/cortex-m.js",
+  "bin": {
+    "cortex-m": "./bin/cortex-m.js",
+    "cortex": "./bin/cortex-m.js",
+    "cortex-studio": "./bin/cortex-m.js"
+  },
+  "scripts": {
+    "start": "node ./bin/cortex-m.js studio",
+    "studio": "node ./bin/cortex-m.js studio",
+    "chat": "node ./bin/cortex-m.js chat",
+    "code": "node ./bin/cortex-m.js code",
+    "setup": "node ./bin/cortex-m.js setup",
+    "test": "python -m unittest discover -s tests"
+  },
+  "keywords": [
+    "cortex-m",
+    "neural-network",
+    "hopfield-networks",
+    "mimo",
+    "ai-agents",
+    "anti-hallucination",
+    "hebbian-learning"
+  ],
+  "author": "Cortex-M Team",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

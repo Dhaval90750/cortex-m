@@ -49,6 +49,9 @@ class TenantSynapticAdapter:
         p = F.normalize(pattern.detach().view(-1), p=2, dim=0)
         self.stored_patterns.append(p)
         self.stored_metadata.append(metadata or {"memory_id": f"tenant_{self.tenant_id}_{self.total_memories_learned}"})
+        if len(self.stored_patterns) > 1000:
+            self.stored_patterns.pop(0)
+            self.stored_metadata.pop(0)
         self.total_memories_learned += 1
 
         # Project pattern into low-rank basis

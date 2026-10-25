@@ -1,0 +1,32 @@
+{
+  "profile": "developer_workstation",
+  "active_tenant_id": "default_user",
+  "models": {
+    "engine_mode": "cortex_native",
+    "slm_endpoint": "http://localhost:11434/api/generate",
+    "slm_model": "llama3.2",
+    "openai_endpoint": "https://api.openai.com/v1/chat/completions",
+    "openai_api_key": "",
+    "openai_model": "gpt-4o-mini",
+    "stream_responses": true
+  },
+  "memory": {
+    "beta": 8.0,
+    "learning_rate": 1.0,
+    "synaptic_decay": 0.01,
+    "hallucination_threshold": 0.5,
+    "working_memory_depth": 3,
+    "state_dimension": 64,
+    "zero_database_mode": true
+  },
+  "tools": {
+    "python_sandbox": true,
+    "web_search": true,
+    "calculator": true,
+    "calendar": true,
+    "git_patching": true,
+    "sandbox_timeout_seconds": 5.0
+  },
+  "require_human_approval_for_patches": true,
+  "enable_epistemic_abstention": true
+}

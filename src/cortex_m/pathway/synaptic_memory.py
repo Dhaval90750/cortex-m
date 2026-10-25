@@ -147,6 +147,9 @@ class SynapticMemoryNetwork(nn.Module):
             convergence_step=1,
         )
         self.episodic_traces[mem_id] = finished_trace
+        if len(self.episodic_traces) > 1000:
+            oldest_key = next(iter(self.episodic_traces))
+            del self.episodic_traces[oldest_key]
         return finished_trace
 
     def forget_pattern(
@@ -229,14 +232,29 @@ class SynapticMemoryNetwork(nn.Module):
         cue: torch.Tensor,
         query_id: Optional[str] = None,
         return_trajectory: bool = True,
+        synaptic_override: Optional[torch.Tensor] = None,
+        extra_attractors: Optional[torch.Tensor] = None,
+        extra_metadata: Optional[list[dict[str, Any]]] = None,
     ) -> Tuple[torch.Tensor, PathwayTrace, dict[str, Any]]:
         """Recurrent associative recall from a partial or noisy cue.
 
-        Iteratively settles into the nearest attractor basin:
-            xi^(t+1) = M^T softmax(beta * M * xi^(t))
+        Iteratively settles into the nearest attractor basin driven jointly by
+        continuous Hopfield attractor projection and physical synaptic conductance:
+            xi^(t+1) = normalize(M^T softmax(beta * M * xi^(t)) + gamma * W_eff * xi^(t))
         Traces the exact pathway traversed through the neural state space.
         """
-        if self.num_memories == 0:
+        active_attractors = self.memory_attractors
+        active_metadata = list(self.memory_metadata)
+        if extra_attractors is not None and extra_attractors.size(0) > 0:
+            if active_attractors.size(0) > 0:
+                active_attractors = torch.cat([active_attractors, extra_attractors], dim=0)
+            else:
+                active_attractors = extra_attractors
+            if extra_metadata:
+                active_metadata.extend(extra_metadata)
+
+        num_mems = active_attractors.size(0)
+        if num_mems == 0:
             raise RuntimeError("Cannot recall from empty synaptic memory.")
 
         qid = query_id or f"query_{len(self.tracer.history)}"
@@ -250,8 +268,11 @@ class SynapticMemoryNetwork(nn.Module):
 
         # Adaptive beta scaling: beta(M) = beta_0 * sqrt(dim / ln(M + 2))
         effective_beta = self.beta
-        if self.adaptive_beta and self.num_memories > 0:
-            effective_beta = self.base_beta * math.sqrt(self.dim / math.log(self.num_memories + 2.0))
+        if self.adaptive_beta and num_mems > 0:
+            effective_beta = self.base_beta * math.sqrt(self.dim / math.log(num_mems + 2.0))
+
+        active_weights = synaptic_override if synaptic_override is not None else self.synaptic_weights
+        w_norm = float(active_weights.norm().item())
 
         converged = False
         step = 0
@@ -261,11 +282,18 @@ class SynapticMemoryNetwork(nn.Module):
 
         for step in range(1, self.max_steps + 1):
             # 1. Overlaps with attractors scaled by adaptive beta
-            scores = torch.matmul(self.memory_attractors, current_state)  # [M]
+            scores = torch.matmul(active_attractors, current_state)  # [M]
             attention_weights = F.softmax(effective_beta * scores, dim=0)
 
-            # 2. Synaptic projection back to state space
-            next_state = torch.matmul(attention_weights.unsqueeze(0), self.memory_attractors).squeeze(0)
+            # 2. Continuous Hopfield attractor projection coupled with physical synaptic transmission
+            hopfield_pull = torch.matmul(attention_weights.unsqueeze(0), active_attractors).squeeze(0)
+            if w_norm > 1e-4:
+                synaptic_flow = torch.matmul(active_weights, current_state)
+                synaptic_flow = synaptic_flow / (w_norm + 1e-4)
+                next_state = hopfield_pull + 0.15 * synaptic_flow
+            else:
+                next_state = hopfield_pull
+
             next_state = F.normalize(next_state, p=2, dim=0)
 
             # 3. Energy at current step
@@ -273,24 +301,25 @@ class SynapticMemoryNetwork(nn.Module):
             step_record = self.tracer.record_step(step, next_state, current_energy)
             trace.steps.append(step_record)
 
+            # Check convergence first
+            delta = float((next_state - current_state).norm().item())
+            current_state = next_state
+            if delta < self.tol:
+                converged = True
+                break
+
             # Lyapunov descent watchdog: detect spurious attractor traps / algorithmic DoS cycles
             energy_delta = abs(current_energy - prev_energy)
-            if step >= 3 and energy_delta < 1e-5 and not converged:
+            if step >= 3 and energy_delta < 1e-5:
                 stall_count += 1
                 if stall_count >= 2:
                     # Inject orthogonal escape perturbation to exit spurious limit cycle
                     noise = torch.randn_like(next_state)
                     noise = noise - torch.dot(noise, next_state) * next_state
-                    next_state = F.normalize(next_state + 0.20 * noise, p=2, dim=0)
+                    current_state = F.normalize(next_state + 0.20 * noise, p=2, dim=0)
                     stall_count = 0
 
-            # Check convergence
-            delta = float((next_state - current_state).norm().item())
-            current_state = next_state
             prev_energy = current_energy
-            if delta < self.tol:
-                converged = True
-                break
 
         final_energy = self.energy(current_state)
         finished_trace = self.tracer.finish_trace(
@@ -301,10 +330,16 @@ class SynapticMemoryNetwork(nn.Module):
         )
 
         # Compute match to closest stored attractor
-        final_scores = torch.matmul(self.memory_attractors, current_state)
+        final_scores = torch.matmul(active_attractors, current_state)
         best_idx = int(final_scores.argmax().item())
         best_similarity = float(final_scores[best_idx].item())
-        best_meta = self.memory_metadata[best_idx] if best_idx < len(self.memory_metadata) else {}
+        best_meta = active_metadata[best_idx] if best_idx < len(active_metadata) else {}
+
+        # Compute direct cue-to-attractor projection to detect out-of-distribution queries
+        norm_cue = F.normalize(cue.view(-1), p=2, dim=-1)
+        cue_scores = torch.matmul(active_attractors, norm_cue)
+        cue_similarity = float(cue_scores[best_idx].item())
+        displacement = float(torch.norm(current_state - norm_cue, p=2).item())
 
         # Look up resonance with the original learning trace if available
         matched_mem_id = best_meta.get("memory_id")
@@ -322,6 +357,8 @@ class SynapticMemoryNetwork(nn.Module):
             "best_memory_index": best_idx,
             "best_memory_id": matched_mem_id,
             "attractor_similarity": round(best_similarity, 4),
+            "cue_similarity": round(cue_similarity, 4),
+            "attractor_displacement": round(displacement, 4),
             "best_metadata": best_meta,
             "resonance": resonance_info,
             "source_attribution": source_attribution,
@@ -362,3 +399,39 @@ class SynapticMemoryNetwork(nn.Module):
         noise = torch.randn_like(self.synaptic_weights) * sprout_scale
         self.synaptic_weights[reactivate_mask] = noise[reactivate_mask]
         return int(reactivate_mask.sum().item())
+
+    def save_checkpoint(self, path: Union[str, Any]) -> dict[str, Any]:
+        """Persist continuous synaptic weights, attractors, and metadata to disk."""
+        from pathlib import Path
+        target = Path(path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        checkpoint = {
+            "dim": self.dim,
+            "beta": self.beta,
+            "synaptic_weights": self.synaptic_weights.detach().cpu(),
+            "memory_attractors": self.memory_attractors.detach().cpu(),
+            "memory_metadata": self.memory_metadata,
+            "decay": self.decay,
+        }
+        torch.save(checkpoint, target)
+        return {
+            "status": "checkpoint_saved",
+            "path": str(target),
+            "num_memories": self.num_memories,
+        }
+
+    def load_checkpoint(self, path: Union[str, Any]) -> dict[str, Any]:
+        """Restore continuous synaptic weights, attractors, and metadata from disk."""
+        from pathlib import Path
+        target = Path(path)
+        if not target.exists():
+            raise FileNotFoundError(f"Synaptic checkpoint not found: {target}")
+        checkpoint = torch.load(target, map_location=self.synaptic_weights.device)
+        self.synaptic_weights.copy_(checkpoint["synaptic_weights"])
+        self.memory_attractors = checkpoint["memory_attractors"].to(self.memory_attractors.device)
+        self.memory_metadata = checkpoint.get("memory_metadata", [])
+        return {
+            "status": "checkpoint_loaded",
+            "path": str(target),
+            "num_memories": self.num_memories,
+        }

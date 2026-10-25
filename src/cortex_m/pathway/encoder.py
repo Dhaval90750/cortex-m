@@ -222,14 +222,30 @@ class BuiltinSemanticProjection(nn.Module):
             if score > 0:
                 concept_weights[i] = score
 
-        # Content word hashes (6x multiplicity) and 4-gram character subwords
+        # Content word hashes, morphological stems, and 3/4/5-gram character subwords
         buckets: list[int] = []
         for w in content_words:
             w_h = self._hash_token(f"tok:{w}")
             buckets.extend([w_h] * 6)
+
+            # Morphological stem normalization for open-vocabulary generalization
+            stem = w
+            for suffix in ["tion", "ing", "ment", "ness", "able", "ible", "ize", "ise", "ers", "er", "es", "ed", "ly", "s"]:
+                if len(w) > len(suffix) + 3 and w.endswith(suffix):
+                    stem = w[:-len(suffix)]
+                    buckets.extend([self._hash_token(f"stem:{stem}")] * 4)
+                    break
+
+            # Character 3-grams, 4-grams, and 5-grams
+            if len(w) >= 3:
+                for j in range(len(w) - 2):
+                    buckets.append(self._hash_token(f"sub3:{w[j : j + 3]}"))
             if len(w) >= 4:
                 for j in range(len(w) - 3):
-                    buckets.append(self._hash_token(f"sub:{w[j : j + 4]}"))
+                    buckets.append(self._hash_token(f"sub4:{w[j : j + 4]}"))
+            if len(w) >= 5:
+                for j in range(len(w) - 4):
+                    buckets.append(self._hash_token(f"sub5:{w[j : j + 5]}"))
 
         if not buckets:
             buckets = [0]

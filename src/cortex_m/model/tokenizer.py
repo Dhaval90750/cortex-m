@@ -89,8 +89,9 @@ class NeuralTokenizer:
             if tok in self.token2id:
                 ids.append(self.token2id[tok])
             else:
-                # Dynamic open-vocabulary registration
+                # Dynamic open-vocabulary registration with auto-expanding embedding capacity
                 new_id = len(self.token2id)
+                self._ensure_capacity(new_id)
                 self.token2id[tok] = new_id
                 self.id2token[new_id] = tok
                 ids.append(new_id)
@@ -98,6 +99,18 @@ class NeuralTokenizer:
         if add_special_tokens:
             ids.append(self.eos_id)
         return ids
+
+    def _ensure_capacity(self, needed_idx: int) -> None:
+        """Dynamically expand embedding table if open vocabulary exceeds buffer."""
+        curr_cap = self.embeddings.num_embeddings
+        if needed_idx >= curr_cap:
+            new_cap = max(curr_cap * 2, needed_idx + 2048)
+            device = self.embeddings.weight.device
+            new_emb = nn.Embedding(new_cap, self.dim).to(device)
+            with torch.no_grad():
+                new_emb.weight[:curr_cap].copy_(self.embeddings.weight)
+                nn.init.orthogonal_(new_emb.weight[curr_cap:])
+            self.embeddings = new_emb
 
     def decode(self, token_ids: Sequence[int], skip_special_tokens: bool = True) -> str:
         """Reconstruct human-readable text from token IDs."""
@@ -115,6 +128,11 @@ class NeuralTokenizer:
 
     def embed_tokens(self, token_ids: Sequence[int]) -> torch.Tensor:
         """Project token IDs to continuous hypersphere vectors [T, dim]."""
-        ids_t = torch.tensor(token_ids, dtype=torch.long)
+        if not token_ids:
+            return torch.empty(0, self.dim)
+        max_id = max(token_ids)
+        self._ensure_capacity(max_id)
+        device = self.embeddings.weight.device
+        ids_t = torch.tensor(token_ids, dtype=torch.long, device=device)
         raw_emb = self.embeddings(ids_t)
         return F.normalize(raw_emb, p=2, dim=-1)

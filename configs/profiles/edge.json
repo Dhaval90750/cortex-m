@@ -1,0 +1,32 @@
+{
+  "profile": "edge",
+  "active_tenant_id": "edge_device",
+  "models": {
+    "engine_mode": "cortex_native",
+    "slm_endpoint": "",
+    "slm_model": "",
+    "openai_endpoint": "",
+    "openai_api_key": "",
+    "openai_model": "",
+    "stream_responses": false
+  },
+  "memory": {
+    "beta": 12.0,
+    "learning_rate": 0.8,
+    "synaptic_decay": 0.05,
+    "hallucination_threshold": 0.65,
+    "working_memory_depth": 1,
+    "state_dimension": 32,
+    "zero_database_mode": true
+  },
+  "tools": {
+    "python_sandbox": false,
+    "web_search": false,
+    "calculator": true,
+    "calendar": true,
+    "git_patching": false,
+    "sandbox_timeout_seconds": 1.0
+  },
+  "require_human_approval_for_patches": true,
+  "enable_epistemic_abstention": true
+}
