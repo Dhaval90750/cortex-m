@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.0] - 2026-10-25
 
-### Added
-- **Ecosystem UI/UX Gallery**: Integrated high-resolution Figma-grade visual mockups across 10 platform surfaces (`References/` and `assets/ui_previews/`).
-- **Interactive Ecosystem Showcase in Studio**: Added dedicated `🌐 Industrial Ecosystem` workbench tab in Cortex Studio with live telemetry specs.
+### Changed
+- **Pure Headless Systems Pivot**: Streamlined runtime to headless architecture with pure JSON REST API (`apps/api/`) and terminal CLI (`apps/cli/`), removing all HTML visualizers and mockups.
+- **Architectural Specifications & Roadmap**: Reframed industrial platform surfaces (`platforms/`) as formal architectural specifications and long-term research roadmaps with strict deterministic safety boundaries.
 - **Typed Core Architecture**: Formal abstract contracts (`ModelGateway`, `MemoryProvider`, `ToolRegistry`, `PolicyEngine`, `TaskOrchestrator`).
 - **Deployment Profiles**: Added `developer_workstation`, `local_research`, and `edge` configuration presets in `configs/`.
 - **Open Source Governance Suite**: Added `.github/workflows/ci.yml`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`, and issue/PR templates.

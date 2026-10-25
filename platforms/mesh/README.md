@@ -1,16 +1,23 @@
-# CORTEX-Mesh: Autonomous Swarm & Logistics Command Center
-
-<p align="center">
-  <img src="../../assets/ui_previews/cortex_mesh_command.png" alt="CORTEX-Mesh Swarm Command Center" width="100%" />
-</p>
+# CORTEX-Mesh: Decentralized Swarm & Routing (Specification)
 
 ## Overview
-**CORTEX-Mesh** coordinates decentralized fleets of autonomous mobile robots, warehouse AGVs, and environmental sensor nodes. Focusing strictly on civilian logistics, facility mapping, and disaster search-and-rescue simulations, it enables multi-agent cooperative routing with transparent Byzantine Fault Tolerant (BFT) consensus.
+**CORTEX-Mesh** is an architectural research specification for decentralized coordination of mobile sensor nodes, logistics AGVs, and search-and-rescue simulation agents. It focuses strictly on civilian cooperative logistics, environmental sensing, and distributed consensus routing.
 
 ---
 
-## Key Capabilities
-- **Geospatial Swarm Topology**: Live 2D/3D map displaying robot node coordinates, signal latency, and dynamic peer-to-peer routing edges.
-- **Decentralized Consensus Stream**: Verifiable cryptographic logging of multi-node agreements with automatic failover during packet dropouts.
-- **Node Health & Fleet Allocation**: Real-time tracking of battery reserves, associative cache states, and active payload queues.
-- **Civilian Transparency**: Strict non-adversarial architecture ensuring all communications are verifiable, compliant, and auditable.
+## Planned Capabilities & Design Standards
+- **Swarm Consensus Protocol**: Specification for Byzantine Fault Tolerant (BFT) consensus routing over high-latency mesh networks.
+- **Geospatial Swarm Topology**: Mathematical models for peer-to-peer routing topology under intermittent packet loss.
+- **Node Health & Allocation**: State machine models for battery reserves, local associative attractor caches, and payload queues.
+- **Civilian Transparency**: Strict non-adversarial architecture ensuring all communications are verifiable, transparent, and auditable.
+
+---
+
+## 🎨 Visual Identity & Chromatic Environment: Moss, Lichen & Signal Lime
+Governed by the [Ecosystem Design System](../../docs/architecture/design_system.md#8-cortex-mesh-decentralized-swarm--routing--moss-lichen--signal-lime):
+* **Forest Night** (`#101810`): Mycelial swarm network topology canvas (70%).
+* **Moss** (`#2E4B34`): Peer cluster boundaries and inactive routing traces (20%).
+* **Lichen Green** (`#729775`): **Signature Accent** — Active node status and topology edges (10%).
+* **Signal Lime** (`#CBE86B`): High-priority BFT consensus routing pulse.
+* **Parchment** (`#F1EBD7`): Decentralized telemetry typography.
+

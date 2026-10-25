@@ -1,26 +1,25 @@
 # CORTEX-M Industrial Platform Workstreams
-### Specialized Production Lines Governed by the Master Ecosystem Implementation Plan
+### Architectural Specifications & Research Roadmap Governed by the Master Ecosystem Implementation Plan
 
-<p align="center">
-  <img src="../assets/ui_previews/cortex_brand_grid.png" alt="CORTEX-M Product Family UI Grid" width="100%" />
-</p>
+> [!NOTE]
+> **Research Roadmap & Specification Scope**: The workstreams documented in this directory represent our architectural design targets, simulation requirements, and domain safety boundaries. They are planned extensions that build upon the core CORTEX-M neural substrate and are **not** claimed as completed physical deployments.
 
-This directory houses the product surface implementations and simulation environments for the 8 specialized CORTEX-M product lines as governed by the [Master Ecosystem Implementation Plan](../docs/master_plan/cortex_m_original_ecosystem_implementation_plan.md).
+This directory houses the architectural specifications, safety boundaries, and simulation protocols for the 8 specialized CORTEX-M product lines as governed by the [Master Ecosystem Implementation Plan](../docs/master_plan/cortex_m_original_ecosystem_implementation_plan.md).
 
 ---
 
-## The 8 Industrial Platforms
+## The 8 Planned Workstreams
 
-| Platform | Workspace | Interface Preview | Qualification & Safety Standard |
+| Platform | Workspace | Target Domain & Architectural Scope | Qualification & Safety Standard |
 |---|---|---|---|
-| **CORTEX-IDE** | [`platforms/ide/`](ide/) | [View IDE UI](ide/) | Sandboxed Execution & Human Approval Gate |
-| **CORTEX-Personal** | [`platforms/personal/`](personal/) | [View Assistant UI](personal/) | Private Tenant Isolation & Low-Rank Paging |
-| **CORTEX-Fin** | [`platforms/fin/`](fin/) | [View Finance UI](fin/) | Shadow-Mode Isolation & Deterministic Ledgers |
-| **CORTEX-OS** | [`platforms/os/`](os/) | [View OS UI](os/) | Userspace Sandbox & Semantic Affinity Clusters |
-| **CORTEX-Robotics** | [`platforms/robotics/`](robotics/) | [View Robotics UI](robotics/) | ISO 10218-1/2:2025 Robotic Safety Standards |
-| **CORTEX-Mesh** | [`platforms/mesh/`](mesh/) | [View Swarm UI](mesh/) | Civilian Transparent Protocols & BFT Consensus |
-| **CORTEX-Health** | [`platforms/health/`](health/) | [View BCI UI](health/) | FDA Non-Clinical Guidance & IEC 62304 |
-| **CORTEX-Space** | [`platforms/space/`](space/) | [View Space UI](space/) | NASA Flight Software Qualification (NPR 7150.2) |
+| **CORTEX-IDE** | [`platforms/ide/`](ide/) | Autonomous repository engineering & patch validation | Sandboxed Execution & Human Approval Gate |
+| **CORTEX-Personal** | [`platforms/personal/`](personal/) | Edge & desktop personal cognitive assistant | Private Tenant Isolation & Zero Cloud Egress |
+| **CORTEX-Fin** | [`platforms/fin/`](fin/) | High-throughput transaction replay & fraud research | Shadow-Mode Isolation & Deterministic Ledgers |
+| **CORTEX-OS** | [`platforms/os/`](os/) | Userspace process scheduling & associative search | Userspace Sandbox & Semantic Affinity Clusters |
+| **CORTEX-Robotics** | [`platforms/robotics/`](robotics/) | Digital twin kinematic simulation & safety envelopes | ISO 10218-1/2:2025 Robotic Safety Standards |
+| **CORTEX-Mesh** | [`platforms/mesh/`](mesh/) | Cooperative logistics swarm & decentralized routing | Civilian Transparent Protocols & BFT Consensus |
+| **CORTEX-Health** | [`platforms/health/`](health/) | Non-clinical neural signal processing & BCI research | FDA Non-Clinical Guidance & IEC 62304 |
+| **CORTEX-Space** | [`platforms/space/`](space/) | Orbital satellite telemetry parsing & anomaly tracking | NASA Flight Software Qualification (NPR 7150.2) |
 
 ---
 
@@ -28,3 +27,5 @@ This directory houses the product surface implementations and simulation environ
 1. **Deterministic Safety Separation**: Neural associative inference supervises and proposes; hardware safety interlocks, financial ledgers, and medical state transitions remain deterministic.
 2. **Simulation Before Hardware**: Robotics, Mesh, Health, and Space operate in high-fidelity software simulators before any physical hardware validation.
 3. **Common Core Contracts**: All platforms communicate with the underlying runtime via [`cortex_m.core.contracts`](../src/cortex_m/core/contracts/).
+4. **Purpose-Driven Visual Identity**: Each workstream maintains a tailored chromatic identity governed by the [Ecosystem Design System](../docs/architecture/design_system.md), completely avoiding generic blue-and-cyan defaults (e.g., Fern for IDE, Olive for Personal, Emerald for Finance, Safety Orange for Robotics, Cosmic Burgundy for Space).
+

@@ -3,7 +3,7 @@
 **Project:** CORTEX-M (Context-Oriented Routing and Trace Exchange for MIMO)  
 **Ecosystem:** Cortex-M Substrate | CortexLM | CortexCode (CORTEX-Coder)  
 **Laboratory:** Autonomous Neural Systems & Advanced Machine Intelligence Laboratory  
-**Status:** Industrial Production & IEEE Transactions Peer-Review Ready  
+**Status:** Core Neural Substrate & Headless Systems Runtime (Active Research & Development)  
 **Repository:** [github.com/Dhaval90750/cortex-m](https://github.com/Dhaval90750/cortex-m.git)  
 
 ---
@@ -205,11 +205,11 @@ All cognitive skills operate **dynamically** via semantic feature extraction (`_
 
 1. **Comprehensive Research Monograph:**  
    [docs/papers/research_paper.md](../papers/research_paper.md) (11 comprehensive sections covering the full research arc from base foundations to current state).
-2. **Camera-Ready IEEE Transactions Paper:**  
-   [docs/papers/cortex_m_ieee_research_paper.md](../papers/cortex_m_ieee_research_paper.md) (Formatted for IEEE TNNLS).
-3. **IEEE LaTeX Submission Source:**  
-   [docs/papers/cortex_m_ieee_research_paper.tex](../papers/cortex_m_ieee_research_paper.tex) (Compilable `\documentclass[journal]{IEEEtran}` source).
-4. **Publication-Quality Rendered PDF:**  
+2. **Working Research Manuscript (Pre-Publication Draft):**  
+   [docs/papers/cortex_m_ieee_research_paper.md](../papers/cortex_m_ieee_research_paper.md) (Formal research paper draft in IEEE format).
+3. **Research LaTeX Draft Source:**  
+   [docs/papers/cortex_m_ieee_research_paper.tex](../papers/cortex_m_ieee_research_paper.tex) (Compilable `\documentclass[journal]{IEEEtran}` research draft source).
+4. **Working Draft Rendered PDF:**  
    [docs/papers/cortex_m_ieee_research_paper.pdf](../papers/cortex_m_ieee_research_paper.pdf) (Complete with title block, tables, equations, and embedded figures).
 5. **Interactive Industrial CLI:**  
    [scripts/cortex_code.py](../../scripts/cortex_code.py) (Full cognitive slash commands, swarm execution, and natural dialogue).

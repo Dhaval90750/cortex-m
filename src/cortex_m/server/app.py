@@ -37,24 +37,6 @@ from ..pathway.hierarchical_router import HierarchicalSparseRouter
 from ..sdk.llm_bridge import CortexLLMBridge
 from .tools import Calculator, CalendarHelper, KnowledgeSearcher, PythonSandbox
 
-def _resolve_studio_dir() -> Path:
-    """Dynamically resolve the cortex_studio directory whether running from repo or installed package."""
-    if os.environ.get("CORTEX_STUDIO_DIR"):
-        p = Path(os.environ["CORTEX_STUDIO_DIR"])
-        if p.exists():
-            return p
-    cwd_p = Path("cortex_studio")
-    if cwd_p.exists() and (cwd_p / "index.html").exists():
-        return cwd_p.resolve()
-    repo_p = Path(__file__).resolve().parent.parent.parent.parent / "cortex_studio"
-    if repo_p.exists() and (repo_p / "index.html").exists():
-        return repo_p.resolve()
-    pkg_p = Path(__file__).resolve().parent.parent / "cortex_studio"
-    if pkg_p.exists() and (pkg_p / "index.html").exists():
-        return pkg_p.resolve()
-    return cwd_p
-
-
 def _resolve_settings_path() -> Path:
     """Dynamically resolve the settings.json file path."""
     if os.environ.get("CORTEX_SETTINGS_PATH"):
@@ -71,7 +53,6 @@ def _resolve_settings_path() -> Path:
 
 
 _DEFAULT_SETTINGS_PATH = _resolve_settings_path()
-_STUDIO_DIR = _resolve_studio_dir()
 
 
 def load_settings() -> Dict[str, Any]:
@@ -206,7 +187,21 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         elif path.startswith("/api/"):
             self._send_error(f"Unknown GET endpoint: {path}", 404)
         else:
-            self._serve_static(path)
+            self._send_json({
+                "service": "CORTEX-M Neural Runtime Server",
+                "status": "online",
+                "version": "2.1.0",
+                "architecture": "Continuous Hopfield Attractor Memory & Causal MIMO",
+                "endpoints": {
+                    "system": "GET /api/system",
+                    "settings": "GET|POST /api/settings",
+                    "memory": "GET|POST /api/memory/learn, POST /api/memory/unlearn",
+                    "chat": "POST /api/chat, GET /api/chat/stream",
+                    "code": "POST /api/code",
+                    "mimo": "POST /api/mimo",
+                    "tools": "POST /api/tools/execute"
+                }
+            })
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
@@ -578,79 +573,29 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         self.wfile.write(f"data: {meta}\n\n".encode("utf-8"))
         self.wfile.flush()
 
-    # -------------------------------------------------------------------------
-    # Static UI File Serving
-    # -------------------------------------------------------------------------
 
-    def _serve_static(self, rel_path: str) -> None:
-        cleaned = rel_path.lstrip("/")
-        if not cleaned:
-            cleaned = "index.html"
-
-        file_path = _STUDIO_DIR / cleaned
-        if not file_path.exists() and (cleaned.startswith("assets/") or cleaned.startswith("References/")):
-            repo_root = Path(__file__).resolve().parent.parent.parent.parent
-            candidate = repo_root / cleaned
-            if candidate.exists() and not candidate.is_dir():
-                file_path = candidate
-
-        if not file_path.exists() or file_path.is_dir():
-            # Fallback to index.html for SPA routing
-            file_path = _STUDIO_DIR / "index.html"
-
-        if not file_path.exists():
-            self._send_error(f"Static file not found: {cleaned}", 404)
-            return
-
-        content_type = "text/html; charset=utf-8"
-        if file_path.suffix == ".css":
-            content_type = "text/css; charset=utf-8"
-        elif file_path.suffix == ".js":
-            content_type = "application/javascript; charset=utf-8"
-        elif file_path.suffix == ".json":
-            content_type = "application/json"
-        elif file_path.suffix in [".png", ".jpg", ".jpeg", ".ico", ".svg"]:
-            ext = file_path.suffix.lstrip(".")
-            content_type = f"image/{'svg+xml' if ext == 'svg' else ext}"
-
-        try:
-            with open(file_path, "rb") as f:
-                content = f.read()
-            self.send_response(200)
-            self._send_cors_headers()
-            self.send_header("Content-Type", content_type)
-            self.send_header("Content-Length", str(len(content)))
-            self.end_headers()
-            self.wfile.write(content)
-        except Exception as e:
-            self._send_error(str(e), 500)
-
-
-def start_cortex_studio(host: str = "127.0.0.1", port: int = 8888, open_browser: bool = True) -> None:
-    """Start Cortex Studio HTTP server and launch interactive browser session."""
+def start_cortex_server(host: str = "127.0.0.1", port: int = 8888) -> None:
+    """Start CORTEX-M Headless Neural Runtime REST API Server."""
     server = ThreadingHTTPServer((host, port), CortexStudioHandler)
     url = f"http://{host}:{port}"
     print(f"\n=======================================================")
-    print(f"  CORTEX-M STUDIO - Autonomous Neural Software Suite  ")
+    print(f"  CORTEX-M Neural Runtime REST API Server             ")
     print(f"=======================================================")
-    print(f" * Serving Cortex Studio at: {url}")
+    print(f" * Serving Headless REST API at: {url}")
     print(f" * Pure Python Standard Library (Zero Web Framework Overhead)")
-    print(f" * Interactive Chatbot, Synaptic Memory, MIMO Lab & Settings")
+    print(f" * Active Endpoints: /api/system, /api/chat, /api/memory, /api/code")
     print(f" * Press Ctrl+C to stop.\n")
-
-    if open_browser:
-        def _open():
-            time.sleep(0.8)
-            import webbrowser
-            webbrowser.open(url)
-        threading.Thread(target=_open, daemon=True).start()
 
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\n[Cortex Studio] Stopping server gracefully...")
+        print("\n[CORTEX-M Server] Stopping server gracefully...")
         server.server_close()
 
 
+# Alias for backwards compatibility
+start_cortex_studio = start_cortex_server
+
+
 if __name__ == "__main__":
-    start_cortex_studio()
+    start_cortex_server()

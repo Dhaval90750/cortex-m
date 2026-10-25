@@ -1,16 +1,23 @@
-# CORTEX-Space: Orbital Mission Control & Telemetry Anomaly Console
-
-<p align="center">
-  <img src="../../assets/ui_previews/cortex_space_mission.png" alt="CORTEX-Space Mission Control" width="100%" />
-</p>
+# CORTEX-Space: Orbital Telemetry & Simulation (Specification)
 
 ## Overview
-**CORTEX-Space** provides ground-based orbital telemetry parsing, spacecraft subsystem health monitoring, and radiation single-event-upset (SEU) anomaly detection. Designed around NASA software engineering qualification practices (**NASA NPR 7150.2 / SP-8000**), it ensures full requirements-to-test traceability for flight mission simulations.
+**CORTEX-Space** is an architectural research specification for orbital telemetry stream parsing, spacecraft subsystem anomaly detection, and radiation single-event-upset (SEU) analysis. Formulated around NASA software qualification methodologies (**NASA NPR 7150.2 / NASA SP-8000**), it defines requirements-to-test traceability for space simulation environments.
 
 ---
 
-## Key Capabilities
-- **3D Orbital Ground Track**: Real-time globe visualization plotting satellite ephemeris, orbit ribbons, day/night solar terminators, and ground station visibility cones (Goldstone, Madrid, Canberra).
-- **Subsystem Health Matrix**: High-reliability telemetry feeds for Electrical Power Systems (EPS), Attitude Determination & Control (ADCS), and Thermal Control.
-- **Radiation Anomaly Timeline**: Causal event scrubber correlating thermal excursions and radiation latchup anomalies with spacecraft telemetry passes.
-- **High-Fidelity Telemetry Decoder**: Monospaced CCSDS frame sync parser with automated fault injection verification.
+## Planned Capabilities & Engineering Standards
+- **CCSDS Frame Parsing**: Specification for telemetry frame synchronization, packet parsing, and error-correcting codes (Reed-Solomon / LDPC).
+- **Subsystem Telemetry Matrix**: Mathematical models for monitoring EPS, ADCS, and thermal telemetry vectors.
+- **Radiation Anomaly Scoring**: Attractor-based novelty detection identifying sensor degradation and thermal anomalies during simulated orbital passes.
+- **Strict Ground Simulation Scope**: Designed strictly for software simulation, historical telemetry analysis, and mission testbenches; not deployed on flight hardware.
+
+---
+
+## 🎨 Visual Identity & Chromatic Environment: Cosmic Ember & Burnished Gold
+Governed by the [Ecosystem Design System](../../docs/architecture/design_system.md#10-cortex-space-orbital-telemetry--simulation--cosmic-ember--burnished-gold):
+* **Void** (`#121014`): Deep space ephemeris background (70%).
+* **Nebula Plum** (`#33202E`): Orbit plane ribbons and telemetry trays (20%).
+* **Cosmic Burgundy** (`#86455D`): **Signature Accent** — Satellite trajectory traces (10%).
+* **Solar Ember** (`#E77C53`): Solar array telemetry alerts and SEU thermal highlights.
+* **Starlight Gold** (`#E9BD73`): Ground station line-of-sight and coordinate axes.
+

@@ -3,7 +3,7 @@
 **Dhaval$^{1}$, Senior Member, IEEE, and the Cortex-M Research Consortium$^{2}$**  
 *$^{1}$Autonomous Neural Systems & Advanced Machine Intelligence Laboratory*  
 *$^{2}$Department of Computing and Cognitive Systems Research*  
-*IEEE Transactions on Neural Networks and Learning Systems (TNNLS) — Submission Draft*  
+*CORTEX-M Technical Research Working Draft (Pre-Publication)*  
 
 ---
 

@@ -20,6 +20,9 @@
 
 **CORTEX-M** (**C**ontext-**O**riented **R**outing and **T**race **EX**change for **M**IMO) is a bio-inspired, memory-centric cognitive AI runtime. Rather than serving as a generic wrapper around external cloud APIs or delegating memory to external relational/vector databases, CORTEX-M operates over an in-memory physical synaptic substrate powered by **Continuous Hopfield Attractor Basins**, **Causal MIMO Sparse Routing**, and **Calibrated Epistemic Evidence Verification**.
 
+### 👶 The Newborn Substrate Principle (Continuous Learning)
+> CORTEX-M begins like a child on its first breath: it possesses a complete neural architecture and the fundamental reflex to breathe (continuous Hopfield dynamics, synaptic plasticity, causal routing, and epistemic verification). It has **zero hardcoded domain facts**, **zero canned answers**, and **zero pre-programmed coding heuristics**. All knowledge is acquired continuously on the go, in direct interaction with the user through online Hebbian potentiation ($\Delta W = \eta z z^T$) and anti-Hebbian depression.
+
 CORTEX-M unites six core cognitive systems under one modular monolith runtime:
 1. **CORTEX-Synapse**: Continuous Hopfield associative memory substrate with instant Hebbian potentiation and zero-collateral anti-Hebbian unlearning.
 2. **CORTEX-Shield**: Evidence-aware uncertainty and calibrated epistemic verification (`VERIFIED`, `PARTIALLY_SUPPORTED`, `CONFLICTING_EVIDENCE`, `INSUFFICIENT_EVIDENCE`).
@@ -27,10 +30,6 @@ CORTEX-M unites six core cognitive systems under one modular monolith runtime:
 4. **CORTEX-Gist**: Factored pre-verbal latent bottleneck separating semantic intent across orthogonal functional heads.
 5. **CortexCode**: Repository-aware autonomous software engineering agent with Git integration, AST symbol indexing, unified diffs, 5.0s sandboxed execution, and human approval gates.
 6. **CortexLM**: Continuous attractor neural language model operating natively on PyTorch or acting as a grounded gateway for local SLMs (Ollama/GGUF) and external models.
-
-<p align="center">
-  <img src="assets/ui_previews/cortex_brand_grid.png" alt="CORTEX-M Ecosystem UI Suite" width="100%" />
-</p>
 
 ---
 
@@ -49,7 +48,7 @@ CORTEX-M unites six core cognitive systems under one modular monolith runtime:
 | **Autonomous Swarm** | **CORTEX-Swarm** | Multi-agent task completer coordinating Coordinator, Planner, Specialist, Critic, and Verifier. |
 | **Software Engineer** | **CortexCode** | Repository-aware coding agent with AST diffs, 5-second test sandbox, and human approval gates. |
 | **Model Gateway** | **CORTEX-Bridge** | Epistemic prompt augmentation and hallucination scoring bridge for external LLMs / local SLMs. |
-| **Universal Studio** | **Cortex Studio** | Turnkey browser workbench with real-time 3D attractor energy visualization and evidence badges. |
+| **Headless REST API** | **CORTEX-Server** | Pure headless JSON API exposing status, settings, memory recall, chat, and tool execution. |
 
 ---
 
@@ -59,7 +58,7 @@ CORTEX-M organizes all cognitive responsibilities across ten clearly defined arc
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│ Layer 10 — Product Surfaces: Studio Web UI · CLI · SDK · REST API      │
+│ Layer 10 — Product Surfaces: CLI · Python SDK · Headless REST API       │
 ├────────────────────────────────────────────────────────────────────────┤
 │ Layer 9  — Capability Workflows: Chat · Coding · Research · Finance   │
 ├────────────────────────────────────────────────────────────────────────┤
@@ -102,14 +101,17 @@ To establish rigorous scientific validation, CORTEX-M was evaluated against stan
 
 ---
 
-## 🏭 The 8 Industrial Platform Ecosystem
+## 🗺️ Research Roadmap & Target Architectural Specifications
 
-Governed by the [Master Ecosystem Implementation Plan](docs/master_plan/cortex_m_original_ecosystem_implementation_plan.md), CORTEX-M provides dedicated platforms with strict safety separation between neural inference and deterministic control:
+The 8 specialized platform workstreams below represent our architectural specifications and research roadmap as governed by the [Master Ecosystem Implementation Plan](docs/master_plan/cortex_m_original_ecosystem_implementation_plan.md). They establish the target operational domains and safety boundaries for future phases:
 
-```
+> [!NOTE]
+> **Ground-Truth Scope**: The workstreams below are architectural design targets and future research roadmaps, **not** claimed as completed physical deployments. The active repository implements and verifies the underlying continuous neural substrate, synaptic memory, causal routing, and evidence verification runtime upon which these platforms are being engineered.
+
+```text
 cortex-m/platforms/
 ├── ide/         # CORTEX-IDE: Autonomous coding agent with AST diffs & sandboxed test runner
-├── personal/    # CORTEX-Personal: 100% offline desktop & edge assistant with private memory
+├── personal/    # CORTEX-Personal: 100% offline edge assistant with private memory isolation
 ├── fin/         # CORTEX-Fin: Transaction replay, fraud scoring research & shadow-mode analytics
 ├── os/          # CORTEX-OS: Cognitive user-space scheduler & semantic associative file browser
 ├── robotics/    # CORTEX-Robotics: ISO 10218-1/2 digital twin simulation & safety envelopes
@@ -118,61 +120,58 @@ cortex-m/platforms/
 └── space/       # CORTEX-Space: Orbital satellite telemetry, anomaly tracking & NASA SP-8000
 ```
 
-### Visual Platform Gallery
+### Architectural Specifications Matrix
 
-| Platform | Interface Preview & Architecture | Key Specialization |
+| Platform Workstream | Architectural Role & Target Domain | Qualification & Safety Boundary |
 |---|---|---|
-| **Cortex Studio Hub** | [![Cortex Studio](assets/ui_previews/cortex_studio_dashboard.png)](platforms/personal/) | 3D Hopfield Attractor Energy Basin & Epistemic Verification Badges |
-| **CortexCode IDE** | [![CortexCode](assets/ui_previews/cortex_code_ide.png)](platforms/ide/) | Side-by-Side Unified Diff Reviewer & Sandboxed Subprocess Test Runner |
-| **CortexResearch** | [![CortexResearch](assets/ui_previews/cortex_research_dashboard.png)](docs/master_plan/cortex_m_master_engineering_and_product_blueprint_full.md#8-layer-5--knowledge-ingestion-and-retrieval) | Citation Provenance Graph & Multi-Source Contradiction Matrix |
-| **CortexLab** | [![CortexLab](assets/ui_previews/cortex_lab_dashboard.png)](docs/master_plan/cortex_m_master_engineering_and_product_blueprint_full.md#11-the-full-language-model-training-programme) | Pre-training & LoRA Fine-Tuning Loss Curves & Attractor Basin Depth |
-| **CORTEX-Fin** | [![CORTEX-Fin](assets/ui_previews/cortex_fin_dashboard.png)](platforms/fin/) | >140k tx/sec Transaction Replay & Explainable Attractor Waterfall |
-| **CORTEX-Robotics** | [![CORTEX-Robotics](assets/ui_previews/cortex_robotics_console.png)](platforms/robotics/) | 6-DOF Manipulator Digital Twin & ISO 10218-1/2 Safety Interlocks |
-| **CORTEX-Mesh** | [![CORTEX-Mesh](assets/ui_previews/cortex_mesh_command.png)](platforms/mesh/) | Decentralized Swarm Topology & BFT Consensus Routing Stream |
-| **CORTEX-Space** | [![CORTEX-Space](assets/ui_previews/cortex_space_mission.png)](platforms/space/) | 3D Orbital Ground Track & NASA SP-8000 Telemetry Anomaly Console |
-| **CORTEX-Health** | [![CORTEX-Health](assets/ui_previews/cortex_health_bci.png)](platforms/health/) | 16-Channel Microvolt Neural Oscilloscope & Wavelet Spectrogram |
-| **CORTEX-OS** | [![CORTEX-OS](assets/ui_previews/cortex_os_dashboard.png)](platforms/os/) | Associative Omnibar Search & Dynamic Cognitive Affinity Clusters |
+| **CORTEX-IDE** | Autonomous repository engineer with AST diffs & test runner | 5.0s subprocess sandbox with human approval gates |
+| **CORTEX-Personal** | 100% private local cognitive assistant | Zero cloud egress with tenant synaptic isolation |
+| **CORTEX-Fin** | High-throughput transaction replay & fraud scoring research | Read-only shadow-mode execution & deterministic ledgers |
+| **CORTEX-OS** | Cognitive userspace process scheduler & semantic indexing | Non-privileged userspace sandbox & semantic clustering |
+| **CORTEX-Robotics** | Digital twin trajectory generation & safety envelope simulation | ISO 10218-1/2:2025 deterministic hardware safety interlocks |
+| **CORTEX-Mesh** | Cooperative logistics swarm & decentralized routing | Transparent civilian protocols & BFT consensus routing |
+| **CORTEX-Health** | Non-clinical neural signal processing & BCI research | FDA Non-Clinical Guidance & IEC 62304 research standards |
+| **CORTEX-Space** | Orbital satellite telemetry parsing & anomaly tracking | NASA Flight Software Qualification (NPR 7150.2) specifications |
 
 ---
 
-## 🚀 Quickstart & Installation
+## 🚀 Quickstart & Interactive Usage
 
-### Option A: Universal Node / npx Runner (Recommended)
-No manual Python environment configuration required if you have Node.js installed:
+### Option A: Universal Terminal CLI & Runner
 
 ```bash
-# 1. Launch Cortex Studio in browser
-npx cortex-m studio
+# 1. Interactive conversational terminal (learns on the go)
+python -m apps.cli.main chat
 
-# 2. Interactive conversational chat in terminal
-npx cortex-m chat
+# 2. Start headless JSON REST API server (port 8888)
+python -m apps.api.server
 
-# 3. Autonomous repository software engineer (CortexCode)
-npx cortex-m code "Implement LRU cache in utils.py"
-
-# 4. Run full comparative benchmark suite
-npx cortex-m bench
+# 3. Run full scientific comparative benchmark suite
+python benchmarks/run_comparison_benchmark.py
 ```
 
-### Option B: 1-Click Desktop Scripts
-* **Windows**: Double-click `run.bat` or run `.\run.ps1`
-* **Linux / macOS**: Run `./run.sh`
+### Option B: Python Library Usage (Continuous On-The-Go Learning)
 
-### Option C: Python Library Usage
+Demonstrating the **Newborn Substrate Principle**:
 ```python
 from cortex_m.core import CortexRuntime, CortexConfig, DeploymentProfile
 
-# Initialize runtime with developer workstation profile
+# Initialize runtime with fresh, uncommitted synaptic substrate
 runtime = CortexRuntime(config=CortexConfig(profile=DeploymentProfile.DEVELOPER_WORKSTATION))
 
-# 1. Learn new facts into physical synaptic connection weights
-runtime.learn("CORTEX-M replaces external vector databases with continuous Hopfield attractors.")
+# 1. Ask about an unknown concept — substrate abstains with calibrated epistemic uncertainty
+initial = runtime.ask("What is the primary power source of the orbital probe?")
+print(f"Status: {initial['evidence_status']}")  # 'INSUFFICIENT_EVIDENCE' (Calibrated Abstention)
+print(f"Grounded: {initial['is_grounded']}")    # False
 
-# 2. Query with calibrated epistemic evidence verification
-result = runtime.ask("What does CORTEX-M replace vector databases with?")
-print(f"Status: {result['evidence_status']}")  # 'VERIFIED'
-print(f"Grounded: {result['is_grounded']}")    # True
-print(f"Answer: {result['text']}")
+# 2. Imprint new knowledge dynamically into synaptic weights on the go (Hebbian learning)
+runtime.learn("The orbital probe utilizes dual triple-junction gallium-arsenide solar arrays.")
+
+# 3. Query again — the energy basin converges to the newly potentiated attractor
+recall = runtime.ask("What is the primary power source of the orbital probe?")
+print(f"Status: {recall['evidence_status']}")    # 'VERIFIED'
+print(f"Grounded: {recall['is_grounded']}")      # True
+print(f"Answer: {recall['text']}")
 ```
 
 ---
@@ -181,10 +180,9 @@ print(f"Answer: {result['text']}")
 
 ```text
 cortex-m/
-├── apps/                        # Turnkey Application Surfaces
-│   ├── studio/run.py            # Cortex Studio Web Server
+├── apps/                        # Headless Application Entry Points
 │   ├── cli/main.py              # Universal Terminal CLI
-│   └── api/                     # Headless REST API
+│   └── api/server.py            # Headless JSON REST API Server
 │
 ├── src/cortex_m/                # Core Python Package
 │   ├── core/                    # Core Infrastructure & Contracts
@@ -205,15 +203,15 @@ cortex-m/
 │   │   ├── git_context.py       # Git Branch & AST Symbol Table Parser
 │   │   ├── patch_sandbox.py     # Unified Diff Generator & 5.0s Subprocess Runner
 │   │   └── task_completer.py    # Multi-Agent Coordination Pipeline
-│   └── server/                  # Web Workbench Engine
+│   └── server/                  # Headless REST API Engine
 │
-├── platforms/                   # 8 Specialized Platform Scaffolds
+├── platforms/                   # 8 Specialized Platform Architectural Scaffolds
 ├── configs/                     # Deployment Profiles (default, edge, workstation)
 ├── benchmarks/                  # Empirical Benchmark Suites
 ├── docs/                        # Complete Documentation Suite
 │   ├── master_plan/             # Master Engineering Blueprints
 │   ├── evaluations/             # Technical Audits & Benchmark Reports
-│   ├── papers/                  # IEEE Academic Papers (Markdown, LaTeX, PDF)
+│   ├── papers/                  # Research Manuscripts & Working Drafts (Pre-Publication)
 │   └── architecture/            # Architecture Decision Records (ADRs)
 └── tests/                       # 129 Automated Unit Tests (100% Pass Rate)
 ```
@@ -237,15 +235,18 @@ python benchmarks/run_comparison_benchmark.py
 
 ---
 
-## 📄 License & Academic Citation
+## 📄 License & Research Status
 
 CORTEX-M is open-source software licensed under the **[MIT License](LICENSE)**.
 
+> [!NOTE]
+> CORTEX-M is an active open research and systems engineering initiative. Technical reports and manuscripts in `docs/` are internal working drafts and preprints in progress, not yet published or peer-reviewed in academic journals.
+
 ```bibtex
-@article{cortex_m_2026,
-  title   = {CORTEX-M: Context-Oriented Routing and Trace Exchange for MIMO via Continuous Hopfield Attractors},
-  author  = {CORTEX-M Research Team},
-  journal = {IEEE Transactions on Neural Networks and Learning Systems (Preprint)},
-  year    = {2026}
+@software{cortex_m_runtime,
+  title  = {CORTEX-M: A Continuous Synaptic Substrate for Associative Memory, Causal MIMO Routing, and Grounded Cognition},
+  author = {CORTEX-M Research Team},
+  year   = {2026},
+  url    = {https://github.com/Dhaval90750/cortex-m}
 }
 ```

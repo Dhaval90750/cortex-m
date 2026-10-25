@@ -1,8 +1,5 @@
 # CORTEX-IDE / CortexCode
 
-<p align="center">
-  <img src="../../assets/ui_previews/cortex_code_ide.png" alt="CORTEX-IDE Dark Workspace" width="100%" />
-</p>
 
 ## Overview
 **CORTEX-IDE** (powered by **CortexCode**) is an autonomous, repository-aware software engineering workspace. Unlike naive LLM code assistants that overwrite arbitrary files or output untested code blocks, CortexCode inspects Git branch state, parses AST symbols, produces formal unified diff patches, executes tests inside a 5.0-second sandbox, and halts for explicit human approval before any commit or push.
@@ -20,3 +17,14 @@
 ## Safety & Qualification Boundary
 * **Execution Boundary**: Subprocess sandboxing with isolated environment variables, restricted network egress, and memory ceiling.
 * **Deterministic Interlock**: Patch generation does not automatically write to disk until human approval is registered (`[y/N]`).
+
+---
+
+## 🎨 Visual Identity & Chromatic Environment: Forest Graphite & Fern
+Governed by the [Ecosystem Design System](../../docs/architecture/design_system.md#3-cortex-ide-cortexcode-engineering-workspace--forest-graphite--fern):
+* **Editor Ink** (`#171A17`): Deep non-glare editor background (70%).
+* **Forest Graphite** (`#29332C`): File trees, diff panels, and borders (20%).
+* **Fern** (`#8EBF76`): **Signature Accent** — AST symbols, diff additions, and active cursor (10%).
+* **Debug Brass** (`#E7AF63`): Breakpoints, test warnings, and auditor gates.
+* **Linen** (`#F0F1E8`): High-contrast monospace code text.
+

@@ -96,26 +96,25 @@ function main() {
     process.exit(1);
   }
 
-  const subCommand = args[0] ? args[0].toLowerCase() : 'studio';
+  const subCommand = args[0] ? args[0].toLowerCase() : 'chat';
 
   if (subCommand === '--help' || subCommand === '-h' || subCommand === 'help') {
     console.log(`
 ========================================================================
- CORTEX-M: Autonomous Neural Memory & Multi-Agent Swarm (npm/npx)
+ CORTEX-M: Headless Neural Memory Runtime & Grounded Cognition (CLI)
 ========================================================================
 
 Usage:
-  npx cortex-m                Launch Cortex Studio Web Application & UI
-  npx cortex-m studio         Launch Cortex Studio Web Application & UI
-  npx cortex-m chat           Start interactive neural conversational terminal
-  npx cortex-m code           Run Autonomous Multi-Agent Coding Swarm
+  npx cortex-m chat           Start interactive neural conversational terminal (default)
+  npx cortex-m server         Launch headless JSON REST API server
   npx cortex-m substrate      Biological synaptic memory CLI (learn, recall)
+  npx cortex-m bench          Run complete scientific comparative benchmark suite
+  npx cortex-m test           Run complete test suite (129 tests)
   npx cortex-m setup          Install / verify Python backend dependencies
-  npx cortex-m test           Run complete test suite (126 tests)
 
 Global Install:
   npm install -g .            Install 'cortex-m' CLI command globally on system
-  cortex-m studio             Launch Studio UI anywhere
+  cortex-m chat               Start conversational interface anywhere
 `);
     process.exit(0);
   }
@@ -123,7 +122,7 @@ Global Install:
   if (subCommand === 'setup') {
     console.log(`[Cortex-M] Setting up dependencies with ${pythonBin}...`);
     verifyAndSetupDependencies(pythonBin);
-    console.log('\n[Cortex-M] Setup complete! Run `npx cortex-m` or `cortex-m studio` to start.\n');
+    console.log('\n[Cortex-M] Setup complete! Run `npx cortex-m chat` to start.\n');
     process.exit(0);
   }
 
@@ -133,8 +132,8 @@ Global Install:
   let pyArgs = [];
   const remainingArgs = args.slice(1);
 
-  if (subCommand === 'studio' || subCommand === 'server' || subCommand === 'web') {
-    pyArgs = ['-m', 'cortex_m.server.app', ...remainingArgs];
+  if (subCommand === 'server' || subCommand === 'api') {
+    pyArgs = ['-m', 'apps.api.server', ...remainingArgs];
   } else if (subCommand === 'chat' || subCommand === 'lm') {
     const chatScript = path.join(ROOT_DIR, 'scripts', 'cortex_lm_chat.py');
     pyArgs = [chatScript, ...remainingArgs];

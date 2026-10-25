@@ -1,16 +1,23 @@
-# CORTEX-Health / BCI: Neural Signal Processing & Decoding Suite
-
-<p align="center">
-  <img src="../../assets/ui_previews/cortex_health_bci.png" alt="CORTEX-Health BCI Console" width="100%" />
-</p>
+# CORTEX-Health / BCI: Neural Signal Research (Specification)
 
 ## Overview
-**CORTEX-Health / BCI** is a scientific research and non-clinical demonstration suite for high-precision neural signal processing. It provides real-time time-frequency analysis, microvolt waveform visualization, and continuous attractor state-space decoding for non-invasive electroencephalography (EEG) and micro-electrode arrays.
+**CORTEX-Health / BCI** is a scientific research specification for high-precision neural signal processing and time-frequency analysis. It establishes mathematical protocols for continuous attractor state-space decoding of electroencephalography (EEG) data strictly within non-clinical research settings.
 
 ---
 
-## Key Capabilities
-- **16-Channel Microvolt Oscilloscope**: Filtered multi-channel EEG trace rendering (Fp1, Fp2, C3, C4, O1, O2) with sub-microsecond timebase synchronization.
-- **Continuous Wavelet Spectrogram**: High-resolution time-frequency power spectral density mapping from 0.1 Hz to 100 Hz across Delta, Theta, Alpha, Beta, and Gamma bands.
-- **Attractor Phase Portrait**: 3D state-space trajectory visualization mapping motor imagery cognitive intent into geometric attractor basins.
-- **Regulatory Governance**: Adheres to non-clinical demonstration boundaries as framed under FDA Non-Clinical BCI Guidance and IEC 62304 software lifecycles.
+## Planned Capabilities & Research Standards
+- **Signal Processing Pipeline**: Specifications for multi-channel filtering, artifact rejection, and bandpower decomposition (Delta, Theta, Alpha, Beta, Gamma).
+- **Attractor Phase Portraits**: Mathematical modeling of cognitive intent trajectories converging to stable attractor basins.
+- **Strict Non-Clinical Boundary**: Designed purely for laboratory and academic research; explicitly prohibited from diagnostic or clinical therapeutic usage without medical certification.
+- **Safety & Software Governance**: Formulated in alignment with FDA Non-Clinical BCI Guidance and IEC 62304 research standards.
+
+---
+
+## 🎨 Visual Identity & Chromatic Environment: Jade, Porcelain & Botanical Sage
+Governed by the [Ecosystem Design System](../../docs/architecture/design_system.md#9-cortex-health--bci-neural-signal-research--jade-porcelain--botanical-sage):
+* **Porcelain** (`#F6F1E5`): Clean, non-glare scientific background (70%).
+* **Celadon** (`#D4E2D0`): Waveform canvas dividers and container panels (20%).
+* **Sage** (`#A6C6A6`): Microvolt EEG baseline traces and time-frequency grids.
+* **Jade** (`#689785`): **Signature Accent** — Peak bandpower frequencies and cognitive targets (10%).
+* **Deep Botanical** (`#315C46`): High-legibility clinical typography.
+

@@ -1,16 +1,23 @@
-# CORTEX-Fin: High-Throughput Replay & Explainable Fraud Analytics
-
-<p align="center">
-  <img src="../../assets/ui_previews/cortex_fin_dashboard.png" alt="CORTEX-Fin Fraud Analytics Console" width="100%" />
-</p>
+# CORTEX-Fin: High-Throughput Replay & Fraud Research (Specification)
 
 ## Overview
-**CORTEX-Fin** provides high-throughput historical transaction replay, behavioral fraud anomaly scoring, and explainable risk attribution for financial institutions. It operates strictly in **shadow-mode evaluation**, ensuring that neural inference assists compliance officers without replacing deterministic transactional ledgers or regulatory audit trails.
+**CORTEX-Fin** is an architectural research specification for high-throughput transaction replay, behavioral fraud anomaly scoring, and explainable risk attribution. Under this specification, neural inference operates strictly in **shadow-mode evaluation**, ensuring that neural models assist analysis without interfering with deterministic transactional ledgers or regulatory audit trails.
 
 ---
 
-## Key Capabilities
-- **Transaction Replay Engine**: Capable of streaming and scoring >140,000 transactions per second with sub-150μs mean scoring latency.
+## Planned Research Capabilities
+- **Transaction Replay Pipeline**: Design specification for streaming and scoring high-frequency financial event logs.
 - **Behavioral Anomaly Heatmap**: Multi-dimensional clustering across velocity, geolocation jumps, and device fingerprints.
-- **Explainable Attractor Waterfall**: Granular breakdown of positive and negative risk factors for full regulatory explainability (FCRA / GDPR compliant).
-- **Zero Irreversible Execution**: Operates purely in shadow mode; cannot decline, freeze, or authorize funds without human officer verification.
+- **Explainable Attractor Attribution**: Decomposition of attractor energy gradients for full regulatory explainability.
+- **Deterministic Ledger Isolation**: Neural outputs are strictly non-authoritative recommendations; zero irreversible automated execution.
+
+---
+
+## 🎨 Visual Identity & Chromatic Environment: Emerald, Gold & Deep Forest
+Governed by the [Ecosystem Design System](../../docs/architecture/design_system.md#5-cortex-fin-transaction-replay--risk-research--emerald-gold--deep-forest):
+* **Forest Ink** (`#101A14`): Shadow-mode analytical canvas (70%).
+* **Evergreen** (`#234B39`): Table groupings and transaction stream trays (20%).
+* **Emerald** (`#3D8B63`): **Signature Accent** — Institutional brand and verified signals (10%).
+* **Bullion Gold** (`#D1AD58`): Reserve metrics and premium analytical highlights.
+* **Ledger Cream** (`#F4EBD9`): Monospaced archival ledger typography.
+

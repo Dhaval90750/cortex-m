@@ -18,17 +18,18 @@ This directory contains the complete theoretical, architectural, empirical, and 
 
 ---
 
-## 3. Academic & IEEE Research Papers (`docs/papers/`)
-- [CORTEX-M IEEE Research Paper (Markdown)](papers/cortex_m_ieee_research_paper.md)
-- [CORTEX-M IEEE Research Paper (LaTeX)](papers/cortex_m_ieee_research_paper.tex)
-- [CORTEX-M IEEE Research Paper (Compiled PDF)](papers/cortex_m_ieee_research_paper.pdf)
-- [Extended Research Paper Draft](papers/research_paper.md)
+## 3. Research Manuscripts & Working Papers (`docs/papers/`)
+- [CORTEX-M Technical Research Paper (Markdown Draft)](papers/cortex_m_ieee_research_paper.md)
+- [CORTEX-M Research Paper (LaTeX Source Draft)](papers/cortex_m_ieee_research_paper.tex)
+- [CORTEX-M Research Paper (Compiled PDF Draft)](papers/cortex_m_ieee_research_paper.pdf)
+- [Extended Technical Monograph Draft](papers/research_paper.md)
 
 ---
 
 ## 4. Architecture & Technical Specifications (`docs/architecture/`)
 - [Project Executive Summary](architecture/PROJECT_EXECUTIVE_SUMMARY.md)
 - [Core Architecture Guide](architecture/architecture.md)
+- [Ecosystem Design System & Purpose-Driven Chromatic Identities](architecture/design_system.md)
 - [Architecture Decisions Record (ADR)](architecture/decisions.md)
 - [Dynamic Gist Methods](architecture/dynamic_gist_methods.md)
 - [End-to-End Execution Plan](architecture/e2e_plan.md)
