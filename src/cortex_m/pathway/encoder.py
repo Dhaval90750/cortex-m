@@ -368,3 +368,8 @@ class NeuralFeatureEncoder(nn.Module):
             return self.encode_numeric(inp)
         else:
             raise TypeError(f"Unsupported input type for encoder: {type(inp)}")
+
+    def encode(self, inp: Union[str, Sequence[str], torch.Tensor]) -> torch.Tensor:
+        """Alias for forward encoding."""
+        return self.forward(inp)
+
