@@ -1,76 +1,382 @@
-"""Global CLI Entry Points for CORTEX-M Package.
+"""Global Universal CLI Entry Points for CORTEX-M Ecosystem.
 
-Provides native console_scripts entry points for:
-- cortex / cortexcode / cortex-code -> Autonomous Multi-Agent Coding Swarm
-- cortex-substrate -> Biological Synaptic Substrate CLI (learn, recall, audit, sleep)
+Provides unified command-line interface entry points for all 8 product platforms,
+developmental learning engines, and Studio services:
+- cortex studio            -> Launch Cortex Studio Web App
+- cortex code              -> Autonomous Multi-Agent Coding Swarm
+- cortex personal          -> CORTEX-Personal Vault & Substrate
+- cortex ide               -> CORTEX-IDE AST Audit, Diff & Sandbox
+- cortex fin               -> CORTEX-Fin Lyapunov Anomaly Scorer & Replay
+- cortex robotics          -> CORTEX-Robotics 6-DOF Kinematics, Safety Interlock & Path Planner
+- cortex mesh              -> CORTEX-Mesh PBFT Consensus & Swarm Router
+- cortex health            -> CORTEX-Health Biosignal Filter, Wavelet & BCI Decoder
+- cortex space             -> CORTEX-Space CCSDS Synchronizer, Orbit Propagator & SEU Supervisor
+- cortex os                -> CORTEX-OS Spotlight Omnibar & Resource Monitor
+- cortex learning          -> Developmental Sleep Consolidation & SVD Synaptic Grafting
+- cortex status / overview -> Full Ecosystem Health & Readiness Overview
 """
 
 from __future__ import annotations
 
+import argparse
+import json
 import os
 import sys
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Ensure src is always in sys.path
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC_DIR not in sys.path:
     sys.path.insert(0, _SRC_DIR)
 
+from cortex_m.gateway import EcosystemGateway
+
 
 def cortex_studio_main():
-    """Entry point for `cortex-studio` or `cortex studio`."""
-    import argparse
+    """Launch Cortex Studio Web Application Server."""
     from cortex_m.server.app import start_cortex_studio
     
-    parser = argparse.ArgumentParser(description="Cortex Studio Web Application Server")
+    parser = argparse.ArgumentParser(prog="cortex studio", description="Cortex Studio Web Application Server")
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind server (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8888, help="Port to bind server (default: 8888)")
     parser.add_argument("--no-browser", action="store_true", help="Do not automatically open browser")
-    args = parser.parse_args()
+    args = parser.parse_args(sys.argv[1:])
 
     start_cortex_studio(host=args.host, port=args.port, open_browser=not args.no_browser)
 
 
+def cortex_code_main():
+    """Autonomous Multi-Agent Coding Swarm."""
+    from cortex_m.agents.task_completer import MultiAgentTaskCompleter
+
+    parser = argparse.ArgumentParser(prog="cortex code", description="Autonomous Multi-Agent Coding Swarm")
+    parser.add_argument("prompt", nargs="*", help="Goal or task description for the coding swarm")
+    parser.add_argument("--auto-approve", action="store_true", help="Automatically approve safe actions")
+    args = parser.parse_args(sys.argv[1:])
+
+    prompt = " ".join(args.prompt).strip() or "Inspect active workspace and report status."
+    print(f"\n[CORTEX-IDE Swarm] Task: {prompt}")
+    completer = MultiAgentTaskCompleter()
+    report = completer.complete_task(prompt)
+    print(f"Status: {report.status}")
+    print(f"Summary: {report.summary}")
+
+
+def cortex_substrate_main():
+    """Biological Synaptic Substrate CLI."""
+    gateway = EcosystemGateway.get_instance()
+    parser = argparse.ArgumentParser(prog="cortex substrate", description="Biological Synaptic Memory CLI")
+    subparsers = parser.add_subparsers(dest="subcommand", help="Substrate command")
+
+    learn_p = subparsers.add_parser("learn", help="Imprint text into synaptic memory")
+    learn_p.add_argument("text", help="Text to learn")
+    learn_p.add_argument("--tenant", default="default_user", help="Tenant ID")
+
+    recall_p = subparsers.add_parser("recall", help="Recall text from synaptic memory")
+    recall_p.add_argument("query", help="Query to recall")
+    recall_p.add_argument("--tenant", default="default_user", help="Tenant ID")
+
+    sleep_p = subparsers.add_parser("sleep", help="Run nocturnal sleep consolidation cycle")
+
+    args = parser.parse_args(sys.argv[1:])
+
+    if args.subcommand == "learn":
+        res = gateway.execute_personal("learn", {"text": args.text, "tenant_id": args.tenant})
+        print(f"[Substrate Learn] Tenant: {args.tenant} -> Learned: '{args.text}'")
+    elif args.subcommand == "recall":
+        res = gateway.execute_personal("recall", {"query": args.query, "tenant_id": args.tenant})
+        print(f"[Substrate Recall] Status: {res['status']} | Confidence: {res['confidence']:.2f}")
+        print(f"Result: {res.get('recalled_text', 'No memory found.')}")
+    elif args.subcommand == "sleep":
+        res = gateway.execute_learning("sleep", {})
+        print(f"[Substrate Sleep] Replay cycles: {res['slow_wave_replay_cycles']} | Pruned: {res['synaptic_weights_pruned']}")
+    else:
+        parser.print_help()
+
+
+def cortex_platform_cli():
+    """Universal platform subcommands router."""
+    gateway = EcosystemGateway.get_instance()
+    platform = sys.argv[1].lower()
+    args_rest = sys.argv[2:]
+
+    if platform in ("status", "overview", "info"):
+        overview = gateway.get_ecosystem_overview()
+        print(f"\n========================================================================")
+        print(f" CORTEX-M ECOSYSTEM STATUS: {overview['status']} (Version {overview['version']})")
+        print(f"========================================================================")
+        for name, plat in overview["platforms"].items():
+            features = ", ".join(plat.get("features", []))
+            print(f" * {plat['identity']:<28} [{plat['status']}] - Features: {features}")
+        return
+
+    if platform == "personal":
+        parser = argparse.ArgumentParser(prog="cortex personal")
+        sub = parser.add_subparsers(dest="action")
+        p_learn = sub.add_parser("learn")
+        p_learn.add_argument("text")
+        p_learn.add_argument("--tenant", default="default_user")
+        p_rec = sub.add_parser("recall")
+        p_rec.add_argument("query")
+        p_rec.add_argument("--tenant", default="default_user")
+        p_lock = sub.add_parser("interlock")
+        p_lock.add_argument("--host", default="127.0.0.1")
+        p_lock.add_argument("--port", type=int, default=8888)
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "learn":
+            r = gateway.execute_personal("learn", {"text": parsed.text, "tenant_id": parsed.tenant})
+            print(f"[Personal] Imprinted into tenant '{parsed.tenant}' successfully.")
+        elif parsed.action == "recall":
+            r = gateway.execute_personal("recall", {"query": parsed.query, "tenant_id": parsed.tenant})
+            print(f"[Personal] Status: {r['status']} | Confidence: {r['confidence']:.2f} | Energy: {r.get('energy', 0.0):.2f}")
+            print(f"Recalled: {r['recalled_text']}")
+        elif parsed.action == "interlock":
+            r = gateway.execute_personal("interlock", {"host": parsed.host, "port": parsed.port})
+            print(f"[Personal Interlock] Host: {parsed.host}:{parsed.port} -> Permitted: {r['egress_permitted']}")
+        else:
+            parser.print_help()
+
+    elif platform == "ide":
+        parser = argparse.ArgumentParser(prog="cortex ide")
+        sub = parser.add_subparsers(dest="action")
+        p_aud = sub.add_parser("audit")
+        p_aud.add_argument("file_or_code", help="Path to Python file or raw code")
+        p_diff = sub.add_parser("diff")
+        p_diff.add_argument("file1")
+        p_diff.add_argument("file2")
+        p_sand = sub.add_parser("sandbox")
+        p_sand.add_argument("cmd", nargs=argparse.REMAINDER)
+        parsed, remaining = parser.parse_known_args(args_rest)
+        if parsed.action == "sandbox" and remaining:
+            parsed.cmd = (parsed.cmd or []) + remaining
+
+        if parsed.action == "audit":
+            p = Path(parsed.file_or_code)
+            code = p.read_text(encoding="utf-8") if p.exists() else parsed.file_or_code
+            r = gateway.execute_ide("audit", {"code": code})
+            print(f"[IDE Audit] Clean: {r['is_clean']} | Classes: {r['classes']} | Functions: {r['functions']}")
+            if r["security_flaws"]:
+                print(f"Security Flaws: {r['security_flaws']}")
+        elif parsed.action == "diff":
+            c1 = Path(parsed.file1).read_text(encoding="utf-8")
+            c2 = Path(parsed.file2).read_text(encoding="utf-8")
+            r = gateway.execute_ide("diff", {"original": c1, "modified": c2, "filename": parsed.file2})
+            print(f"[IDE Diff] Syntax Valid: {r['syntax_valid']} | Line Changes: {r['line_changes']}")
+            print(r["unified_diff"])
+        elif parsed.action == "sandbox":
+            r = gateway.execute_ide("sandbox", {"command": parsed.cmd})
+            print(f"[IDE Sandbox] Exit: {r['exit_code']} | Timed out: {r['timed_out']} | Duration: {r['duration_ms']:.1f}ms")
+            print(f"Output:\n{r['stdout']}")
+        else:
+            parser.print_help()
+
+    elif platform == "fin":
+        parser = argparse.ArgumentParser(prog="cortex fin")
+        sub = parser.add_subparsers(dest="action")
+        p_sc = sub.add_parser("score")
+        p_sc.add_argument("--amount", type=float, default=125.0)
+        p_sc.add_argument("--distance-km", type=float, default=5.0)
+        p_sc.add_argument("--risk-score", type=float, default=0.1)
+        p_rep = sub.add_parser("replay")
+        p_rep.add_argument("--count", type=int, default=100)
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "score":
+            r = gateway.execute_fin("score", {
+                "amount": parsed.amount,
+                "distance_km": parsed.distance_km,
+                "risk_score": parsed.risk_score,
+            })
+            print(f"[Fin Anomaly] Decision: {r['decision']} | Energy: {r['lyapunov_energy']:.3f} | Calibrated Risk: {r['calibrated_risk']:.3f} | Latency: {r['scoring_latency_us']:.1f}us")
+        elif parsed.action == "replay":
+            r = gateway.execute_fin("replay", {"count": parsed.count})
+            print(f"[Fin Replay] Stream throughput: {r['throughput_tps']:,.0f} tx/s | p50: {r['p50_latency_ms']:.3f}ms | p99: {r['p99_latency_ms']:.3f}ms")
+        else:
+            parser.print_help()
+
+    elif platform == "robotics":
+        parser = argparse.ArgumentParser(prog="cortex robotics")
+        sub = parser.add_subparsers(dest="action")
+        p_fk = sub.add_parser("kinematics")
+        p_fk.add_argument("--joints", default="0,0,0,0,0,0")
+        p_pl = sub.add_parser("plan")
+        p_pl.add_argument("--start", default="0,0,0,0,0,0")
+        p_pl.add_argument("--goal", default="0.5,-0.3,0.8,0,0.2,0")
+        p_sf = sub.add_parser("safety")
+        p_sf.add_argument("--dist", type=float, default=1.5)
+        p_sf.add_argument("--speed", type=float, default=0.4)
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "kinematics":
+            j = [float(x.strip()) for x in parsed.joints.split(",")]
+            r = gateway.execute_robotics("kinematics", {"joints": j})
+            print(f"[Robotics 6-DOF] Valid: {r['joints_valid']} | EE Pos: {[round(x, 3) for x in r['end_effector_position']]}")
+        elif parsed.action == "plan":
+            s = [float(x.strip()) for x in parsed.start.split(",")]
+            g = [float(x.strip()) for x in parsed.goal.split(",")]
+            r = gateway.execute_robotics("plan", {"start": s, "goal": g})
+            print(f"[Robotics Planner] C2 Quintic Trajectory Waypoints: {r['num_waypoints']} over {r['duration_seconds']}s")
+        elif parsed.action == "safety":
+            r = gateway.execute_robotics("safety", {"human_distance_m": parsed.dist, "cartesian_speed_m_s": parsed.speed})
+            print(f"[Robotics Safety ISO 10218] Motion Allowed: {r['motion_allowed']} | Max TCP Speed: {r['allowed_tcp_speed_m_s']:.2f} m/s | E-Stop: {r['estop_active']}")
+        else:
+            parser.print_help()
+
+    elif platform == "mesh":
+        parser = argparse.ArgumentParser(prog="cortex mesh")
+        sub = parser.add_subparsers(dest="action")
+        p_cn = sub.add_parser("consensus")
+        p_cn.add_argument("--proposal", default="BLOCK_STATE_001")
+        p_rt = sub.add_parser("route")
+        p_rt.add_argument("--task-id", default="task_001")
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "consensus":
+            r = gateway.execute_mesh("consensus", {"proposal": parsed.proposal})
+            print(f"[Mesh PBFT Consensus] Pre-Prepare: {r['phase']} | Proposal ID: {r['proposal_id']} | Digest: {r['digest'][:16]}")
+        elif parsed.action == "route":
+            r = gateway.execute_mesh("route", {"task_id": parsed.task_id})
+            print(f"[Mesh Swarm Router] Task '{r['task_id']}' -> Allocated Node: {r['assigned_node']}")
+        else:
+            parser.print_help()
+
+    elif platform == "health":
+        parser = argparse.ArgumentParser(prog="cortex health")
+        sub = parser.add_subparsers(dest="action")
+        sub.add_parser("filter")
+        p_dc = sub.add_parser("decompose")
+        p_dc.add_argument("--freq", type=float, default=10.0)
+        sub.add_parser("decode")
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "filter":
+            r = gateway.execute_health("filter", {})
+            print(f"[Health Signal Filter] Detrended & 60Hz Notch: Mean {r['mean_uv']:.2f} uV, Amplitude [{r['min_uv']:.1f}, {r['max_uv']:.1f}] uV")
+        elif parsed.action == "decompose":
+            r = gateway.execute_health("decompose", {"frequency_hz": parsed.freq})
+            print(f"[Health Wavelet] Freq {r['frequency_hz']} Hz -> Alpha: {r['alpha_power']:.3f} | Beta: {r['beta_power']:.3f} | Focus Ratio: {r['focus_ratio']:.3f}")
+        elif parsed.action == "decode":
+            r = gateway.execute_health("decode", {})
+            print(f"[Health BCI] State: {r['predicted_state']} | Confidence: {r['confidence']:.2f} | Energy: {r['lyapunov_energy']:.3f}")
+            print(f"Notice: {r['non_clinical_disclaimer']}")
+        else:
+            parser.print_help()
+
+    elif platform == "space":
+        parser = argparse.ArgumentParser(prog="cortex space")
+        sub = parser.add_subparsers(dest="action")
+        p_pr = sub.add_parser("propagate")
+        p_pr.add_argument("--delta-t", type=float, default=600.0)
+        p_sy = sub.add_parser("sync-ccsds")
+        p_su = sub.add_parser("seu-check")
+        p_su.add_argument("--voltage", type=float, default=28.0)
+        p_su.add_argument("--current", type=float, default=6.5)
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "propagate":
+            r = gateway.execute_space("propagate", {"delta_t_s": parsed.delta_t})
+            print(f"[Space J2 Orbit] Alt: {r['altitude_km']:.1f} km | Lat: {r['latitude_deg']:.2f} | Lon: {r['longitude_deg']:.2f} | Speed: {r['velocity_km_s']:.2f} km/s | Eclipse: {r['in_eclipse']}")
+        elif parsed.action == "sync-ccsds":
+            r = gateway.execute_space("sync_ccsds", {})
+            print(f"[Space CCSDS Sync] Frame ASM 0x1ACFFC1D Locked | APID: {r['apid']} | CRC-16 Valid: {r['crc_valid']}")
+        elif parsed.action == "seu_check":
+            r = gateway.execute_space("seu_check", {"bus_voltage": parsed.voltage, "solar_current": parsed.current})
+            print(f"[Space SEU Supervisor] Anomalous: {r['is_anomalous']} | Status: {'NOMINAL' if not r['is_anomalous'] else r['alert']['severity']}")
+        else:
+            parser.print_help()
+
+    elif platform == "os":
+        parser = argparse.ArgumentParser(prog="cortex os")
+        sub = parser.add_subparsers(dest="action")
+        p_om = sub.add_parser("omnibar")
+        p_om.add_argument("query")
+        sub.add_parser("monitor")
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "omnibar":
+            r = gateway.execute_os("omnibar", {"query": parsed.query})
+            print(f"[OS Spotlight Omnibar] Query: '{r['query']}' evaluated in {r['evaluation_latency_ms']:.2f}ms:")
+            for res in r["results"]:
+                print(f"  #{res['rank']} {res['file_path']} (Resonance: {res['resonance_score']:.3f})")
+        elif parsed.action == "monitor":
+            r = gateway.execute_os("monitor", {})
+            print(f"[OS Monitor] {r['status_summary']} | Unprivileged: {r['is_non_privileged']}")
+        else:
+            parser.print_help()
+
+    elif platform == "learning":
+        parser = argparse.ArgumentParser(prog="cortex learning")
+        sub = parser.add_subparsers(dest="action")
+        sub.add_parser("sleep")
+        sub.add_parser("graft")
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action == "sleep":
+            r = gateway.execute_learning("sleep", {})
+            print(f"[Learning Sleep] Replayed attractors: {r['replayed_attractors']} | Retention: {r['retention_accuracy'] * 100:.1f}% | Pruned: {r['pruned_synapses']}")
+        elif parsed.action == "graft":
+            r = gateway.execute_learning("graft_filter", {})
+            print(f"[Learning Grafting] Zero collateral damage: {r['zero_damage_verified']} (Damage: {r['collateral_damage_percentage']}%)")
+        else:
+            parser.print_help()
+
+    else:
+        print(f"Error: Unknown platform or command '{platform}'. Run 'cortex --help' for usage.")
+
+
 def cortex_unified_main():
-    """Smart unified entry point for `cortex` command."""
+    """Universal smart dispatcher for the `cortex` CLI."""
     if len(sys.argv) > 1:
         cmd = sys.argv[1].lower()
         if cmd in ("--help", "-h", "help"):
             print("""
 ========================================================================
- CORTEX-M: Autonomous Neural Memory & Multi-Agent Swarm Suite
+ CORTEX-M: Universal Neural Memory, Multi-Agent Swarm & Platform Suite
 ========================================================================
 
-Usage:
-  cortex studio              Launch Cortex Studio Web Application (Default)
-  cortex chat                Start interactive neural conversational assistant
-  cortex code [prompt]       Run Autonomous Multi-Agent Coding Swarm
-  cortex substrate           Biological Synaptic Memory CLI (learn, recall, sleep)
+General Commands:
+  cortex studio              Launch Cortex Studio Web Application
+  cortex code [prompt]       Autonomous Multi-Agent Coding Swarm
+  cortex substrate           Biological Synaptic Memory CLI
+  cortex status              Ecosystem Status & Platform Readiness
   cortex --help              Show this help message
 
-Commands:
-  cortex-studio              Direct alias to launch Studio UI
-  cortex-code                Direct alias to launch Coding Swarm
-  cortex-substrate           Direct alias for Synaptic Substrate
-
-For full documentation and web interface:
-  Open http://127.0.0.1:8888 after running 'cortex studio'.
+Product Platforms:
+  cortex personal            CORTEX-Personal Vault & Egress Interlock
+  cortex ide                 CORTEX-IDE AST Audit, Diff & Sandbox
+  cortex fin                 CORTEX-Fin Anomaly Scorer & Replay
+  cortex robotics            CORTEX-Robotics 6-DOF Kinematics & Safety Interlock
+  cortex mesh                CORTEX-Mesh PBFT Consensus & Swarm Router
+  cortex health              CORTEX-Health Biosignal Filter & BCI Decoder
+  cortex space               CORTEX-Space CCSDS Synchronizer & Orbit Propagator
+  cortex os                  CORTEX-OS Spotlight Omnibar & Resource Monitor
+  cortex learning            Developmental Sleep Consolidation & SVD Grafting
 """)
             return
         elif cmd == "studio":
             sys.argv.pop(1)
             cortex_studio_main()
             return
+        elif cmd in ("code", "cortex-code", "cortexcode"):
+            sys.argv.pop(1)
+            cortex_code_main()
+            return
         elif cmd in ("substrate", "memory"):
             sys.argv.pop(1)
             cortex_substrate_main()
             return
-        elif cmd in ("chat", "lm"):
-            sys.argv.pop(1)
-            cortex_lm_main()
+        elif cmd in (
+            "status", "overview", "info",
+            "personal", "ide", "fin", "robotics",
+            "mesh", "health", "space", "os", "learning",
+        ):
+            cortex_platform_cli()
             return
 
-    # Default: Autonomous Multi-Agent Coding Swarm
-    cortex_code_main()
+    # Default to overview if no args
+    cortex_platform_cli()
 
 
 if __name__ == "__main__":

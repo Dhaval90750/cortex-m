@@ -35,6 +35,7 @@ from ..model.cortex_lm import CortexLM
 from ..pathway.causal_mimo import CausalPathwayMIMO
 from ..pathway.hierarchical_router import HierarchicalSparseRouter
 from ..sdk.llm_bridge import CortexLLMBridge
+from ..gateway import EcosystemGateway
 from .tools import Calculator, CalendarHelper, KnowledgeSearcher, PythonSandbox
 
 def _resolve_settings_path() -> Path:
@@ -113,6 +114,7 @@ class CortexEngineHub:
         self.coding_swarm = MultiAgentTaskCompleter()
         self.causal_mimo = CausalPathwayMIMO(memory_dim=64, gist_dim=32)
         self.hierarchical_router = HierarchicalSparseRouter(memory_dim=64)
+        self.gateway = EcosystemGateway.get_instance()
         self.lock = threading.RLock()
 
     @classmethod
@@ -180,6 +182,8 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             self._send_json(self.hub.settings)
         elif path == "/api/system":
             self._handle_system_status()
+        elif path == "/api/platforms" or path == "/api/platforms/status":
+            self._send_json(self.hub.gateway.get_ecosystem_overview())
         elif path == "/api/memory":
             self._handle_get_memory()
         elif path == "/api/chat/stream":
@@ -190,10 +194,11 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             self._send_json({
                 "service": "CORTEX-M Neural Runtime Server",
                 "status": "online",
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "architecture": "Continuous Hopfield Attractor Memory & Causal MIMO",
                 "endpoints": {
                     "system": "GET /api/system",
+                    "platforms": "GET /api/platforms, POST /api/platforms/<platform_id>",
                     "settings": "GET|POST /api/settings",
                     "memory": "GET|POST /api/memory/learn, POST /api/memory/unlearn",
                     "chat": "POST /api/chat, GET /api/chat/stream",
@@ -212,6 +217,8 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             if path == "/api/settings":
                 updated = self.hub.update_settings(body)
                 self._send_json({"success": True, "settings": updated})
+            elif path.startswith("/api/platforms/"):
+                self._handle_platforms(path, body)
             elif path == "/api/chat":
                 self._handle_chat(body)
             elif path == "/api/memory/learn":
@@ -255,6 +262,36 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             "engine_mode": self.hub.settings.get("engine_mode", "cortex_native"),
             "working_memory_active": self.hub.cortex.working_memory.active_topic,
         })
+
+    def _handle_platforms(self, path: str, body: Dict[str, Any]) -> None:
+        sub = path.replace("/api/platforms/", "").strip("/").lower()
+        action = body.get("action", "")
+        params = body.get("params", body)
+        try:
+            if sub == "personal":
+                res = self.hub.gateway.execute_personal(action, params)
+            elif sub == "ide":
+                res = self.hub.gateway.execute_ide(action, params)
+            elif sub == "fin":
+                res = self.hub.gateway.execute_fin(action, params)
+            elif sub == "robotics":
+                res = self.hub.gateway.execute_robotics(action, params)
+            elif sub == "mesh":
+                res = self.hub.gateway.execute_mesh(action, params)
+            elif sub == "health":
+                res = self.hub.gateway.execute_health(action, params)
+            elif sub == "space":
+                res = self.hub.gateway.execute_space(action, params)
+            elif sub == "os":
+                res = self.hub.gateway.execute_os(action, params)
+            elif sub == "learning":
+                res = self.hub.gateway.execute_learning(action, params)
+            else:
+                self._send_error(f"Unknown platform endpoint: {sub}", 404)
+                return
+            self._send_json({"success": True, "platform": sub, "action": action, "data": res})
+        except Exception as e:
+            self._send_error(str(e), 400)
 
     def _handle_get_memory(self) -> None:
         tenant_id = self.hub.settings.get("active_tenant_id", "default_user")
@@ -426,7 +463,8 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         # Automatic tool detection if enabled
         tool_output: Optional[Dict[str, Any]] = None
         lower_msg = message.lower()
-        if tools_cfg.get("calculator") and ("calculate" in lower_msg or re_calc := self._extract_math(message)):
+        re_calc = self._extract_math(message)
+        if tools_cfg.get("calculator") and ("calculate" in lower_msg or re_calc):
             calc_expr = re_calc or message.split("calculate")[-1]
             c_res = Calculator.evaluate(calc_expr)
             if c_res["success"]:
