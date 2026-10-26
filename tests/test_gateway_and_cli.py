@@ -5,6 +5,7 @@ Verifies all 9 platform dispatchers, error resilience, and learning pipelines.
 
 import unittest
 import sys
+from pathlib import Path
 from cortex_m.gateway import EcosystemGateway
 
 
@@ -138,6 +139,62 @@ class TestEcosystemGateway(unittest.TestCase):
         # 7. Space
         self.assertTrue(self.gateway.execute_space("propagate_orbit", {})["success"])
         self.assertTrue(self.gateway.execute_space("supervise_telemetry", {})["success"])
+        self.assertTrue(self.gateway.execute_space("predict_passes", {"duration_s": 3600.0})["success"])
+
+        # 8. All newly upgraded features
+        # Fin explain & velocity
+        exp = self.gateway.execute_fin("explain", {"amount": 5000.0, "distance_km": 800.0, "mcc": 7995})
+        self.assertTrue(exp["success"])
+        self.assertIn("adverse_action_codes", exp)
+        vel = self.gateway.execute_fin("velocity_anomalies", {})
+        self.assertTrue(vel["success"])
+        self.assertGreaterEqual(vel["num_anomalies"], 1)
+
+        # Health snr, electrode_check, welch_psd, decode_stream
+        snr_res = self.gateway.execute_health("snr", {})
+        self.assertTrue(snr_res["success"])
+        self.assertIn("snr_db", snr_res)
+        leads_res = self.gateway.execute_health("electrode_check", {})
+        self.assertTrue(leads_res["success"])
+        self.assertTrue(leads_res["all_leads_contact_good"])
+        psd_res = self.gateway.execute_health("welch_psd", {})
+        self.assertTrue(psd_res["success"])
+        self.assertIn("peak_frequency_hz", psd_res)
+        stream_res = self.gateway.execute_health("decode_stream", {})
+        self.assertTrue(stream_res["success"])
+
+        # Mesh view_change & vector_clock
+        vc_res = self.gateway.execute_mesh("view_change", {"new_view": 2})
+        self.assertTrue(vc_res["success"])
+        clock_res = self.gateway.execute_mesh("vector_clock", {"node_id": "test_node"})
+        self.assertTrue(clock_res["success"])
+
+        # OS cluster & predict_cluster
+        cluster_res = self.gateway.execute_os("cluster", {})
+        self.assertTrue(cluster_res["success"])
+        self.assertIn("newman_girvan_modularity", cluster_res)
+        pred_cl = self.gateway.execute_os("predict_cluster", {"text": "orbit telemetry"})
+        self.assertTrue(pred_cl["success"])
+
+        # IDE atomic_patch & cyclomatic complexity
+        audit_res = self.gateway.execute_ide("audit", {"code": "def branch(x):\n    if x > 0:\n        return 1\n    return 0"})
+        self.assertTrue(audit_res["success"])
+        self.assertIn("functions_meta", audit_res)
+        self.assertGreaterEqual(audit_res["functions_meta"]["branch"]["cyclomatic_complexity"], 2)
+        atomic_res = self.gateway.execute_ide("atomic_patch", {"bundle": {"scratch/test_patch.py": "def f(): return 10\n"}})
+        self.assertTrue(atomic_res["success"])
+
+        # Personal paging & footprint
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmpdir:
+            slice_path = Path(tmpdir) / "slice.pt"
+            po_res = self.gateway.execute_personal("page_out", {"tenant_id": "tenant_test", "path": str(slice_path)})
+            self.assertTrue(po_res["success"])
+            self.assertTrue(slice_path.exists())
+            pi_res = self.gateway.execute_personal("page_in", {"path": str(slice_path)})
+            self.assertTrue(pi_res["success"])
+        fp_res = self.gateway.execute_personal("footprint", {})
+        self.assertTrue(fp_res["success"])
 
     def test_studio_server_static_and_platform_api(self):
         import urllib.request
@@ -180,6 +237,21 @@ class TestEcosystemGateway(unittest.TestCase):
             self.assertTrue(data["success"])
             self.assertIn("result", data)
             self.assertIn("decision", data["result"])
+
+            # 5. POST /api/memory/learn with tenant and explicit memory_id (Flaw A verification)
+            learn_tenant_body = json.dumps({
+                "text": "Isolated tenant secret credential",
+                "tenant_id": "tenant_suite_42",
+                "is_tenant": True,
+                "memory_id": "mem_tenant_custom_99",
+                "salience": 0.8
+            }).encode('utf-8')
+            req_learn = urllib.request.Request(f'http://127.0.0.1:{port}/api/memory/learn', data=learn_tenant_body, headers={'Content-Type': 'application/json'})
+            res_learn = urllib.request.urlopen(req_learn)
+            self.assertEqual(res_learn.status, 200)
+            learn_data = json.loads(res_learn.read().decode('utf-8'))
+            self.assertTrue(learn_data["success"])
+            self.assertEqual(learn_data["result"]["tenant_id"], "tenant_suite_42")
         finally:
             server.shutdown()
             server.server_close()

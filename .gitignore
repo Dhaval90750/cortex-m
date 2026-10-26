@@ -51,3 +51,4 @@ data/*.sqlite3*
 # External Model Caches
 models/*.gguf
 models/cache/
+scratch/

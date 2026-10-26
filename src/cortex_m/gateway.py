@@ -121,50 +121,50 @@ class EcosystemGateway:
                 "personal": {
                     "identity": "CORTEX-Personal",
                     "status": "READY",
-                    "features": ["zero_egress_interlock", "encrypted_vault", "tenant_paging_2kb", "tabula_rasa_hebbian"],
+                    "features": ["zero_egress_interlock", "encrypted_vault", "tenant_paging_2kb", "tabula_rasa_hebbian", "disk_paging_engine"],
                 },
                 "ide": {
                     "identity": "CORTEX-IDE",
                     "status": "READY",
-                    "features": ["ast_symbol_parser", "diff_engine", "subprocess_sandbox_5s", "code_swarm"],
+                    "features": ["ast_symbol_parser", "diff_engine", "subprocess_sandbox_5s", "code_swarm", "atomic_bundle_patch", "mccabe_cyclomatic_complexity"],
                 },
                 "fin": {
                     "identity": "CORTEX-Fin",
                     "status": "READY",
-                    "features": ["transaction_encoder_32d", "hopfield_energy_attribution", "stream_replay_5000tps"],
+                    "features": ["transaction_encoder_32d", "hopfield_energy_attribution", "stream_replay_5000tps", "fcra_gdpr_adverse_action_codes", "supersonic_velocity_anomaly_detection"],
                 },
                 "robotics": {
                     "identity": "CORTEX-Robotics",
                     "status": "READY",
-                    "features": ["6dof_kinematics", "iso_10218_interlock", "quintic_attractor_planner"],
+                    "features": ["6dof_kinematics", "iso_10218_interlock", "quintic_attractor_planner", "levenberg_marquardt_ik", "yoshikawa_manipulability"],
                 },
                 "mesh": {
                     "identity": "CORTEX-Mesh",
                     "status": "READY",
-                    "features": ["pbft_bft_consensus", "mesh_node_health", "causal_sparse_router"],
+                    "features": ["pbft_bft_consensus", "mesh_node_health", "causal_sparse_router", "pbft_view_change", "lamport_vector_clocks"],
                 },
                 "health": {
                     "identity": "CORTEX-Health",
                     "status": "READY",
                     "disclaimer": "NON-CLINICAL RESEARCH ONLY",
-                    "features": ["biosignal_filter_60hz_notch", "wavelet_bandpower", "continuous_bci_decoder"],
+                    "features": ["biosignal_filter_60hz_notch", "wavelet_bandpower", "continuous_bci_decoder", "eeg_snr_estimator", "lead_contact_impedance", "welch_periodogram_psd"],
                 },
                 "space": {
                     "identity": "CORTEX-Space",
                     "status": "READY",
                     "compliance": "NASA NPR 7150.2 Class C",
-                    "features": ["ccsds_sync_asm_crc16", "j2_orbit_propagator", "seu_radiation_supervisor"],
+                    "features": ["ccsds_sync_asm_crc16", "j2_orbit_propagator", "seu_radiation_supervisor", "orbit_station_pass_prediction"],
                 },
                 "os": {
                     "identity": "CORTEX-OS",
                     "status": "READY",
                     "mode": "non_privileged_userspace",
-                    "features": ["debounced_watcher_500ms", "affinity_clustering", "spotlight_omnibar_sub1ms", "memory_ceiling_2_5mb"],
+                    "features": ["debounced_watcher_500ms", "affinity_clustering", "spotlight_omnibar_sub1ms", "memory_ceiling_2_5mb", "newman_girvan_modularity"],
                 },
                 "learning": {
                     "identity": "CORTEX-Developmental-Learning",
                     "status": "READY",
-                    "features": ["nocturnal_sleep_consolidation", "synaptic_knowledge_packager", "orthogonal_grafting_0_collateral"],
+                    "features": ["nocturnal_sleep_consolidation", "synaptic_knowledge_packager", "orthogonal_grafting_0_collateral", "vectorized_hopfield_batch_recall", "lyapunov_energy_landscape", "associative_reasoning_chains"],
                 },
             },
         }
@@ -219,6 +219,19 @@ class EcosystemGateway:
                 "pruned_synapses": report.pruned_synapses,
                 "retention_accuracy": report.retention_accuracy,
             }
+        elif action_norm in ("page_out", "paging_out"):
+            path = params.get("path", f"tenant_{tid}.pt")
+            if tid not in self.personal_substrate.paging_engine._tenants:
+                self.personal_substrate.paging_engine.create_tenant(tid)
+            saved_path = self.personal_substrate.paging_engine.page_out_to_disk(tid, path)
+            return {"success": True, "tenant_id": tid, "path": str(saved_path)}
+        elif action_norm in ("page_in", "paging_in"):
+            path = params.get("path", f"tenant_{tid}.pt")
+            loaded_tid = self.personal_substrate.paging_engine.page_in_from_disk(path)
+            return {"success": True, "tenant_id": loaded_tid, "path": str(path)}
+        elif action_norm in ("footprint", "paging_footprint", "storage_footprint"):
+            fp = self.personal_substrate.paging_engine.get_storage_footprint()
+            return {"success": True, **fp}
         else:
             raise ValueError(f"Unknown personal action: {action}")
 
@@ -237,6 +250,14 @@ class EcosystemGateway:
                 "success": symbols.syntax_valid,
                 "classes": list(symbols.classes.keys()),
                 "functions": list(symbols.functions.keys()),
+                "functions_meta": {
+                    name: {
+                        "args": f.args,
+                        "lineno": f.lineno,
+                        "cyclomatic_complexity": f.cyclomatic_complexity,
+                    }
+                    for name, f in symbols.functions.items()
+                },
                 "imports": symbols.imports,
                 "calls": sorted(list(set(all_calls))),
                 "security_flaws": symbols.security_issues,
@@ -269,6 +290,10 @@ class EcosystemGateway:
                 "timed_out": res.timed_out,
                 "duration_ms": res.duration_ms,
             }
+        elif action_norm in ("atomic_patch", "apply_bundle", "bundle"):
+            bundle = params.get("bundle", {})
+            res = self.ide_diff.apply_atomic_bundle(bundle)
+            return res
         else:
             raise ValueError(f"Unknown ide action: {action}")
 
@@ -305,6 +330,53 @@ class EcosystemGateway:
                 "p50_latency_ms": benchmark["p50_latency_ms"],
                 "p95_latency_ms": benchmark["p95_latency_ms"],
                 "p99_latency_ms": benchmark["p99_latency_ms"],
+            }
+        elif action_norm in ("explain", "explain_decision", "adverse_action"):
+            tx = FinancialTransaction(
+                tx_id=params.get("transaction_id", "tx_001"),
+                account_id=params.get("account_id", "acc_1001"),
+                amount_usd=float(params.get("amount", 1250.0)),
+                mcc=int(params.get("mcc", 7995)),
+                geo_distance_km=float(params.get("distance_km", 450.0)),
+                time_delta_seconds=float(params.get("time_delta_seconds", 300.0)),
+            )
+            exp = self.fin_scorer.explain_decision(tx)
+            return {
+                "success": True,
+                "transaction_id": exp.get("tx_id", tx.tx_id),
+                "decision": exp.get("decision"),
+                "risk_score": exp.get("risk_score"),
+                "adverse_action_codes": exp.get("adverse_action_codes", []),
+                "top_risk_driver": exp.get("top_risk_driver"),
+                "top_driver_weight": exp.get("top_driver_weight"),
+                "compliance": exp.get("compliance", {}),
+            }
+        elif action_norm in ("velocity_anomalies", "detect_velocity"):
+            tx_data = params.get("transactions")
+            replay_engine = HighThroughputReplayEngine(scorer=self.fin_scorer, encoder=self.fin_encoder)
+            if not tx_data:
+                tx_list = [
+                    FinancialTransaction("tx_01", "acc_101", 10.0, 5411, 0.0, 0.0),
+                    FinancialTransaction("tx_02", "acc_101", 50.0, 5411, 1200.0, 600.0),
+                ]
+            else:
+                tx_list = [
+                    FinancialTransaction(
+                        tx_id=t.get("tx_id", f"tx_{idx}"),
+                        account_id=t.get("account_id", "acc_1"),
+                        amount_usd=float(t.get("amount", 100.0)),
+                        mcc=int(t.get("mcc", 5411)),
+                        geo_distance_km=float(t.get("distance_km", 0.0)),
+                        time_delta_seconds=float(t.get("time_delta_seconds", 3600.0)),
+                    )
+                    for idx, t in enumerate(tx_data)
+                ]
+            anomalies = replay_engine.detect_velocity_anomalies(tx_list)
+            return {
+                "success": True,
+                "analyzed_count": len(tx_list),
+                "num_anomalies": len(anomalies),
+                "anomalies": anomalies,
             }
         else:
             raise ValueError(f"Unknown fin action: {action}")
@@ -410,6 +482,25 @@ class EcosystemGateway:
                 "distance_km": alloc.distance_km,
                 "status": alloc.status,
             }
+        elif action_norm in ("view_change", "initiate_view_change"):
+            target_view = int(params.get("new_view", self.mesh_consensus.current_view + 1))
+            vote = self.mesh_consensus.initiate_view_change(target_view)
+            return {
+                "success": True,
+                "new_view": target_view,
+                "vote_phase": vote.phase.value,
+                "voter": vote.voter_node_id,
+                "view_change_votes": len(self.mesh_consensus.view_change_votes.get(target_view, set())),
+            }
+        elif action_norm in ("vector_clock", "clock", "tick_clock"):
+            node_id = params.get("node_id", "node_gateway")
+            new_t = self.mesh_router.tick_clock(node_id)
+            return {
+                "success": True,
+                "node_id": node_id,
+                "logical_timestamp": new_t,
+                "vector_clock": dict(self.mesh_router.vector_clock),
+            }
         else:
             raise ValueError(f"Unknown mesh action: {action}")
 
@@ -461,6 +552,59 @@ class EcosystemGateway:
                 "predicted_state": res.predicted_state.value,
                 "confidence": res.confidence,
                 "lyapunov_energy": res.lyapunov_energy,
+                "non_clinical_disclaimer": res.non_clinical_disclaimer,
+            }
+        elif action_norm in ("snr", "estimate_snr", "snr_db"):
+            raw = params.get("signal", params.get("samples"))
+            if raw is None:
+                t = np.linspace(0, 1.0, 250, endpoint=False)
+                raw = (20.0 * np.sin(2.0 * np.pi * 10.0 * t) + 2.0 * np.sin(2.0 * np.pi * 60.0 * t)).tolist()
+            snr = self.health_filter.estimate_snr_db(np.array(raw, dtype=np.float64))
+            return {
+                "success": True,
+                "snr_db": snr,
+                "physiological_signal_verified": snr > 0.0,
+            }
+        elif action_norm in ("electrode_check", "leads", "check_leads"):
+            raw = params.get("signal", params.get("samples"))
+            if raw is None:
+                raw = [50.0 + 10.0 * np.sin(0.1 * i) for i in range(250)]
+            check = self.health_filter.check_electrode_contact(np.array(raw, dtype=np.float64))
+            return {
+                "success": True,
+                "all_leads_contact_good": check.get("all_leads_contact_good", False),
+                "num_channels": check.get("num_channels", 1),
+                "channels": check.get("channels", []),
+            }
+        elif action_norm in ("welch_psd", "psd"):
+            raw = params.get("signal", params.get("samples"))
+            if raw is None:
+                t = np.linspace(0, 1.0, 250, endpoint=False)
+                raw = (25.0 * np.sin(2.0 * np.pi * 10.0 * t)).tolist()
+            freqs, psd = self.health_decomposer.welch_psd(np.array(raw, dtype=np.float64))
+            return {
+                "success": True,
+                "peak_frequency_hz": float(freqs[np.argmax(psd)]),
+                "peak_power": float(np.max(psd)),
+                "num_frequency_bins": len(freqs),
+                "frequencies": freqs[:10].tolist(),
+                "psd_values": psd[:10].tolist(),
+            }
+        elif action_norm in ("decode_stream", "decode_stream_window"):
+            raw = params.get("signal", params.get("samples"))
+            ch_id = params.get("channel_id", "default_channel")
+            if raw is None:
+                t = np.linspace(0, 1.0, 250, endpoint=False)
+                raw = (25.0 * np.sin(2.0 * np.pi * 10.0 * t)).tolist()
+            alpha = float(params.get("ema_alpha", 0.35))
+            res = self.health_decoder.decode_stream_window(np.array(raw, dtype=np.float64), ema_alpha=alpha)
+            return {
+                "success": True,
+                "channel_id": ch_id,
+                "predicted_state": res.predicted_state.value,
+                "confidence": res.confidence,
+                "lyapunov_energy": res.lyapunov_energy,
+                "metadata": res.metadata,
                 "non_clinical_disclaimer": res.non_clinical_disclaimer,
             }
         else:
@@ -608,6 +752,83 @@ class EcosystemGateway:
                 "is_non_privileged": snapshot.is_non_privileged,
                 "memory_ceiling_exceeded": snapshot.memory_ceiling_exceeded,
                 "estimated_memory_kb": snapshot.estimated_total_memory_kb,
+            }
+        elif action_norm in ("cluster", "affinity_clusters", "extract_clusters"):
+            docs_data = params.get("documents", [
+                {"id": "doc1", "path": "cortex/space.py", "text": "satellite telemetry orbit j2 propagator"},
+                {"id": "doc2", "path": "cortex/space_ccsds.py", "text": "satellite ccsds frame sync telemetry"},
+                {"id": "doc3", "path": "cortex/health.py", "text": "eeg biosignal notch filter wavelet"},
+                {"id": "doc4", "path": "cortex/bci.py", "text": "eeg bci continuous decoder bandpower"},
+            ])
+            candidates = []
+            for d in docs_data:
+                vec = self.os_watcher.extract_gist_vector(d["text"], d["path"])
+                candidates.append(FileDocument(
+                    file_id=d["id"],
+                    path=d["path"],
+                    extension="." + d["path"].split(".")[-1],
+                    file_size_bytes=len(d["text"]),
+                    content_preview=d["text"],
+                    vector_64d=vec,
+                    last_modified_timestamp=1700000000.0,
+                ))
+            report = self.os_graph.extract_clusters(candidates)
+            self._last_affinity_report = report
+            modularity = self.os_graph.compute_modularity(candidates, report)
+            return {
+                "success": True,
+                "total_documents": report.total_documents,
+                "num_clusters": report.num_clusters,
+                "graph_density": report.graph_density,
+                "newman_girvan_modularity": modularity,
+                "clusters": [
+                    {
+                        "cluster_id": c.cluster_id,
+                        "cluster_name": c.cluster_name,
+                        "document_paths": c.document_paths,
+                        "cohesion_score": c.cohesion_score,
+                    }
+                    for c in report.clusters
+                ],
+            }
+        elif action_norm in ("predict_cluster", "classify"):
+            query_text = params.get("text", "space satellite orbit")
+            vec = self.os_watcher.extract_gist_vector(query_text, "query.py")
+            new_doc = FileDocument(
+                file_id="query_doc",
+                path="query.py",
+                extension=".py",
+                file_size_bytes=len(query_text),
+                content_preview=query_text,
+                vector_64d=vec,
+                last_modified_timestamp=1700000000.0,
+            )
+            report = getattr(self, "_last_affinity_report", None)
+            if report is None or not report.clusters:
+                docs_data = [
+                    {"id": "d1", "path": "space.py", "text": "satellite telemetry orbit j2"},
+                    {"id": "d2", "path": "health.py", "text": "eeg biosignal notch filter"},
+                ]
+                base_docs = [
+                    FileDocument(
+                        file_id=d["id"],
+                        path=d["path"],
+                        extension=".py",
+                        file_size_bytes=len(d["text"]),
+                        content_preview=d["text"],
+                        vector_64d=self.os_watcher.extract_gist_vector(d["text"], d["path"]),
+                        last_modified_timestamp=1700000000.0,
+                    )
+                    for d in docs_data
+                ]
+                report = self.os_graph.extract_clusters(base_docs)
+                self._last_affinity_report = report
+
+            best_id, resonance = self.os_graph.predict_cluster(new_doc, report)
+            return {
+                "success": True,
+                "best_cluster_id": best_id,
+                "resonance_score": resonance,
             }
         else:
             raise ValueError(f"Unknown os action: {action}")

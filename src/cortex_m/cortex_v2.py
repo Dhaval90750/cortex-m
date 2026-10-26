@@ -378,23 +378,25 @@ class CortexV2:
         self,
         tenant_id: str,
         text_or_vector: Union[str, Sequence[float], torch.Tensor],
+        memory_id: Optional[str] = None,
         lr: float = 0.5,
     ) -> Dict[str, Any]:
         """Learn isolated memory strictly within tenant's private 2 KB low-rank adapter."""
+        target_mem_id = memory_id or f"tenant_{tenant_id}_{len(self.tenant_manager.get_or_create_tenant(tenant_id).stored_patterns)}"
         if isinstance(text_or_vector, str):
             encoded = self.encoder.encode_text(text_or_vector)
             meta = {
                 "raw_text": text_or_vector,
-                "memory_id": f"tenant_{tenant_id}_{len(self.tenant_manager.get_or_create_tenant(tenant_id).stored_patterns)}",
+                "memory_id": target_mem_id,
                 "source_context": f"tenant_{tenant_id}",
             }
         elif isinstance(text_or_vector, torch.Tensor):
             encoded = self.encoder.encode_numeric(text_or_vector).squeeze(0)
-            meta = {"memory_id": f"tenant_{tenant_id}_{len(self.tenant_manager.get_or_create_tenant(tenant_id).stored_patterns)}"}
+            meta = {"memory_id": target_mem_id}
         else:
             t = torch.tensor(text_or_vector, dtype=torch.float32, device=self.device)
             encoded = self.encoder.encode_numeric(t).squeeze(0)
-            meta = {"memory_id": f"tenant_{tenant_id}_{len(self.tenant_manager.get_or_create_tenant(tenant_id).stored_patterns)}"}
+            meta = {"memory_id": target_mem_id}
 
         return self.tenant_manager.learn_tenant_memory(tenant_id, encoded, lr=lr, metadata=meta)
 

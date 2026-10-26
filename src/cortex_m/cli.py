@@ -148,6 +148,12 @@ def cortex_platform_cli():
         p_lock = sub.add_parser("interlock")
         p_lock.add_argument("--host", default="127.0.0.1")
         p_lock.add_argument("--port", type=int, default=8888)
+        p_po = sub.add_parser("page-out")
+        p_po.add_argument("--tenant", default="default_user")
+        p_po.add_argument("--path", default="tenant_slice.pt")
+        p_pi = sub.add_parser("page-in")
+        p_pi.add_argument("--path", default="tenant_slice.pt")
+        sub.add_parser("footprint")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "learn":
@@ -160,6 +166,15 @@ def cortex_platform_cli():
         elif parsed.action == "interlock":
             r = gateway.execute_personal("interlock", {"host": parsed.host, "port": parsed.port})
             print(f"[Personal Interlock] Host: {parsed.host}:{parsed.port} -> Permitted: {r['egress_permitted']}")
+        elif parsed.action == "page-out":
+            r = gateway.execute_personal("page_out", {"tenant_id": parsed.tenant, "path": parsed.path})
+            print(f"[Personal Paging] Tenant '{r['tenant_id']}' low-rank factor slice paged out to {r['path']}")
+        elif parsed.action == "page-in":
+            r = gateway.execute_personal("page_in", {"path": parsed.path})
+            print(f"[Personal Paging] Loaded tenant factor slice '{r['tenant_id']}' from {r['path']}")
+        elif parsed.action == "footprint":
+            r = gateway.execute_personal("footprint", {})
+            print(f"[Personal Footprint] Active tenants: {r.get('active_tenants', 0)} | Total Footprint: {r.get('total_bytes', 0)} bytes")
         else:
             parser.print_help()
 
@@ -173,6 +188,8 @@ def cortex_platform_cli():
         p_diff.add_argument("file2")
         p_sand = sub.add_parser("sandbox")
         p_sand.add_argument("cmd", nargs=argparse.REMAINDER)
+        p_pat = sub.add_parser("atomic-patch")
+        p_pat.add_argument("bundle_json", help="JSON dictionary of filepath -> content")
         parsed, remaining = parser.parse_known_args(args_rest)
         if parsed.action == "sandbox" and remaining:
             parsed.cmd = (parsed.cmd or []) + remaining
@@ -182,6 +199,8 @@ def cortex_platform_cli():
             code = p.read_text(encoding="utf-8") if p.exists() else parsed.file_or_code
             r = gateway.execute_ide("audit", {"code": code})
             print(f"[IDE Audit] Clean: {r['is_clean']} | Classes: {r['classes']} | Functions: {r['functions']}")
+            if r.get("functions_meta"):
+                print(f"Cyclomatic Complexities: { {k: v['cyclomatic_complexity'] for k, v in r['functions_meta'].items()} }")
             if r["security_flaws"]:
                 print(f"Security Flaws: {r['security_flaws']}")
         elif parsed.action == "diff":
@@ -194,6 +213,11 @@ def cortex_platform_cli():
             r = gateway.execute_ide("sandbox", {"command": parsed.cmd})
             print(f"[IDE Sandbox] Exit: {r['exit_code']} | Timed out: {r['timed_out']} | Duration: {r['duration_ms']:.1f}ms")
             print(f"Output:\n{r['stdout']}")
+        elif parsed.action == "atomic-patch":
+            import json
+            bundle = json.loads(parsed.bundle_json)
+            r = gateway.execute_ide("atomic_patch", {"bundle": bundle})
+            print(f"[IDE Atomic Patch] Success: {r.get('success')} | Committed: {r.get('committed_files')}")
         else:
             parser.print_help()
 
@@ -206,6 +230,11 @@ def cortex_platform_cli():
         p_sc.add_argument("--risk-score", type=float, default=0.1)
         p_rep = sub.add_parser("replay")
         p_rep.add_argument("--count", type=int, default=100)
+        p_exp = sub.add_parser("explain")
+        p_exp.add_argument("--amount", type=float, default=1250.0)
+        p_exp.add_argument("--distance-km", type=float, default=450.0)
+        p_exp.add_argument("--mcc", type=int, default=7995)
+        sub.add_parser("velocity-anomalies")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "score":
@@ -218,6 +247,16 @@ def cortex_platform_cli():
         elif parsed.action == "replay":
             r = gateway.execute_fin("replay", {"count": parsed.count})
             print(f"[Fin Replay] Stream throughput: {r['throughput_tps']:,.0f} tx/s | p50: {r['p50_latency_ms']:.3f}ms | p99: {r['p99_latency_ms']:.3f}ms")
+        elif parsed.action == "explain":
+            r = gateway.execute_fin("explain", {"amount": parsed.amount, "distance_km": parsed.distance_km, "mcc": parsed.mcc})
+            print(f"[Fin Explainability] Decision: {r['decision']} | Risk: {r['risk_score']:.3f}")
+            print(f"Adverse Action Codes: {r.get('adverse_action_codes')}")
+            print(f"Top Risk Driver: {r.get('top_risk_driver')} (weight {r.get('top_driver_weight')})")
+        elif parsed.action == "velocity-anomalies":
+            r = gateway.execute_fin("velocity_anomalies", {})
+            print(f"[Fin Velocity] Analyzed {r['analyzed_count']} txs | Detected {r['num_anomalies']} supersonic anomalies:")
+            for anom in r["anomalies"]:
+                print(f"  * Acc {anom['account_id']}: {anom['apparent_velocity_km_h']} km/h ({anom['distance_km']} km in {anom['time_interval_seconds']}s)")
         else:
             parser.print_help()
 
@@ -232,6 +271,10 @@ def cortex_platform_cli():
         p_sf = sub.add_parser("safety")
         p_sf.add_argument("--dist", type=float, default=1.5)
         p_sf.add_argument("--speed", type=float, default=0.4)
+        p_ik = sub.add_parser("ik")
+        p_ik.add_argument("--target", default="0.4,0.2,0.3")
+        p_man = sub.add_parser("manipulability")
+        p_man.add_argument("--joints", default="0,0,0,0,0,0")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "kinematics":
@@ -246,6 +289,14 @@ def cortex_platform_cli():
         elif parsed.action == "safety":
             r = gateway.execute_robotics("safety", {"human_distance_m": parsed.dist, "cartesian_speed_m_s": parsed.speed})
             print(f"[Robotics Safety ISO 10218] Motion Allowed: {r['motion_allowed']} | Max TCP Speed: {r['allowed_tcp_speed_m_s']:.2f} m/s | E-Stop: {r['estop_active']}")
+        elif parsed.action == "ik":
+            t = [float(x.strip()) for x in parsed.target.split(",")]
+            r = gateway.execute_robotics("ik", {"target_xyz": t})
+            print(f"[Robotics IK] Converged: {r['success']} | Error: {r['position_error_m']:.4f}m | Joints: {[round(x, 3) for x in r['joint_angles_rad']]}")
+        elif parsed.action == "manipulability":
+            j = [float(x.strip()) for x in parsed.joints.split(",")]
+            r = gateway.execute_robotics("manipulability", {"joints": j})
+            print(f"[Robotics Manipulability] Yoshikawa Index w(q): {r['manipulability_index']:.4f}")
         else:
             parser.print_help()
 
@@ -256,6 +307,10 @@ def cortex_platform_cli():
         p_cn.add_argument("--proposal", default="BLOCK_STATE_001")
         p_rt = sub.add_parser("route")
         p_rt.add_argument("--task-id", default="task_001")
+        p_vc = sub.add_parser("view-change")
+        p_vc.add_argument("--new-view", type=int, default=1)
+        p_cl = sub.add_parser("clock")
+        p_cl.add_argument("--node-id", default="node_gateway")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "consensus":
@@ -264,6 +319,12 @@ def cortex_platform_cli():
         elif parsed.action == "route":
             r = gateway.execute_mesh("route", {"task_id": parsed.task_id})
             print(f"[Mesh Swarm Router] Task '{r['task_id']}' -> Allocated Node: {r['assigned_node']}")
+        elif parsed.action == "view-change":
+            r = gateway.execute_mesh("view_change", {"new_view": parsed.new_view})
+            print(f"[Mesh View-Change] Target View: {r['new_view']} | Phase: {r['vote_phase']} | Total Quorum Votes: {r['view_change_votes']}")
+        elif parsed.action == "clock":
+            r = gateway.execute_mesh("vector_clock", {"node_id": parsed.node_id})
+            print(f"[Mesh Vector Clock] Node: {r['node_id']} -> Timestamp: {r['logical_timestamp']} | Clocks: {r['vector_clock']}")
         else:
             parser.print_help()
 
@@ -274,6 +335,11 @@ def cortex_platform_cli():
         p_dc = sub.add_parser("decompose")
         p_dc.add_argument("--freq", type=float, default=10.0)
         sub.add_parser("decode")
+        sub.add_parser("snr")
+        sub.add_parser("leads")
+        sub.add_parser("psd")
+        p_st = sub.add_parser("stream")
+        p_st.add_argument("--channel", default="ch_01")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "filter":
@@ -286,6 +352,18 @@ def cortex_platform_cli():
             r = gateway.execute_health("decode", {})
             print(f"[Health BCI] State: {r['predicted_state']} | Confidence: {r['confidence']:.2f} | Energy: {r['lyapunov_energy']:.3f}")
             print(f"Notice: {r['non_clinical_disclaimer']}")
+        elif parsed.action == "snr":
+            r = gateway.execute_health("snr", {})
+            print(f"[Health SNR] EEG Signal-to-Noise Ratio: {r['snr_db']} dB | Verified: {r['physiological_signal_verified']}")
+        elif parsed.action == "leads":
+            r = gateway.execute_health("electrode_check", {})
+            print(f"[Health Electrode Impedance] All Leads Good: {r.get('all_leads_contact_good')} | Channels: {r.get('channels')}")
+        elif parsed.action == "psd":
+            r = gateway.execute_health("welch_psd", {})
+            print(f"[Health Welch PSD] Peak Frequency: {r['peak_frequency_hz']} Hz | Peak Power: {r['peak_power']:.2f} uV^2/Hz")
+        elif parsed.action == "stream":
+            r = gateway.execute_health("decode_stream", {"channel_id": parsed.channel})
+            print(f"[Health Stream Decoder] Channel {r['channel_id']} -> State: {r['predicted_state']} (Confidence: {r['confidence']:.2f})")
         else:
             parser.print_help()
 
@@ -298,6 +376,8 @@ def cortex_platform_cli():
         p_su = sub.add_parser("seu-check")
         p_su.add_argument("--voltage", type=float, default=28.0)
         p_su.add_argument("--current", type=float, default=6.5)
+        p_pa = sub.add_parser("passes")
+        p_pa.add_argument("--duration-h", type=float, default=24.0)
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "propagate":
@@ -306,9 +386,14 @@ def cortex_platform_cli():
         elif parsed.action == "sync-ccsds":
             r = gateway.execute_space("sync_ccsds", {})
             print(f"[Space CCSDS Sync] Frame ASM 0x1ACFFC1D Locked | APID: {r['apid']} | CRC-16 Valid: {r['crc_valid']}")
-        elif parsed.action == "seu_check":
+        elif parsed.action == "seu-check" or parsed.action == "seu_check":
             r = gateway.execute_space("seu_check", {"bus_voltage": parsed.voltage, "solar_current": parsed.current})
             print(f"[Space SEU Supervisor] Anomalous: {r['is_anomalous']} | Status: {'NOMINAL' if not r['is_anomalous'] else r['alert']['severity']}")
+        elif parsed.action == "passes":
+            r = gateway.execute_space("predict_passes", {"duration_s": parsed.duration_h * 3600.0})
+            print(f"[Space Station Passes] Predicted {r['num_passes']} passes over {parsed.duration_h} hours:")
+            for p in r["passes"][:5]:
+                print(f"  * {p['station_name']} at {p['timestamp_s']}s (AOS: {p['elevation_deg']:.1f} deg)")
         else:
             parser.print_help()
 
@@ -318,6 +403,9 @@ def cortex_platform_cli():
         p_om = sub.add_parser("omnibar")
         p_om.add_argument("query")
         sub.add_parser("monitor")
+        sub.add_parser("cluster")
+        p_cl = sub.add_parser("classify")
+        p_cl.add_argument("text")
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "omnibar":
@@ -328,6 +416,14 @@ def cortex_platform_cli():
         elif parsed.action == "monitor":
             r = gateway.execute_os("monitor", {})
             print(f"[OS Monitor] {r['status_summary']} | Unprivileged: {r['is_non_privileged']}")
+        elif parsed.action == "cluster":
+            r = gateway.execute_os("cluster", {})
+            print(f"[OS Affinity Graph] Extracted {r['num_clusters']} clusters (Modularity Q: {r['newman_girvan_modularity']:.4f}, Density: {r['graph_density']:.3f}):")
+            for c in r["clusters"]:
+                print(f"  * {c['cluster_name']}: {len(c['document_paths'])} docs (Cohesion: {c['cohesion_score']:.3f})")
+        elif parsed.action == "classify":
+            r = gateway.execute_os("predict_cluster", {"text": parsed.text})
+            print(f"[OS Classifier] Text '{parsed.text}' -> Best Cluster: {r['best_cluster_id']} (Resonance: {r['resonance_score']:.3f})")
         else:
             parser.print_help()
 
@@ -336,6 +432,13 @@ def cortex_platform_cli():
         sub = parser.add_subparsers(dest="action")
         sub.add_parser("sleep")
         sub.add_parser("graft")
+        p_cmp = sub.add_parser("compress")
+        p_cmp.add_argument("--rank", type=int, default=16)
+        p_ls = sub.add_parser("landscape")
+        p_ls.add_argument("--cue", default="memory_anchor")
+        p_ch = sub.add_parser("chain")
+        p_ch.add_argument("--cue", default="concept_anchor")
+        p_ch.add_argument("--hops", type=int, default=3)
         parsed = parser.parse_args(args_rest)
 
         if parsed.action == "sleep":
@@ -344,6 +447,15 @@ def cortex_platform_cli():
         elif parsed.action == "graft":
             r = gateway.execute_learning("graft_filter", {})
             print(f"[Learning Grafting] Zero collateral damage: {r['zero_damage_verified']} (Damage: {r['collateral_damage_percentage']}%)")
+        elif parsed.action == "compress":
+            r = gateway.execute_learning("compress_synapses", {"target_rank": parsed.rank})
+            print(f"[Learning Compression] Synaptic Low-Rank SVD: Rank {r.get('target_rank')} | Ratio: {r.get('compression_ratio_pct', 0):.1f}%")
+        elif parsed.action == "landscape":
+            r = gateway.execute_learning("energy_landscape", {"cue": parsed.cue})
+            print(f"[Learning Landscape] Energy Barrier: {r.get('energy_barrier_height', 0):.4f} | Attractor Margin: {r.get('attractor_margin', 0):.4f}")
+        elif parsed.action == "chain":
+            r = gateway.execute_learning("reasoning_chain", {"cue": parsed.cue, "max_hops": parsed.hops})
+            print(f"[Learning Chain] Hops: {r.get('num_hops', 0)} | Trajectory: {[h.get('recalled_memory_id') for h in r.get('chain', [])]}")
         else:
             parser.print_help()
 
