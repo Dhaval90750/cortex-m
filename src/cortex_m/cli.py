@@ -90,9 +90,34 @@ def cortex_substrate_main():
         print(f"Result: {res.get('recalled_text', 'No memory found.')}")
     elif args.subcommand == "sleep":
         res = gateway.execute_learning("sleep", {})
-        print(f"[Substrate Sleep] Replay cycles: {res['slow_wave_replay_cycles']} | Pruned: {res['synaptic_weights_pruned']}")
+        replayed = res.get("replayed_attractors", res.get("slow_wave_replay_cycles", 0))
+        pruned = res.get("pruned_synapses", res.get("synaptic_weights_pruned", 0))
+        retention = res.get("retention_accuracy", 1.0) * 100.0
+        print(f"[Substrate Sleep] Replayed attractors: {replayed} | Pruned synapses: {pruned} | Retention: {retention:.1f}%")
     else:
         parser.print_help()
+
+
+def cortex_lm_main():
+    """Interactive Terminal Chat & Synaptic Exploration Interface for CortexLM."""
+    from pathlib import Path
+    chat_script = Path(__file__).resolve().parent.parent.parent / "scripts" / "cortex_lm_chat.py"
+    if chat_script.exists():
+        import runpy
+        runpy.run_path(str(chat_script), run_name="__main__")
+    else:
+        from cortex_m import CortexLM
+        lm = CortexLM(dim=64, gist_dim=32, imprint_foundation=True)
+        print("\n[CortexLM] Interactive session started. Type 'exit' to quit.\n")
+        while True:
+            try:
+                inp = input("cortex> ").strip()
+                if not inp or inp.lower() in ("exit", "quit"):
+                    break
+                out = lm.chat(inp)
+                print(f"CortexLM: {out.text}\n")
+            except (KeyboardInterrupt, EOFError):
+                break
 
 
 def cortex_platform_cli():
@@ -366,6 +391,10 @@ Product Platforms:
         elif cmd in ("substrate", "memory"):
             sys.argv.pop(1)
             cortex_substrate_main()
+            return
+        elif cmd in ("lm", "chat", "cortexlm", "cortex-lm"):
+            sys.argv.pop(1)
+            cortex_lm_main()
             return
         elif cmd in (
             "status", "overview", "info",

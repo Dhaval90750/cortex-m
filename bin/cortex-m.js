@@ -105,16 +105,29 @@ function main() {
 ========================================================================
 
 Usage:
-  npx cortex-m chat           Start interactive neural conversational terminal (default)
-  npx cortex-m server         Launch headless JSON REST API server
-  npx cortex-m substrate      Biological synaptic memory CLI (learn, recall)
+  npx cortex-m studio         Launch Cortex Studio Web Application
+  npx cortex-m chat           Start interactive neural conversational terminal
+  npx cortex-m code [prompt]  Autonomous Multi-Agent Coding Swarm
+  npx cortex-m substrate      Biological synaptic memory CLI (learn, recall, sleep)
+  npx cortex-m status         Ecosystem Status & 9-Platform Readiness
   npx cortex-m bench          Run complete scientific comparative benchmark suite
-  npx cortex-m test           Run complete test suite (129 tests)
+  npx cortex-m test           Run complete test suite
   npx cortex-m setup          Install / verify Python backend dependencies
+
+Platforms:
+  npx cortex-m personal       Personal Vault & Zero-Egress Interlock
+  npx cortex-m ide            AST Audit, Syntax Diff & Subprocess Sandbox
+  npx cortex-m fin            Lyapunov Anomaly Scorer & Replay Engine
+  npx cortex-m robotics       6-DOF Kinematics & ISO 10218 Interlock
+  npx cortex-m mesh           PBFT Consensus & Swarm Router
+  npx cortex-m health         Biosignal Filter & BCI Decoder
+  npx cortex-m space          CCSDS Telemetry & Orbit Propagator
+  npx cortex-m os             Omnibar Spotlight Search & Resource Monitor
+  npx cortex-m learning       Sleep Consolidation & Synaptic Grafting
 
 Global Install:
   npm install -g .            Install 'cortex-m' CLI command globally on system
-  cortex-m chat               Start conversational interface anywhere
+  cortex studio               Launch Studio anywhere
 `);
     process.exit(0);
   }
@@ -122,7 +135,7 @@ Global Install:
   if (subCommand === 'setup') {
     console.log(`[Cortex-M] Setting up dependencies with ${pythonBin}...`);
     verifyAndSetupDependencies(pythonBin);
-    console.log('\n[Cortex-M] Setup complete! Run `npx cortex-m chat` to start.\n');
+    console.log('\n[Cortex-M] Setup complete! Run `npx cortex-m chat` or `npx cortex-m studio` to start.\n');
     process.exit(0);
   }
 
@@ -132,17 +145,14 @@ Global Install:
   let pyArgs = [];
   const remainingArgs = args.slice(1);
 
-  if (subCommand === 'server' || subCommand === 'api') {
-    pyArgs = ['-m', 'apps.api.server', ...remainingArgs];
+  if (subCommand === 'studio' || subCommand === 'server' || subCommand === 'api') {
+    pyArgs = ['-m', 'cortex_m.cli', 'studio', ...remainingArgs];
   } else if (subCommand === 'chat' || subCommand === 'lm') {
-    const chatScript = path.join(ROOT_DIR, 'scripts', 'cortex_lm_chat.py');
-    pyArgs = [chatScript, ...remainingArgs];
+    pyArgs = ['-m', 'cortex_m.cli', 'lm', ...remainingArgs];
   } else if (subCommand === 'code' || subCommand === 'swarm') {
-    const codeScript = path.join(ROOT_DIR, 'scripts', 'cortex_code.py');
-    pyArgs = [codeScript, ...remainingArgs];
+    pyArgs = ['-m', 'cortex_m.cli', 'code', ...remainingArgs];
   } else if (subCommand === 'substrate' || subCommand === 'memory') {
-    const cliScript = path.join(ROOT_DIR, 'scripts', 'cortex_cli.py');
-    pyArgs = [cliScript, ...remainingArgs];
+    pyArgs = ['-m', 'cortex_m.cli', 'substrate', ...remainingArgs];
   } else if (subCommand === 'test') {
     pyArgs = ['-m', 'unittest', 'discover', '-s', 'tests', ...remainingArgs];
   } else if (subCommand === 'bench' || subCommand === 'benchmark') {

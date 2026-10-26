@@ -15,6 +15,17 @@ from .ast_parser import ASTSymbolTable, ASTSymbolTableParser
 
 
 @dataclass
+class DiffResult:
+    """Standardized diff outcome with AST validation metadata."""
+    unified_diff: str
+    syntax_valid: bool
+    line_changes: int
+    lines_added: int
+    lines_removed: int
+    error_message: Optional[str] = None
+
+
+@dataclass
 class PatchResult:
     """Outcome of an AST-validated patch operation."""
     success: bool
@@ -31,6 +42,26 @@ class ASTDiffEngine:
 
     def __init__(self):
         self.parser = ASTSymbolTableParser()
+
+    def compute_diff(
+        self,
+        original_code: str,
+        modified_code: str,
+        filename: str = "patch.py",
+    ) -> DiffResult:
+        """Compute unified diff with AST validation and line change counts."""
+        ast_table = self.parser.parse_source(modified_code, filename=filename)
+        diff_text = self.generate_diff(original_code, modified_code, filename=filename)
+        added = sum(1 for line in diff_text.splitlines() if line.startswith("+") and not line.startswith("+++"))
+        removed = sum(1 for line in diff_text.splitlines() if line.startswith("-") and not line.startswith("---"))
+        return DiffResult(
+            unified_diff=diff_text,
+            syntax_valid=ast_table.syntax_valid,
+            line_changes=added + removed,
+            lines_added=added,
+            lines_removed=removed,
+            error_message=ast_table.error_message,
+        )
 
     def generate_diff(
         self,

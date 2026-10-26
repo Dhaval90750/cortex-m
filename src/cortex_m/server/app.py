@@ -170,6 +170,95 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         raw = self.rfile.read(length).decode("utf-8")
         return json.loads(raw) if raw.strip() else {}
 
+    def _serve_static(self, path: str) -> None:
+        """Serve static files from the server/static directory or fallback."""
+        static_dir = Path(__file__).resolve().parent / "static"
+        clean_path = path.lstrip("/")
+        if clean_path in ("", "index.html", "studio"):
+            target_file = static_dir / "index.html"
+        elif clean_path.startswith("static/"):
+            target_file = (static_dir / clean_path[len("static/"):]).resolve()
+        else:
+            target_file = (static_dir / clean_path).resolve()
+
+        # Guard against path traversal
+        try:
+            target_file.relative_to(static_dir)
+        except ValueError:
+            self._send_error("Forbidden", 403)
+            return
+
+        if target_file.exists() and target_file.is_file():
+            content_type = "text/plain"
+            suffix = target_file.suffix.lower()
+            if suffix == ".html":
+                content_type = "text/html; charset=utf-8"
+            elif suffix == ".css":
+                content_type = "text/css; charset=utf-8"
+            elif suffix == ".js":
+                content_type = "application/javascript; charset=utf-8"
+            elif suffix == ".json":
+                content_type = "application/json; charset=utf-8"
+            elif suffix == ".svg":
+                content_type = "image/svg+xml"
+            elif suffix in (".png", ".jpg", ".jpeg", ".ico"):
+                content_type = f"image/{suffix.lstrip('.')}"
+
+            raw_bytes = target_file.read_bytes()
+            self.send_response(200)
+            self._send_cors_headers()
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(raw_bytes)))
+            self.end_headers()
+            self.wfile.write(raw_bytes)
+        else:
+            # Fallback service discovery JSON if static file does not exist
+            self._send_json({
+                "service": "CORTEX-M Neural Runtime Server & Studio",
+                "status": "online",
+                "version": "2.2.0",
+                "architecture": "Continuous Hopfield Attractor Memory & Causal MIMO",
+                "endpoints": {
+                    "studio_ui": "GET / (Cortex Studio Web Application)",
+                    "system": "GET /api/system",
+                    "platforms": "GET /api/platforms, POST /api/platforms/<platform_id>/<action>",
+                    "settings": "GET|POST /api/settings",
+                    "memory": "GET|POST /api/memory/learn, POST /api/memory/unlearn",
+                    "chat": "POST /api/chat, GET /api/chat/stream",
+                    "code": "POST /api/code",
+                    "mimo": "POST /api/mimo",
+                    "tools": "POST /api/tools/execute"
+                }
+            })
+
+    def _handle_platforms(self, path: str, body: Dict[str, Any]) -> None:
+        """Route dynamic platform execution requests through EcosystemGateway."""
+        parts = [p for p in path.strip("/").split("/") if p]
+        # Expecting /api/platforms/<platform_id> or /api/platforms/<platform_id>/<action>
+        if len(parts) < 3:
+            self._send_error("Invalid platform route format. Use /api/platforms/<platform_id>/<action>", 400)
+            return
+
+        platform_id = parts[2].lower()
+        action = parts[3].lower() if len(parts) > 3 else body.get("action", "")
+        if not action:
+            self._send_error(f"Missing action for platform '{platform_id}'", 400)
+            return
+
+        params = body.get("params", body) if "params" in body else body
+        method_name = f"execute_{platform_id}"
+        if not hasattr(self.hub.gateway, method_name):
+            self._send_error(f"Unknown platform '{platform_id}'", 404)
+            return
+
+        dispatcher = getattr(self.hub.gateway, method_name)
+        try:
+            with self.hub.lock:
+                result = dispatcher(action, params)
+            self._send_json({"success": True, "platform": platform_id, "action": action, "result": result, "data": result})
+        except Exception as e:
+            self._send_error(f"Platform execution error ({platform_id}.{action}): {str(e)}", 400)
+
     # -------------------------------------------------------------------------
     # Route Dispatches
     # -------------------------------------------------------------------------
@@ -182,7 +271,7 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             self._send_json(self.hub.settings)
         elif path == "/api/system":
             self._handle_system_status()
-        elif path == "/api/platforms" or path == "/api/platforms/status":
+        elif path in ("/api/platforms", "/api/platforms/status", "/api/ecosystem/status"):
             self._send_json(self.hub.gateway.get_ecosystem_overview())
         elif path == "/api/memory":
             self._handle_get_memory()
@@ -191,22 +280,7 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         elif path.startswith("/api/"):
             self._send_error(f"Unknown GET endpoint: {path}", 404)
         else:
-            self._send_json({
-                "service": "CORTEX-M Neural Runtime Server",
-                "status": "online",
-                "version": "2.2.0",
-                "architecture": "Continuous Hopfield Attractor Memory & Causal MIMO",
-                "endpoints": {
-                    "system": "GET /api/system",
-                    "platforms": "GET /api/platforms, POST /api/platforms/<platform_id>",
-                    "settings": "GET|POST /api/settings",
-                    "memory": "GET|POST /api/memory/learn, POST /api/memory/unlearn",
-                    "chat": "POST /api/chat, GET /api/chat/stream",
-                    "code": "POST /api/code",
-                    "mimo": "POST /api/mimo",
-                    "tools": "POST /api/tools/execute"
-                }
-            })
+            self._serve_static(path)
 
     def do_POST(self) -> None:
         parsed = urllib.parse.urlparse(self.path)
@@ -262,36 +336,6 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
             "engine_mode": self.hub.settings.get("engine_mode", "cortex_native"),
             "working_memory_active": self.hub.cortex.working_memory.active_topic,
         })
-
-    def _handle_platforms(self, path: str, body: Dict[str, Any]) -> None:
-        sub = path.replace("/api/platforms/", "").strip("/").lower()
-        action = body.get("action", "")
-        params = body.get("params", body)
-        try:
-            if sub == "personal":
-                res = self.hub.gateway.execute_personal(action, params)
-            elif sub == "ide":
-                res = self.hub.gateway.execute_ide(action, params)
-            elif sub == "fin":
-                res = self.hub.gateway.execute_fin(action, params)
-            elif sub == "robotics":
-                res = self.hub.gateway.execute_robotics(action, params)
-            elif sub == "mesh":
-                res = self.hub.gateway.execute_mesh(action, params)
-            elif sub == "health":
-                res = self.hub.gateway.execute_health(action, params)
-            elif sub == "space":
-                res = self.hub.gateway.execute_space(action, params)
-            elif sub == "os":
-                res = self.hub.gateway.execute_os(action, params)
-            elif sub == "learning":
-                res = self.hub.gateway.execute_learning(action, params)
-            else:
-                self._send_error(f"Unknown platform endpoint: {sub}", 404)
-                return
-            self._send_json({"success": True, "platform": sub, "action": action, "data": res})
-        except Exception as e:
-            self._send_error(str(e), 400)
 
     def _handle_get_memory(self) -> None:
         tenant_id = self.hub.settings.get("active_tenant_id", "default_user")
@@ -612,17 +656,27 @@ class CortexStudioHandler(BaseHTTPRequestHandler):
         self.wfile.flush()
 
 
-def start_cortex_server(host: str = "127.0.0.1", port: int = 8888) -> None:
-    """Start CORTEX-M Headless Neural Runtime REST API Server."""
+def start_cortex_server(host: str = "127.0.0.1", port: int = 8888, open_browser: bool = False) -> None:
+    """Start CORTEX-M Neural Runtime Server & Studio Dashboard."""
     server = ThreadingHTTPServer((host, port), CortexStudioHandler)
     url = f"http://{host}:{port}"
     print(f"\n=======================================================")
-    print(f"  CORTEX-M Neural Runtime REST API Server             ")
+    print(f"  CORTEX-M Studio & Neural Runtime Server              ")
     print(f"=======================================================")
-    print(f" * Serving Headless REST API at: {url}")
+    print(f" * Serving Studio Web Dashboard & REST API at: {url}")
     print(f" * Pure Python Standard Library (Zero Web Framework Overhead)")
-    print(f" * Active Endpoints: /api/system, /api/chat, /api/memory, /api/code")
+    print(f" * Active Endpoints: /api/system, /api/platforms, /api/chat, /api/memory, /api/code")
     print(f" * Press Ctrl+C to stop.\n")
+
+    if open_browser:
+        import webbrowser
+        def _launch_browser():
+            time.sleep(0.6)
+            try:
+                webbrowser.open(url)
+            except Exception:
+                pass
+        threading.Thread(target=_launch_browser, daemon=True).start()
 
     try:
         server.serve_forever()
@@ -631,8 +685,9 @@ def start_cortex_server(host: str = "127.0.0.1", port: int = 8888) -> None:
         server.server_close()
 
 
-# Alias for backwards compatibility
-start_cortex_studio = start_cortex_server
+def start_cortex_studio(host: str = "127.0.0.1", port: int = 8888, open_browser: bool = True) -> None:
+    """Launch Cortex Studio Web Application Server and open browser."""
+    start_cortex_server(host=host, port=port, open_browser=open_browser)
 
 
 if __name__ == "__main__":

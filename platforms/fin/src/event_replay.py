@@ -37,8 +37,42 @@ class ReplayBatchResult:
 class HighThroughputReplayEngine:
     """Executes high-frequency transaction event replay benchmarks."""
 
-    def __init__(self, scorer: FinancialAnomalyScorer):
+    def __init__(self, scorer: FinancialAnomalyScorer, encoder: Optional[Any] = None):
         self.scorer = scorer
+        self.encoder = encoder
+
+    def benchmark_stream(self, count: int = 100) -> Dict[str, Any]:
+        """Generate synthetic stream of transactions and return latency & throughput metrics."""
+        np.random.seed(42)
+        transactions: List[FinancialTransaction] = []
+        for i in range(count):
+            amount = float(np.random.exponential(scale=150.0) + 5.0)
+            dist = float(np.random.exponential(scale=10.0))
+            is_anomaly = (i % 25 == 0)
+            if is_anomaly:
+                amount *= 12.0
+                dist += 120.0
+            tx = FinancialTransaction(
+                tx_id=f"tx_bench_{i:04d}",
+                account_id=f"acc_{1000 + (i % 20)}",
+                amount_usd=round(amount, 2),
+                mcc=6051 if is_anomaly else 5411,
+                geo_distance_km=round(dist, 1),
+                time_delta_seconds=float(np.random.randint(10, 7200)),
+            )
+            transactions.append(tx)
+
+        res = self.replay_stream(transactions, capture_individual_reports=False)
+        return {
+            "total_transactions": res.total_transactions,
+            "throughput_tps": res.throughput_tx_per_sec,
+            "p50_latency_ms": round(res.p50_latency_us / 1000.0, 3),
+            "p95_latency_ms": round(res.p95_latency_us / 1000.0, 3),
+            "p99_latency_ms": round(res.p99_latency_us / 1000.0, 3),
+            "passed_count": res.passed_count,
+            "review_count": res.review_count,
+            "escalated_count": res.escalated_count,
+        }
 
     def replay_stream(
         self,

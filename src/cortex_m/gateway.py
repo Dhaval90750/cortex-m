@@ -170,12 +170,13 @@ class EcosystemGateway:
     def execute_personal(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Personal workflow."""
         tid = params.get("tenant_id", "default_user")
-        if action == "learn":
+        action_norm = action.lower().strip()
+        if action_norm in ("learn", "teach"):
             text = params.get("text", "")
             mem_id = self.personal_substrate.teach(text, source_context=f"tenant:{tid}")
             return {"success": True, "tenant_id": tid, "learned": text, "memory_id": mem_id}
-        elif action == "recall":
-            query_str = params.get("query", "")
+        elif action_norm in ("recall", "query"):
+            query_str = params.get("query", params.get("cue", ""))
             res = self.personal_substrate.query(query_str)
             return {
                 "success": True,
@@ -187,7 +188,7 @@ class EcosystemGateway:
                 "energy": res.energy,
                 "latency_ms": res.latency_ms,
             }
-        elif action == "interlock":
+        elif action_norm in ("interlock", "check_interlock"):
             host = params.get("host", "127.0.0.1")
             port = int(params.get("port", 8888))
             try:
@@ -195,25 +196,54 @@ class EcosystemGateway:
                 return {"success": True, "egress_permitted": True, "host": host, "port": port}
             except Exception as e:
                 return {"success": False, "egress_permitted": False, "error": str(e)}
+        elif action_norm in ("vault", "vault_status"):
+            return {
+                "success": True,
+                "active_tenant": tid,
+                "num_memories": len(self.personal_substrate._memory_text_store),
+                "dim": self.personal_substrate.dim,
+                "beta": self.personal_substrate.beta,
+                "interlock_active": self.personal_substrate.interlock.strict_mode,
+            }
+        elif action_norm in ("unlearn", "forget"):
+            target = params.get("memory_id") or params.get("text", "")
+            success = self.personal_substrate.unlearn(target)
+            return {"success": success, "target": target}
+        elif action_norm in ("sleep", "consolidate"):
+            report = self.personal_substrate.sleep_consolidate()
+            return {
+                "success": True,
+                "replayed_attractors": report.replayed_attractors,
+                "pruned_synapses": report.pruned_synapses,
+                "retention_accuracy": report.retention_accuracy,
+            }
         else:
             raise ValueError(f"Unknown personal action: {action}")
 
     def execute_ide(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-IDE workflow."""
-        if action == "audit":
+        action_norm = action.lower().strip()
+        if action_norm in ("audit", "parse", "parse_ast"):
             code = params.get("code", "")
             symbols = self.ide_parser.parse_source(code)
+            all_calls: List[str] = []
+            for f in symbols.functions.values():
+                all_calls.extend(f.calls)
+            for c in symbols.classes.values():
+                all_calls.extend(c.calls)
             return {
-                "success": True,
-                "classes": [c.name for c in symbols.classes],
-                "functions": [f.name for f in symbols.functions],
-                "calls": symbols.calls,
-                "security_flaws": symbols.security_flaws,
-                "is_clean": len(symbols.security_flaws) == 0,
+                "success": symbols.syntax_valid,
+                "classes": list(symbols.classes.keys()),
+                "functions": list(symbols.functions.keys()),
+                "imports": symbols.imports,
+                "calls": sorted(list(set(all_calls))),
+                "security_flaws": symbols.security_issues,
+                "is_clean": len(symbols.security_issues) == 0,
+                "error_message": symbols.error_message,
             }
-        elif action == "diff":
-            orig = params.get("original", "")
-            mod = params.get("modified", "")
+        elif action_norm in ("diff", "compute_diff"):
+            orig = params.get("original", params.get("original_code", ""))
+            mod = params.get("modified", params.get("modified_code", ""))
             filename = params.get("filename", "file.py")
             diff_res = self.ide_diff.compute_diff(orig, mod, filename)
             return {
@@ -221,8 +251,10 @@ class EcosystemGateway:
                 "unified_diff": diff_res.unified_diff,
                 "syntax_valid": diff_res.syntax_valid,
                 "line_changes": diff_res.line_changes,
+                "lines_added": diff_res.lines_added,
+                "lines_removed": diff_res.lines_removed,
             }
-        elif action == "sandbox":
+        elif action_norm in ("sandbox", "execute"):
             cmd = params.get("command", [sys.executable, "-c", "print('sandbox ok')"])
             if isinstance(cmd, str):
                 cmd = [cmd]
@@ -240,7 +272,8 @@ class EcosystemGateway:
 
     def execute_fin(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Fin workflow."""
-        if action == "score":
+        action_norm = action.lower().strip()
+        if action_norm in ("score", "evaluate"):
             tx = FinancialTransaction(
                 tx_id=params.get("transaction_id", "tx_001"),
                 account_id=params.get("account_id", "acc_1001"),
@@ -259,7 +292,7 @@ class EcosystemGateway:
                 "feature_attributions": res.feature_attributions,
                 "scoring_latency_us": res.scoring_latency_us,
             }
-        elif action == "replay":
+        elif action_norm in ("replay", "benchmark"):
             count = int(params.get("count", 100))
             replay_engine = HighThroughputReplayEngine(scorer=self.fin_scorer, encoder=self.fin_encoder)
             benchmark = replay_engine.benchmark_stream(count)
@@ -276,8 +309,9 @@ class EcosystemGateway:
 
     def execute_robotics(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Robotics workflow."""
-        if action == "kinematics":
-            joints = params.get("joints", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        action_norm = action.lower().strip()
+        if action_norm in ("kinematics", "fk"):
+            joints = params.get("joints", params.get("joint_angles", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
             fk = self.robotics_arm.forward_kinematics(joints)
             is_valid = self.robotics_arm.validate_joint_limits(joints)
             return {
@@ -286,8 +320,8 @@ class EcosystemGateway:
                 "end_effector_position": list(fk.position_xyz),
                 "joints_valid": is_valid,
             }
-        elif action == "plan":
-            start = params.get("start", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        elif action_norm in ("plan", "plan_path"):
+            start = params.get("start", params.get("current_joint_angles", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]))
             goal = params.get("goal", [0.5, -0.3, 0.8, 0.0, 0.2, 0.0])
             path = self.robotics_planner.plan_trajectory(start, goal)
             return {
@@ -298,17 +332,21 @@ class EcosystemGateway:
                 "is_safety_certified": path.is_safety_certified,
                 "waypoints": path.waypoints_rad[::max(1, len(path.waypoints_rad) // 5)],
             }
-        elif action == "safety":
+        elif action_norm in ("safety", "safety_check"):
             dist = float(params.get("human_distance_m", 1.5))
             allowed_speed = self.robotics_interlock.calculate_allowable_tcp_speed(dist)
+            current_j = params.get("current_joints", [0.0] * 6)
+            target_j = params.get("target_joints", [0.0005] * 6)
+            dt_s = float(params.get("dt_seconds", 0.05))
             report = self.robotics_interlock.inspect_step(
-                current_joints=[0.0] * 6,
-                target_joints=[0.01] * 6,
-                dt_seconds=0.01,
+                current_joints=current_j,
+                target_joints=target_j,
+                dt_seconds=dt_s,
                 human_distance_m=dist,
             )
             return {
-                "success": report.is_safe,
+                "success": True,
+                "is_safe": report.is_safe,
                 "human_distance_m": dist,
                 "allowed_tcp_speed_m_s": allowed_speed,
                 "motion_allowed": report.is_safe and not report.e_stop_active,
@@ -320,7 +358,8 @@ class EcosystemGateway:
 
     def execute_mesh(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Mesh workflow."""
-        if action == "consensus":
+        action_norm = action.lower().strip()
+        if action_norm in ("consensus", "consensus_round"):
             proposal = ConsensusProposal(
                 proposal_id=params.get("proposal_id", "prop_001"),
                 view_number=0,
@@ -337,7 +376,7 @@ class EcosystemGateway:
                 "phase": vote.phase.value if vote else "REJECTED",
                 "voter": vote.voter_node_id if vote else None,
             }
-        elif action == "route":
+        elif action_norm in ("route", "route_task"):
             task_id = params.get("task_id", "task_001")
             target_xy = tuple(params.get("target_xy", (10.0, 15.0)))
             if not self.mesh_router.nodes:
@@ -356,8 +395,9 @@ class EcosystemGateway:
 
     def execute_health(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Health workflow."""
-        if action == "filter":
-            raw = params.get("signal", [50.0 + 15.0 * np.sin(0.1 * i) for i in range(250)])
+        action_norm = action.lower().strip()
+        if action_norm in ("filter", "filter_signal"):
+            raw = params.get("signal", params.get("samples", [50.0 + 15.0 * np.sin(0.1 * i) for i in range(250)]))
             filtered = self.health_filter.filter_signal(np.array(raw, dtype=np.float64))
             return {
                 "success": True,
@@ -368,10 +408,15 @@ class EcosystemGateway:
                 "max_uv": float(np.max(filtered.clean_microvolts)),
                 "min_uv": float(np.min(filtered.clean_microvolts)),
             }
-        elif action == "decompose":
-            freq = float(params.get("frequency_hz", 10.0))
-            t = np.linspace(0, 1.0, 250, endpoint=False)
-            sig = 20.0 * np.sin(2.0 * np.pi * freq * t)
+        elif action_norm in ("decompose", "wavelet_bandpower"):
+            samples = params.get("samples")
+            if samples is not None:
+                sig = np.array(samples, dtype=np.float64)
+                freq = 10.0
+            else:
+                freq = float(params.get("frequency_hz", 10.0))
+                t = np.linspace(0, 1.0, 250, endpoint=False)
+                sig = 20.0 * np.sin(2.0 * np.pi * freq * t)
             bp = self.health_decomposer.decompose(sig)
             return {
                 "success": True,
@@ -384,8 +429,8 @@ class EcosystemGateway:
                 "focus_ratio": bp.focus_ratio,
                 "calmness_ratio": bp.calmness_ratio,
             }
-        elif action == "decode":
-            sig = params.get("signal")
+        elif action_norm in ("decode", "decode_bci"):
+            sig = params.get("signal", params.get("samples"))
             if sig is None:
                 # Default 10 Hz alpha rhythm
                 t = np.linspace(0, 1.0, 250, endpoint=False)
@@ -403,8 +448,9 @@ class EcosystemGateway:
 
     def execute_space(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-Space workflow."""
-        if action == "propagate":
-            delta_t_s = float(params.get("delta_t_s", 600.0))
+        action_norm = action.lower().strip()
+        if action_norm in ("propagate", "propagate_orbit"):
+            delta_t_s = float(params.get("delta_t_s", params.get("propagation_time_seconds", 600.0)))
             pt = self.space_propagator.propagate_state(delta_t_s)
             return {
                 "success": True,
@@ -417,20 +463,24 @@ class EcosystemGateway:
                 "station_contacts": pt.station_contacts,
                 "orbital_period_s": self.space_propagator.period_s,
             }
-        elif action == "sync_ccsds":
-            packet = self.space_ccsds.build_telemetry_packet(
-                apid=int(params.get("apid", 100)),
-                seq_count=int(params.get("seq_count", 1)),
-                timestamp_s=float(params.get("timestamp_s", 1700000000.0)),
-                bus_voltage=float(params.get("bus_voltage", 28.0)),
-                solar_current=float(params.get("solar_current", 6.5)),
-                battery_temp=float(params.get("battery_temp", 22.0)),
-                gyro_x=float(params.get("gyro_x", 0.0)),
-                gyro_y=float(params.get("gyro_y", 0.0)),
-                gyro_z=float(params.get("gyro_z", 0.0)),
-                heater_on=bool(params.get("heater_on", False)),
-                radiator_temp=float(params.get("radiator_temp", 15.0)),
-            )
+        elif action_norm in ("sync_ccsds", "sync"):
+            raw_bytes = params.get("raw_bytes")
+            if raw_bytes is not None:
+                packet = bytes(raw_bytes)
+            else:
+                packet = self.space_ccsds.build_telemetry_packet(
+                    apid=int(params.get("apid", 100)),
+                    seq_count=int(params.get("seq_count", 1)),
+                    timestamp_s=float(params.get("timestamp_s", 1700000000.0)),
+                    bus_voltage=float(params.get("bus_voltage", 28.0)),
+                    solar_current=float(params.get("solar_current", 6.5)),
+                    battery_temp=float(params.get("battery_temp", 22.0)),
+                    gyro_x=float(params.get("gyro_x", 0.0)),
+                    gyro_y=float(params.get("gyro_y", 0.0)),
+                    gyro_z=float(params.get("gyro_z", 0.0)),
+                    heater_on=bool(params.get("heater_on", False)),
+                    radiator_temp=float(params.get("radiator_temp", 15.0)),
+                )
             telem_list, _ = self.space_ccsds.process_stream(packet)
             if telem_list:
                 telem = telem_list[0]
@@ -444,9 +494,9 @@ class EcosystemGateway:
                     "packet_bytes_length": len(packet),
                 }
             return {"success": False, "error": "Frame sync failed"}
-        elif action == "seu_check":
+        elif action_norm in ("seu_check", "supervise_telemetry", "supervise"):
             telem = DecommutatedTelemetry(
-                apid=100,
+                apid=int(params.get("apid", 100)),
                 sequence_count=int(params.get("seq_count", 1)),
                 timestamp_seconds=float(params.get("timestamp_s", 1700000000.0)),
                 bus_voltage_v=float(params.get("bus_voltage", 28.0)),
@@ -478,7 +528,8 @@ class EcosystemGateway:
 
     def execute_os(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX-OS workflow."""
-        if action == "omnibar":
+        action_norm = action.lower().strip()
+        if action_norm in ("omnibar", "search"):
             query = params.get("query", "satellite telemetry")
             candidates = []
             docs_data = params.get("documents", [
@@ -511,7 +562,7 @@ class EcosystemGateway:
                     for r in resp.results
                 ],
             }
-        elif action == "monitor":
+        elif action_norm in ("monitor", "resources"):
             snapshot = self.os_monitor.inspect_resources([])
             return {
                 "success": True,
@@ -525,7 +576,8 @@ class EcosystemGateway:
 
     def execute_learning(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
         """Execute CORTEX Developmental Learning & Synaptic Grafting."""
-        if action == "sleep":
+        action_norm = action.lower().strip()
+        if action_norm in ("sleep", "consolidate"):
             dim = int(params.get("dim", 64))
             weights = torch.randn(dim, dim)
             weights = 0.5 * (weights + weights.t())
@@ -541,7 +593,7 @@ class EcosystemGateway:
                 "retention_accuracy": report.retention_accuracy,
                 "cycle_duration_ms": report.cycle_duration_ms,
             }
-        elif action == "graft_filter":
+        elif action_norm in ("graft_filter", "graft"):
             dim = int(params.get("dim", 32))
             packager = SynapticKnowledgePackager(dim=dim)
             p_rec = torch.randn(2, dim)

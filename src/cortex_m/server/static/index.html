@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORTEX-M Studio | Neural Attractor Substrate & Universal Platform Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/studio.css">
+</head>
+<body>
+  <div class="cortex-app">
+    <!-- Top Navigation & System Status Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-mark">
+          <div class="core-node"></div>
+          <div class="pulse-ring"></div>
+        </div>
+        <div class="brand-text">
+          <h1>CORTEX<span class="accent-text">-M</span> <span class="edition-tag">STUDIO v2.2</span></h1>
+          <p class="tagline">Universal Neural Attractor Substrate & Continuous MIMO Platform</p>
+        </div>
+      </div>
+
+      <div class="header-telemetry">
+        <div class="telem-chip">
+          <span class="chip-label">SYSTEM</span>
+          <span class="chip-val status-online" id="stat-system-status">ONLINE</span>
+        </div>
+        <div class="telem-chip">
+          <span class="chip-label">MEMORIES</span>
+          <span class="chip-val" id="stat-memories-count">0</span>
+        </div>
+        <div class="telem-chip">
+          <span class="chip-label">ATTRACTOR &beta;</span>
+          <span class="chip-val" id="stat-beta-val">8.0</span>
+        </div>
+        <div class="telem-chip">
+          <span class="chip-label">TENANT</span>
+          <select id="tenant-selector" class="tenant-select" title="Active Tenant">
+            <option value="default_user">default_user</option>
+            <option value="researcher_alpha">researcher_alpha</option>
+            <option value="edge_agent_01">edge_agent_01</option>
+          </select>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="ecosystem" id="tab-btn-ecosystem">
+        <span class="tab-icon">🌐</span> Ecosystem Command Center
+      </button>
+      <button class="nav-tab" data-tab="chat" id="tab-btn-chat">
+        <span class="tab-icon">💬</span> Neural Chat & Hallucination Shield
+      </button>
+      <button class="nav-tab" data-tab="vault" id="tab-btn-vault">
+        <span class="tab-icon">🧠</span> Synaptic Memory Vault
+      </button>
+      <button class="nav-tab" data-tab="mimo" id="tab-btn-mimo">
+        <span class="tab-icon">🔀</span> Causal MIMO Pathways
+      </button>
+      <button class="nav-tab" data-tab="swarm" id="tab-btn-swarm">
+        <span class="tab-icon">⚡</span> Autonomous Coding Swarm
+      </button>
+      <button class="nav-tab" data-tab="settings" id="tab-btn-settings">
+        <span class="tab-icon">⚙️</span> Settings & Engine
+      </button>
+    </nav>
+
+    <!-- App Content Body -->
+    <main class="app-content">
+      
+      <!-- TAB 1: ECOSYSTEM COMMAND CENTER -->
+      <section class="tab-pane active" id="pane-ecosystem">
+        <div class="section-hero">
+          <div>
+            <h2>Universal 9-Platform Dispatcher</h2>
+            <p>Unified telemetry, determinism interlocks, and operational dispatch across all CORTEX engines.</p>
+          </div>
+          <button class="btn btn-secondary" id="btn-refresh-ecosystem">
+            <span>🔄</span> Refresh Telemetry
+          </button>
+        </div>
+
+        <div class="platforms-grid" id="platforms-container">
+          <!-- Dynamic Platform Cards rendered by JS -->
+          <div class="loading-spinner">Loading platform telemetry...</div>
+        </div>
+
+        <!-- Interactive Platform Console Modal / Drawer -->
+        <div class="platform-console-box" id="platform-console-box">
+          <div class="console-header">
+            <h3 id="console-title">Platform Execution Console</h3>
+            <span class="badge" id="console-badge">STANDBY</span>
+          </div>
+          <div class="console-body">
+            <div class="console-input-row">
+              <select id="console-action-select" class="form-select"></select>
+              <input type="text" id="console-params-input" class="form-input" placeholder='Action parameters JSON e.g. {"text": "hello"}' />
+              <button class="btn btn-primary" id="btn-console-execute">Execute Action</button>
+            </div>
+            <pre class="console-output" id="console-output">Select an action above and click Execute to test live platform dispatch...</pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: NEURAL CHAT & HALLUCINATION SHIELD -->
+      <section class="tab-pane" id="pane-chat">
+        <div class="chat-container">
+          <div class="chat-main">
+            <div class="chat-history" id="chat-messages">
+              <div class="chat-bubble ai">
+                <div class="bubble-header">
+                  <span class="sender-name">CORTEX-M Neural Assistant</span>
+                  <span class="shield-badge shield-verified">LYAPUNOV VERIFIED</span>
+                </div>
+                <div class="bubble-content">
+                  Welcome to Cortex-M. Knowledge is grounded directly in biological synaptic attractors with strict mathematical bounds against hallucination. Ask me anything or teach me new facts.
+                </div>
+              </div>
+            </div>
+
+            <div class="chat-input-bar">
+              <textarea id="chat-input-text" placeholder="Type a message or fact... (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+              <button class="btn btn-primary btn-icon" id="btn-send-chat" title="Send message">
+                <span>➤</span>
+              </button>
+            </div>
+          </div>
+
+          <aside class="chat-sidebar">
+            <div class="panel-box">
+              <h3>Epistemic Guardrails</h3>
+              <div class="metric-meter">
+                <div class="meter-label">
+                  <span>Lyapunov Energy</span>
+                  <span id="chat-energy-val">-1.420</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-fill" id="chat-energy-fill" style="width: 78%;"></div>
+                </div>
+              </div>
+
+              <div class="metric-meter">
+                <div class="meter-label">
+                  <span>Hallucination Risk</span>
+                  <span id="chat-risk-val">0.05 (Safe)</span>
+                </div>
+                <div class="meter-track">
+                  <div class="meter-fill risk-low" id="chat-risk-fill" style="width: 5%;"></div>
+                </div>
+              </div>
+
+              <div class="quick-commands">
+                <h4>Synaptic Commands</h4>
+                <button class="quick-cmd-btn" data-cmd="/learn Solar panels provide 6.5A in orbit.">/learn &lt;fact&gt;</button>
+                <button class="quick-cmd-btn" data-cmd="/audit">/audit memory</button>
+                <button class="quick-cmd-btn" data-cmd="/sleep">/sleep consolidate</button>
+                <button class="quick-cmd-btn" data-cmd="/clear">/clear context</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- TAB 3: SYNAPTIC MEMORY VAULT -->
+      <section class="tab-pane" id="pane-vault">
+        <div class="section-hero">
+          <div>
+            <h2>Synaptic Attractor Vault</h2>
+            <p>Hebbian plasticity (<1ms), targeted Anti-Hebbian unlearning, and nocturnal sleep consolidation.</p>
+          </div>
+          <div class="action-btn-group">
+            <button class="btn btn-secondary" id="btn-trigger-sleep">
+              <span>🌙</span> Nocturnal Sleep
+            </button>
+            <button class="btn btn-danger" id="btn-clear-memories">
+              <span>🗑️</span> Reset Working Memory
+            </button>
+          </div>
+        </div>
+
+        <div class="vault-tools-grid">
+          <!-- Learn Card -->
+          <div class="card glass-card">
+            <h3>Learn New Attractor (Hebbian Imprint)</h3>
+            <p class="card-desc">Inject factual knowledge directly into synaptic attractor matrix W.</p>
+            <div class="form-group">
+              <input type="text" id="input-learn-text" class="form-input" placeholder="e.g. Flight-602 is routed to Gate 14 due to crosswinds." />
+            </div>
+            <div class="form-row">
+              <input type="text" id="input-learn-mid" class="form-input" placeholder="Optional Memory ID" />
+              <button class="btn btn-primary" id="btn-imprint-memory">Imprint Memory</button>
+            </div>
+          </div>
+
+          <!-- Unlearn Card -->
+          <div class="card glass-card">
+            <h3>Targeted Unlearning (Anti-Hebbian)</h3>
+            <p class="card-desc">Right-to-be-forgotten via negative projection with zero collateral damage.</p>
+            <div class="form-group">
+              <input type="text" id="input-unlearn-target" class="form-input" placeholder="Memory ID or exact phrase to erase..." />
+            </div>
+            <button class="btn btn-warning" id="btn-unlearn-memory">Erase Memory</button>
+          </div>
+        </div>
+
+        <!-- Memories List Table -->
+        <div class="card glass-card full-width">
+          <div class="card-header-row">
+            <h3>Stored Epistemic Memories</h3>
+            <span class="badge" id="vault-count-badge">0 Memories</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="memories-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Memory Content</th>
+                  <th>Attractor Norm</th>
+                  <th>Source / Tenant</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="memories-table-body">
+                <tr><td colspan="5" class="empty-state">No memories in vault. Imprint one above!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: CAUSAL MIMO PATHWAYS -->
+      <section class="tab-pane" id="pane-mimo">
+        <div class="section-hero">
+          <div>
+            <h2>Causal MIMO & Continuous Routing</h2>
+            <p>Multi-Input Multi-Output pathway binding with sparse hierarchical clustering and dorsal/ventral streams.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-run-mimo">
+            <span>⚡</span> Simulate Routing Step
+          </button>
+        </div>
+
+        <div class="mimo-dashboard-grid">
+          <div class="card glass-card">
+            <h3>Input Vector Stream (8-Dimensional)</h3>
+            <div class="vector-inputs" id="mimo-inputs-container">
+              <!-- Dynamically populated or preset sliders -->
+            </div>
+          </div>
+
+          <div class="card glass-card">
+            <h3>Pathway Routing Diagnostics</h3>
+            <div class="telemetry-box" id="mimo-telemetry-box">
+              <div class="diag-item">
+                <span class="diag-label">Attractor Resonance</span>
+                <span class="diag-val" id="mimo-resonance">0.892 (Stable)</span>
+              </div>
+              <div class="diag-item">
+                <span class="diag-label">Binding Loss (L_bind)</span>
+                <span class="diag-val" id="mimo-loss">0.0214</span>
+              </div>
+              <div class="diag-item">
+                <span class="diag-label">Routing Status</span>
+                <span class="diag-val status-online" id="mimo-causal">CAUSALLY VERIFIED</span>
+              </div>
+            </div>
+            <h4>Output Signals (y_1 ... y_8)</h4>
+            <div class="outputs-display" id="mimo-outputs-display">
+              Run simulation to compute continuous output activations...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: AUTONOMOUS CODING SWARM -->
+      <section class="tab-pane" id="pane-swarm">
+        <div class="section-hero">
+          <div>
+            <h2>CORTEX-IDE Multi-Agent Coding Swarm</h2>
+            <p>Collaborative multi-agent swarm: Architect, Coder, Critic (Risk Analysis), and Auditor (Subprocess Sandbox).</p>
+          </div>
+        </div>
+
+        <div class="swarm-workspace">
+          <div class="swarm-input-box card glass-card">
+            <h3>Swarm Task Specification</h3>
+            <div class="form-group">
+              <textarea id="swarm-task-prompt" class="form-input" rows="3" placeholder="Describe the programming goal or refactoring task (e.g. Implement a thread-safe LRU cache with TTL expiration)..."></textarea>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-primary" id="btn-run-swarm">Dispatch Swarm</button>
+              <span class="swarm-status-text" id="swarm-status-indicator">Idle</span>
+            </div>
+          </div>
+
+          <div class="swarm-results-grid">
+            <!-- Architect Plan -->
+            <div class="card glass-card">
+              <h4>1. Architect Milestones</h4>
+              <ul class="milestones-list" id="swarm-plan-list">
+                <li class="empty-state">No active task.</li>
+              </ul>
+            </div>
+
+            <!-- Critic & Auditor -->
+            <div class="card glass-card">
+              <h4>2. Critic & Sandbox Audit</h4>
+              <div class="audit-metrics" id="swarm-audit-box">
+                <div class="diag-item">
+                  <span>Syntax Valid:</span>
+                  <span id="swarm-syntax-val">-</span>
+                </div>
+                <div class="diag-item">
+                  <span>Critic Risk Score:</span>
+                  <span id="swarm-risk-val">-</span>
+                </div>
+                <div class="diag-item">
+                  <span>Sandbox Exit Code:</span>
+                  <span id="swarm-exit-val">-</span>
+                </div>
+              </div>
+              <pre class="audit-console" id="swarm-audit-console">Awaiting swarm execution...</pre>
+            </div>
+
+            <!-- Generated Artifact -->
+            <div class="card glass-card full-width">
+              <h4>3. Verified Code Artifact</h4>
+              <pre class="code-block" id="swarm-code-artifact">// Generated code will appear here after AST and sandbox verification.</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: SETTINGS & MODEL BRIDGE -->
+      <section class="tab-pane" id="pane-settings">
+        <div class="section-hero">
+          <div>
+            <h2>Runtime Configuration & Neural Hyperparameters</h2>
+            <p>Configure synaptic dynamics, hallucination thresholds, and external bridge providers.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-save-settings">Save Settings</button>
+        </div>
+
+        <div class="settings-grid">
+          <div class="card glass-card">
+            <h3>Attractor Hyperparameters</h3>
+            <div class="form-group">
+              <label for="cfg-beta">Inverse Temperature &beta; (Attractor Steepness)</label>
+              <input type="range" id="cfg-beta" min="1.0" max="32.0" step="0.5" value="8.0" />
+              <div class="range-val" id="cfg-beta-display">8.0</div>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-hallucination">Hallucination Rejection Threshold</label>
+              <input type="range" id="cfg-hallucination" min="0.1" max="0.95" step="0.05" value="0.5" />
+              <div class="range-val" id="cfg-hallucination-display">0.50</div>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-decay">Synaptic Weight Decay</label>
+              <input type="range" id="cfg-decay" min="0.001" max="0.1" step="0.005" value="0.01" />
+              <div class="range-val" id="cfg-decay-display">0.010</div>
+            </div>
+          </div>
+
+          <div class="card glass-card">
+            <h3>Engine & LLM Bridge Provider</h3>
+            <div class="form-group">
+              <label for="cfg-engine-mode">Primary Engine Mode</label>
+              <select id="cfg-engine-mode" class="form-select">
+                <option value="cortex_native">Cortex Native Attractor LM (Continuous Hopfield)</option>
+                <option value="slm_ollama">Local SLM / Ollama (Llama 3.2 / Mistral)</option>
+                <option value="openai_compatible">OpenAI Compatible (vLLM, TGI, OpenAI)</option>
+                <option value="llm_bridge">Hybrid Cortex LLM Bridge (Attractor Shielded)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-slm-endpoint">Local SLM / Ollama Endpoint</label>
+              <input type="text" id="cfg-slm-endpoint" class="form-input" value="http://localhost:11434/api/generate" />
+            </div>
+
+            <div class="form-group">
+              <label for="cfg-openai-endpoint">OpenAI / vLLM Endpoint</label>
+              <input type="text" id="cfg-openai-endpoint" class="form-input" value="https://api.openai.com/v1/chat/completions" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="app-footer">
+      <span>CORTEX-M Cognitive Runtime &bull; Zero-Database Biological Substrate</span>
+      <span class="footer-status" id="footer-gateway-status">Ecosystem Gateway: Connected</span>
+    </footer>
+  </div>
+
+  <script src="/studio.js"></script>
+</body>
+</html>
