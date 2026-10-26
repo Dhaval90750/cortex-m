@@ -223,3 +223,39 @@ class CCSDSTelemetryProcessor:
             offset = packet_start + total_packet_len
 
         return results, b""
+
+    def analyze_stream_continuity(self, packets: List[DecommutatedTelemetry]) -> Dict[str, Any]:
+        """Detect packet sequence count gaps, dropped frames, and loss rate percentage."""
+        if not packets:
+            return {
+                "total_packets": 0,
+                "dropped_packets": 0,
+                "loss_rate_percent": 0.0,
+                "gaps_detected": 0,
+                "is_contiguous": True,
+            }
+
+        dropped = 0
+        gaps = 0
+
+        for i in range(1, len(packets)):
+            prev_seq = packets[i - 1].sequence_count
+            curr_seq = packets[i].sequence_count
+
+            # Standard CCSDS 14-bit sequence counter wraps at 16384
+            expected = (prev_seq + 1) % 16384
+            if curr_seq != expected:
+                diff = (curr_seq - expected) % 16384
+                dropped += diff
+                gaps += 1
+
+        total = len(packets) + dropped
+        loss_pct = (dropped / max(1, total)) * 100.0
+
+        return {
+            "total_packets": len(packets),
+            "dropped_packets": dropped,
+            "loss_rate_percent": round(loss_pct, 2),
+            "gaps_detected": gaps,
+            "is_contiguous": gaps == 0,
+        }

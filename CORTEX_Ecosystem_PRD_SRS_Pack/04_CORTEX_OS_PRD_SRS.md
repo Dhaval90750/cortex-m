@@ -240,6 +240,27 @@ clustering related research and code artifacts without altering canonical disk h
 - **System Monitor**: `platforms/os/src/system_monitor.py` (`SystemResourceMonitor`)
 - **Gateway Dispatcher**: `execute_os(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-OS
+- **Non-Privileged Userspace Indexing**: Filesystem notifications monitored via cross-platform debounced watchers (500ms debounce) running entirely under unprivileged user permissions (`UID != 0`).
+- **Dynamic Cognitive Affinity Graph**: Semantic document clustering via modern Hopfield associative affinity:
+$$A_{ij} = \exp(-\|x_i - x_j\|^2 / 2\sigma^2)$$
+clustering related research and code artifacts without altering canonical disk hierarchies.
+- **Newman-Girvan Community Modularity**: Quantifies partitioning quality via:
+$$Q = \frac{1}{2m} \sum_{ij} \left(A_{ij} - \frac{k_i k_j}{2m}\right) \delta(c_i, c_j)$$
+- **Centroid Cosine Resonance Membership**: Predicts incoming document cluster assignment via cosine projection onto cluster centroid vectors.
+- **Sub-Millisecond Spotlight Omnibar**: Sub-millisecond continuous attractor resonance search over 64D gist embeddings.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **File Watcher**: `platforms/os/src/file_watcher.py` (`NonPrivilegedFileWatcher`, `FileDocument`)
+- **Affinity Clustering**: `platforms/os/src/affinity_cluster.py` (`CognitiveAffinityGraph`, `ProjectCluster`)
+- **Omnibar Engine**: `platforms/os/src/omnibar_search.py` (`SpotlightOmnibarEngine`)
+- **System Monitor**: `platforms/os/src/system_monitor.py` (`SystemResourceMonitor`)
+- **Gateway Dispatcher**: `execute_os(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-OS
@@ -247,13 +268,16 @@ clustering related research and code artifacts without altering canonical disk h
 - **Dynamic Cognitive Affinity Graph**: Semantic document clustering via modern Hopfield associative affinity:
   $$A_{ij} = \exp(-\|x_i - x_j\|^2 / 2\sigma^2)$$
   clustering related research and code artifacts without altering canonical disk hierarchies.
+- **Newman-Girvan Community Modularity**: Quantifies partitioning quality via:
+  $$Q = \frac{1}{2m} \sum_{ij} \left(A_{ij} - \frac{k_i k_j}{2m}\right) \delta(c_i, c_j)$$
+- **Centroid Cosine Resonance Membership**: Predicts incoming document cluster assignment via cosine projection onto cluster centroid vectors.
 - **Sub-Millisecond Spotlight Omnibar**: Sub-millisecond continuous attractor resonance search over 64D gist embeddings.
 
 ---
 
 ### Implemented Codebase Traceability
-- **File Watcher**: `platforms/os/src/file_watcher.py` (`NonPrivilegedFileWatcher`)
-- **Affinity Clustering**: `platforms/os/src/affinity_cluster.py` (`CognitiveAffinityGraph`)
+- **File Watcher**: `platforms/os/src/file_watcher.py` (`NonPrivilegedFileWatcher`, `FileDocument`)
+- **Affinity Clustering**: `platforms/os/src/affinity_cluster.py` (`CognitiveAffinityGraph`, `ProjectCluster`)
 - **Omnibar Engine**: `platforms/os/src/omnibar_search.py` (`SpotlightOmnibarEngine`)
 - **System Monitor**: `platforms/os/src/system_monitor.py` (`SystemResourceMonitor`)
 - **Gateway Dispatcher**: `execute_os(action, params)` in `src/cortex_m/gateway.py`

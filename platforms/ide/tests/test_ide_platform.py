@@ -128,6 +128,57 @@ def run_dangerous(payload):
             content = target.read_text(encoding="utf-8")
             self.assertIn('"""Multiply two numbers."""', content)
 
+    def test_mccabe_cyclomatic_complexity(self):
+        code = '''
+def complex_logic(x, y):
+    if x > 0:
+        if y > 0:
+            return 1
+        elif y < 0:
+            return -1
+    for i in range(5):
+        if i == x:
+            break
+    return 0
+'''
+        table = self.parser.parse_source(code)
+        self.assertTrue(table.syntax_valid)
+        sym = table.functions["complex_logic"]
+        # 1 + 5 decision points (if, if, elif, for, if) = 6
+        self.assertGreaterEqual(sym.cyclomatic_complexity, 5)
+
+    def test_atomic_patch_bundle_rollback(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
+            f1 = tmppath / "module_a.py"
+            f2 = tmppath / "module_b.py"
+            f1.write_text("a = 1\n", encoding="utf-8")
+            f2.write_text("b = 2\n", encoding="utf-8")
+
+            # Bundle with one valid and one syntax error
+            bundle = {
+                str(f1): "a = 100\n",
+                str(f2): "b = (\n",  # Syntax error
+            }
+            res = self.diff_engine.apply_atomic_bundle(bundle)
+            self.assertFalse(res["success"])
+            self.assertTrue(res["atomic_rollback"])
+
+            # Verify neither file was altered on disk
+            self.assertEqual(f1.read_text(encoding="utf-8"), "a = 1\n")
+            self.assertEqual(f2.read_text(encoding="utf-8"), "b = 2\n")
+
+            # Clean bundle should commit all
+            clean_bundle = {
+                str(f1): "a = 100\n",
+                str(f2): "b = 200\n",
+            }
+            clean_res = self.diff_engine.apply_atomic_bundle(clean_bundle)
+            self.assertTrue(clean_res["success"])
+            self.assertEqual(f1.read_text(encoding="utf-8"), "a = 100\n")
+            self.assertEqual(f2.read_text(encoding="utf-8"), "b = 200\n")
+
 
 if __name__ == "__main__":
     unittest.main()
+

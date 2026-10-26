@@ -72,6 +72,11 @@ class ContinuousBCIDecoder:
         self._states = list(self._attractor_map.keys())
         stacked = torch.stack([F.normalize(self._attractor_map[s], p=2, dim=0) for s in self._states])
         self.prototypes = stacked.to(device)  # (5, 5)
+        self._ema_probabilities: Optional[torch.Tensor] = None
+
+    def reset_stream(self) -> None:
+        """Reset historical temporal EMA smoothing buffer."""
+        self._ema_probabilities = None
 
     def decode_window(self, raw_eeg_channel_1d: np.ndarray) -> BCIDecodingResult:
         """Filter, decompose, and decode a 1-second EEG window into a cognitive state."""
@@ -118,3 +123,37 @@ class ContinuousBCIDecoder:
             bandpower=bp,
             decoding_latency_ms=round(duration_ms, 3),
         )
+
+    def decode_stream_window(
+        self,
+        raw_eeg_channel_1d: np.ndarray,
+        ema_alpha: float = 0.35,
+    ) -> BCIDecodingResult:
+        """Decode streaming EEG window with Exponential Moving Average temporal stabilization.
+        
+        Prevents high-frequency classification jitter across sequential sliding windows:
+            P_t = alpha * P_inst + (1 - alpha) * P_{t-1}
+        """
+        inst_res = self.decode_window(raw_eeg_channel_1d)
+
+        # Convert instantaneous prediction back to state probability vector
+        inst_probs = torch.zeros(len(self._states), device=self.device)
+        for i, s in enumerate(self._states):
+            if s == inst_res.predicted_state:
+                inst_probs[i] = inst_res.confidence
+            else:
+                inst_probs[i] = (1.0 - inst_res.confidence) / max(1, len(self._states) - 1)
+
+        if self._ema_probabilities is None:
+            self._ema_probabilities = inst_probs
+        else:
+            self._ema_probabilities = ema_alpha * inst_probs + (1.0 - ema_alpha) * self._ema_probabilities
+
+        smoothed_prob, best_idx = self._ema_probabilities.max(dim=0)
+        smoothed_state = self._states[int(best_idx.item())]
+
+        inst_res.predicted_state = smoothed_state
+        inst_res.confidence = round(float(smoothed_prob.item()), 4)
+        inst_res.metadata["smoothed_via_ema"] = True
+        inst_res.metadata["ema_alpha"] = ema_alpha
+        return inst_res

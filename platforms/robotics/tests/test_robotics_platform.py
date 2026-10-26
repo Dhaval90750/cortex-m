@@ -84,6 +84,43 @@ class TestCortexRoboticsPlatform(unittest.TestCase):
         self.assertAlmostEqual(traj.waypoints_rad[0][0], q_start[0], places=3)
         self.assertAlmostEqual(traj.waypoints_rad[-1][0], q_goal[0], places=3)
 
+    def test_inverse_kinematics_convergence(self):
+        # Known reachable target
+        known_q = [0.2, 0.3, -0.2, 0.1, 0.1, 0.0]
+        target_pose = self.manipulator.forward_kinematics(known_q)
+        target_xyz = (target_pose.x, target_pose.y, target_pose.z)
+
+        converged, solved_q, error_m = self.manipulator.inverse_kinematics(
+            target_xyz=target_xyz,
+            initial_guess=[0.0] * 6,
+            max_iterations=80,
+            tolerance_m=0.005,
+        )
+        self.assertTrue(converged, f"IK failed to converge: error = {error_m}m")
+        self.assertLessEqual(error_m, 0.005)
+
+        # Check solved forward pose matches target
+        solved_pose = self.manipulator.forward_kinematics(solved_q)
+        dist = math.sqrt((solved_pose.x - target_xyz[0])**2 + (solved_pose.y - target_xyz[1])**2 + (solved_pose.z - target_xyz[2])**2)
+        self.assertLessEqual(dist, 0.005)
+
+    def test_manipulability_index(self):
+        w = self.manipulator.manipulability_index([0.0, 0.5, -0.5, 0.0, 0.0, 0.0])
+        self.assertGreater(w, 0.0)
+
+    def test_stopping_distance_and_workspace_bounds(self):
+        stop_dist = self.interlock.calculate_stopping_distance_m(current_velocity_m_s=1.0)
+        self.assertGreater(stop_dist, 0.0)
+        self.assertLess(stop_dist, 1.0)
+
+        # Negative Z floor barrier check
+        q_curr = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        # Extreme negative shoulder pitch driving arm down into floor
+        q_floor = [0.0, -2.5, 0.0, 0.0, 0.0, 0.0]
+        rep = self.interlock.inspect_step(q_curr, q_floor, dt_seconds=0.1)
+        self.assertFalse(rep.is_safe)
+        self.assertTrue(any("penetrates floor barrier" in v or "velocity" in v for v in rep.violations))
+
 
 if __name__ == "__main__":
     unittest.main()

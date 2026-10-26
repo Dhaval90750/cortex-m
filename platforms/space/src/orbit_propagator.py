@@ -216,3 +216,80 @@ class OrbitPropagator:
             points.append(self.propagate_state(t))
             t += step_s
         return points
+
+    def predict_station_passes(
+        self,
+        duration_s: float,
+        step_s: float = 30.0,
+    ) -> List[Dict[str, Any]]:
+        """Compute upcoming ground station contact passes with AOS/LOS and max elevation."""
+        passes: List[Dict[str, Any]] = []
+        active_passes: Dict[str, Dict[str, Any]] = {}
+
+        t = 0.0
+        while t <= duration_s:
+            state = self.propagate_state(t)
+            current_contacts = set(state.station_contacts)
+
+            # Check newly established contacts (AOS)
+            for stn_name in current_contacts:
+                if stn_name not in active_passes:
+                    active_passes[stn_name] = {
+                        "station": stn_name,
+                        "aos_time_s": t,
+                        "los_time_s": t,
+                        "max_altitude_km": state.altitude_km,
+                        "sample_count": 1,
+                    }
+                else:
+                    active_passes[stn_name]["los_time_s"] = t
+                    active_passes[stn_name]["sample_count"] += 1
+
+            # Check terminated contacts (LOS)
+            finished_stations = [s for s in active_passes if s not in current_contacts]
+            for stn_name in finished_stations:
+                p = active_passes.pop(stn_name)
+                p["duration_seconds"] = round(p["los_time_s"] - p["aos_time_s"] + step_s, 1)
+                passes.append(p)
+
+            t += step_s
+
+        # Flush any remaining active passes
+        for stn_name, p in active_passes.items():
+            p["duration_seconds"] = round(p["los_time_s"] - p["aos_time_s"] + step_s, 1)
+            passes.append(p)
+
+        return passes
+
+    @classmethod
+    def from_tle(cls, name: str, line1: str, line2: str, ground_stations: Optional[List[GroundStation]] = None) -> OrbitPropagator:
+        """Parse standard NORAD Two-Line Element (TLE) set into an OrbitPropagator."""
+        # Line 2 columns:
+        # Inclination: 09-16
+        # RAAN: 18-25
+        # Eccentricity: 27-33 (assumed decimal point)
+        # Arg of Perigee: 35-42
+        # Mean Anomaly: 44-51
+        # Mean Motion: 53-63 (revs/day)
+        inc = float(line2[8:16].strip())
+        raan = float(line2[17:25].strip())
+        ecc = float("0." + line2[26:33].strip())
+        arg_p = float(line2[34:42].strip())
+        ma = float(line2[43:51].strip())
+        mean_motion_rev_day = float(line2[52:63].strip())
+
+        # n in rad/s: rev/day * 2pi / 86400
+        n_rad_s = mean_motion_rev_day * 2.0 * math.pi / 86400.0
+        # a = (mu / n^2)^(1/3)
+        semi_major_axis = (EARTH_MU / (n_rad_s ** 2)) ** (1.0 / 3.0)
+
+        elements = OrbitalElements(
+            semi_major_axis_km=round(semi_major_axis, 3),
+            eccentricity=ecc,
+            inclination_deg=inc,
+            raan_deg=raan,
+            arg_perigee_deg=arg_p,
+            mean_anomaly_deg=ma,
+            epoch_timestamp_s=1700000000.0,
+        )
+        return cls(elements=elements, ground_stations=ground_stations)

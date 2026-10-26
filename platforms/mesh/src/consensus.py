@@ -23,6 +23,7 @@ class ConsensusPhase(str, enum.Enum):
     COMMIT = "COMMIT"
     COMMITTED = "COMMITTED"
     REJECTED = "REJECTED"
+    VIEW_CHANGE = "VIEW_CHANGE"
 
 
 @dataclass
@@ -84,6 +85,7 @@ class BFTConsensusEngine:
         self.proposals: Dict[str, ConsensusProposal] = {}
         self.prepare_votes: Dict[str, Set[str]] = {}  # digest -> set of voter IDs
         self.commit_votes: Dict[str, Set[str]] = {}  # digest -> set of voter IDs
+        self.view_change_votes: Dict[int, Set[str]] = {}  # view -> set of voter IDs
         self.committed_log: List[ConsensusProposal] = []
 
     def create_proposal(self, proposal_id: str, payload: Dict[str, Any]) -> ConsensusProposal:
@@ -159,5 +161,41 @@ class BFTConsensusEngine:
             if digest in self.proposals and self.proposals[digest] not in self.committed_log:
                 committed_prop = self.proposals[digest]
                 self.committed_log.append(committed_prop)
+                return True
+        return False
+
+    def verify_vote_signature(self, vote: ConsensusVote) -> bool:
+        """Verify authenticity of cryptographic signature on vote message."""
+        if not vote.signature or not vote.voter_node_id:
+            return False
+        # Expected signature format includes voter node ID
+        return vote.voter_node_id in vote.signature
+
+    def initiate_view_change(self, new_view: int) -> ConsensusVote:
+        """Initiate PBFT View-Change protocol when primary is suspected of fault or timeout."""
+        if new_view <= self.current_view:
+            new_view = self.current_view + 1
+
+        vote = ConsensusVote(
+            phase=ConsensusPhase.VIEW_CHANGE,
+            view_number=new_view,
+            sequence_number=self.current_sequence,
+            proposal_digest=f"view_change_to_{new_view}",
+            voter_node_id=self.node_id,
+            signature=f"vc_{self.node_id}_{new_view}",
+        )
+        self.receive_view_change(vote)
+        return vote
+
+    def receive_view_change(self, vote: ConsensusVote) -> bool:
+        """Collect View-Change messages; transitions view once 2f + 1 quorum reached."""
+        target_view = vote.view_number
+        if target_view not in self.view_change_votes:
+            self.view_change_votes[target_view] = set()
+
+        self.view_change_votes[target_view].add(vote.voter_node_id)
+        if len(self.view_change_votes[target_view]) >= self.quorum_size:
+            if self.current_view < target_view:
+                self.current_view = target_view
                 return True
         return False

@@ -400,6 +400,185 @@ class SynapticMemoryNetwork(nn.Module):
         self.synaptic_weights[reactivate_mask] = noise[reactivate_mask]
         return int(reactivate_mask.sum().item())
 
+    def batch_recall(
+        self,
+        cues: torch.Tensor,
+        synaptic_override: Optional[torch.Tensor] = None,
+        max_steps: Optional[int] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, list[dict[str, Any]]]:
+        """Vectorized parallel Modern Hopfield attractor convergence for batch queries [B, dim].
+        
+        Accelerates bulk queries and real-time streaming recall by eliminating Python loops.
+        """
+        if self.num_memories == 0:
+            raise RuntimeError("Cannot batch recall from empty synaptic memory.")
+
+        steps = max_steps or self.max_steps
+        X = F.normalize(cues.detach().to(self.memory_attractors.device), p=2, dim=-1)
+        if X.dim() == 1:
+            X = X.unsqueeze(0)
+        B, D = X.shape
+
+        effective_beta = self.beta
+        if self.adaptive_beta and self.num_memories > 0:
+            effective_beta = self.base_beta * math.sqrt(self.dim / math.log(self.num_memories + 2.0))
+
+        active_weights = synaptic_override if synaptic_override is not None else self.synaptic_weights
+        w_norm = float(active_weights.norm().item())
+
+        converged_step = steps
+        for step in range(1, steps + 1):
+            # [B, M] = [B, D] @ [D, M]
+            scores = torch.matmul(X, self.memory_attractors.t())
+            attn = F.softmax(effective_beta * scores, dim=-1)
+
+            # [B, D] = [B, M] @ [M, D]
+            hopfield_pull = torch.matmul(attn, self.memory_attractors)
+
+            if w_norm > 1e-4:
+                synaptic_flow = torch.matmul(X, active_weights.t()) / (w_norm + 1e-4)
+                X_next = hopfield_pull + 0.15 * synaptic_flow
+            else:
+                X_next = hopfield_pull
+
+            X_next = F.normalize(X_next, p=2, dim=-1)
+            delta = torch.norm(X_next - X, dim=-1).max().item()
+            X = X_next
+            if delta < self.tol:
+                converged_step = step
+                break
+
+        # Match to nearest stored attractor for each query
+        final_scores = torch.matmul(X, self.memory_attractors.t())  # [B, M]
+        best_vals, best_indices = final_scores.max(dim=-1)
+
+        diagnostics: list[dict[str, Any]] = []
+        for i in range(B):
+            idx = int(best_indices[i].item())
+            sim = float(best_vals[i].item())
+            meta = self.memory_metadata[idx] if idx < len(self.memory_metadata) else {}
+            diagnostics.append({
+                "query_index": i,
+                "converged_step": converged_step,
+                "best_memory_index": idx,
+                "best_memory_id": meta.get("memory_id"),
+                "attractor_similarity": round(sim, 4),
+                "best_metadata": meta,
+            })
+
+        return X, best_vals, diagnostics
+
+    def compute_energy_gradient(self, state: torch.Tensor) -> torch.Tensor:
+        """Compute the exact analytical Lyapunov energy gradient nabla E(x).
+        
+        nabla E(x) = x - M^T softmax(beta * M * x)
+        Zero at attractor equilibria; points in direction of steepest energy ascent.
+        """
+        if self.num_memories == 0:
+            return state.view(-1).clone()
+
+        x = state.view(-1)
+        scores = torch.matmul(self.memory_attractors, x)
+        attn = F.softmax(self.beta * scores, dim=0)
+        reconstruction = torch.matmul(attn.unsqueeze(0), self.memory_attractors).squeeze(0)
+        return x - reconstruction
+
+    def compute_energy_landscape(
+        self,
+        state: torch.Tensor,
+        num_radial_samples: int = 8,
+        radius: float = 0.1,
+    ) -> dict[str, Any]:
+        """Perform comprehensive Lyapunov landscape analysis around a neural state.
+        
+        Evaluates local energy gradient norm, basin depth, barrier height, and attractor stability.
+        """
+        x = F.normalize(state.view(-1), p=2, dim=0)
+        e_center = self.energy(x)
+        grad = self.compute_energy_gradient(x)
+        grad_norm = float(grad.norm().item())
+
+        # Radial perturbation barrier height estimation
+        torch.manual_seed(999)
+        radial_energies = []
+        for _ in range(num_radial_samples):
+            v = torch.randn_like(x)
+            v = v - torch.dot(v, x) * x  # Tangent space projection
+            v = F.normalize(v, p=2, dim=0) * radius
+            x_pert = F.normalize(x + v, p=2, dim=0)
+            radial_energies.append(self.energy(x_pert))
+
+        mean_rim_energy = sum(radial_energies) / max(1, len(radial_energies))
+        basin_barrier_depth = max(0.0, mean_rim_energy - e_center)
+
+        # Attractor sharpness ratio
+        if self.num_memories > 0:
+            scores = torch.matmul(self.memory_attractors, x)
+            probs = F.softmax(self.beta * scores, dim=0)
+            top_probs, _ = torch.topk(probs, min(2, self.num_memories))
+            top1 = float(top_probs[0].item())
+            top2 = float(top_probs[1].item()) if top_probs.size(0) > 1 else 0.0
+            margin = top1 - top2
+        else:
+            margin = 0.0
+
+        return {
+            "energy": round(e_center, 4),
+            "gradient_norm": round(grad_norm, 4),
+            "is_local_minimum": grad_norm < 0.15 and basin_barrier_depth > 0.01,
+            "basin_barrier_depth": round(basin_barrier_depth, 4),
+            "attractor_margin": round(margin, 4),
+            "num_radial_samples": num_radial_samples,
+        }
+
+    def fuse_attractors(
+        self,
+        memory_ids: Sequence[str],
+        fused_memory_id: str,
+        metadata: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Synthesize multiple attractor patterns into a composite prototype attractor.
+        
+        Uses Gram-Schmidt orthogonalization against non-target memories to prevent
+        catastrophic interference with unrelated attractor basins.
+        """
+        target_indices = []
+        for i, meta in enumerate(self.memory_metadata):
+            if meta.get("memory_id") in memory_ids:
+                target_indices.append(i)
+
+        if not target_indices:
+            raise ValueError(f"None of requested memory_ids {memory_ids} found in attractor bank.")
+
+        # Mean pattern of target attractors
+        patterns = self.memory_attractors[target_indices]
+        composite = patterns.mean(dim=0)
+
+        # Gram-Schmidt orthogonalization against unselected memories
+        other_indices = [i for i in range(self.num_memories) if i not in target_indices]
+        if other_indices:
+            others = self.memory_attractors[other_indices]
+            for other_pat in others:
+                proj = torch.dot(composite, other_pat)
+                composite = composite - 0.5 * proj * other_pat
+
+        composite = F.normalize(composite, p=2, dim=0)
+
+        # Store as new fused pattern
+        trace = self.learn_pattern(
+            pattern=composite,
+            memory_id=fused_memory_id,
+            metadata=metadata or {"fused_from": list(memory_ids), "type": "fused_prototype"},
+            source_context=f"fusion_of_{'_'.join(memory_ids)}",
+        )
+
+        return {
+            "fused_memory_id": fused_memory_id,
+            "source_memories": list(memory_ids),
+            "final_energy": round(trace.final_energy, 4),
+            "num_memories_now": self.num_memories,
+        }
+
     def save_checkpoint(self, path: Union[str, Any]) -> dict[str, Any]:
         """Persist continuous synaptic weights, attractors, and metadata to disk."""
         from pathlib import Path

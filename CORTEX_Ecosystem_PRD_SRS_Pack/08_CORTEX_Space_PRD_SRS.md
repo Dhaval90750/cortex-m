@@ -241,11 +241,28 @@ Confirm data classification, retention, regulatory requirements and reviewers.
 - **Safety Supervisor**: `platforms/space/src/safety_supervisor.py` (`SpaceSafetySupervisor`, `TelemetryAnomalyAlert`)
 - **Gateway Dispatcher**: `execute_space(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Space
+- **Keplerian & J2 Oblateness Orbit Propagation**: Analytical orbital dynamics modeling Earth oblateness ($J_2 = 1.08263 \times 10^{-3}$) nodal regression and perigee precession with NORAD Two-Line Element (TLE) parsing (`from_tle`).
+- **Multi-Orbit Ground Station Pass Prediction**: Computes elevation angle $\theta_{\text{elev}} = \arcsin(\hat{r} \cdot \hat{n})$ against topocentric ground stations (Goldstone, Madrid, Canberra), recording AOS/LOS timestamps and elevation mask bounds ($> 5^\circ$).
+- **CCSDS Frame Synchronization & 14-Bit Continuity**: Validates 32-bit Attached Sync Marker (`0x1ACFFC1D`) and CRC-16 checksums, analyzing sequence counter discontinuities with modulo-16384 wrap-around.
+- **Attractor-Based SEU Radiation Supervisor**: Continuous attractor anomaly scoring isolating Single Event Upsets (SEU latchups) from routine orbital thermal cycles.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Orbit Propagator**: `platforms/space/src/orbit_propagator.py` (`OrbitPropagator`, `OrbitalElements`)
+- **CCSDS Processor**: `platforms/space/src/ccsds_telemetry.py` (`CCSDSTelemetryProcessor`, `DecommutatedTelemetry`)
+- **Safety Supervisor**: `platforms/space/src/safety_supervisor.py` (`SpaceSafetySupervisor`, `TelemetryAnomalyAlert`)
+- **Gateway Dispatcher**: `execute_space(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Space
-- **Keplerian & J2 Oblateness Orbit Propagation**: Analytical orbital dynamics modeling Earth oblateness ($J_2 = 1.08263 \times 10^{-3}$) nodal regression and perigee precession with line-of-sight ground station contact cones (Goldstone, Madrid, Canberra).
-- **CCSDS Frame Synchronization & Telemetry Decommutation**: Validates 32-bit Attached Sync Marker (`0x1ACFFC1D`) and CRC-16 telecommand/telemetry packet integrity.
+- **Keplerian & J2 Oblateness Orbit Propagation**: Analytical orbital dynamics modeling Earth oblateness ($J_2 = 1.08263 \times 10^{-3}$) nodal regression and perigee precession with NORAD Two-Line Element (TLE) parsing (`from_tle`).
+- **Multi-Orbit Ground Station Pass Prediction**: Computes elevation angle $\theta_{\text{elev}} = \arcsin(\hat{r} \cdot \hat{n})$ against topocentric ground stations (Goldstone, Madrid, Canberra), recording AOS/LOS timestamps and elevation mask bounds ($> 5^\circ$).
+- **CCSDS Frame Synchronization & 14-Bit Continuity**: Validates 32-bit Attached Sync Marker (`0x1ACFFC1D`) and CRC-16 checksums, analyzing sequence counter discontinuities with modulo-16384 wrap-around.
 - **Attractor-Based SEU Radiation Supervisor**: Continuous attractor anomaly scoring isolating Single Event Upsets (SEU latchups) from routine orbital thermal cycles.
 
 ---

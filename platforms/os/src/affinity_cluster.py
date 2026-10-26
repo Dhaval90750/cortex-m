@@ -141,3 +141,63 @@ class CognitiveAffinityGraph:
             clusters=clusters,
             graph_density=density,
         )
+
+    def compute_modularity(self, documents: List[FileDocument], report: AffinityClusterReport) -> float:
+        """Calculate Newman-Girvan community modularity Q for the graph partition.
+        
+        Q = 1/(2m) * sum_ij [ A_ij - (k_i * k_j)/(2m) ] * delta(c_i, c_j)
+        Values in [0.3, 0.7] indicate strong community structure.
+        """
+        n = len(documents)
+        if n < 2 or report.num_clusters == 0:
+            return 0.0
+
+        affinity = self.compute_affinity_matrix(documents)
+        adjacency = (affinity >= self.affinity_threshold).astype(np.float64)
+        np.fill_diagonal(adjacency, 0.0)
+
+        m = 0.5 * np.sum(adjacency)
+        if m < 1e-6:
+            return 0.0
+
+        degrees = np.sum(adjacency, axis=1)
+
+        # Map document index to cluster ID
+        path_to_cluster = {}
+        for c in report.clusters:
+            for p in c.document_paths:
+                path_to_cluster[p] = c.cluster_id
+
+        doc_clusters = [path_to_cluster.get(d.path, "") for d in documents]
+
+        Q = 0.0
+        for i in range(n):
+            for j in range(n):
+                if doc_clusters[i] and doc_clusters[i] == doc_clusters[j]:
+                    expected = (degrees[i] * degrees[j]) / (2.0 * m)
+                    Q += (adjacency[i, j] - expected)
+
+        Q = Q / (2.0 * m)
+        return round(float(Q), 4)
+
+    def predict_cluster(
+        self,
+        new_doc: FileDocument,
+        report: AffinityClusterReport,
+    ) -> Tuple[Optional[str], float]:
+        """Predict optimal existing cluster assignment for an incoming document via centroid resonance."""
+        if not report.clusters:
+            return None, 0.0
+
+        query_vec = new_doc.vector_64d
+        best_cluster_id: Optional[str] = None
+        best_sim = -1.0
+
+        for c in report.clusters:
+            sim = float(torch.dot(query_vec, c.centroid_vector).item())
+            if sim > best_sim:
+                best_sim = sim
+                best_cluster_id = c.cluster_id
+
+        return best_cluster_id, round(best_sim, 4)
+

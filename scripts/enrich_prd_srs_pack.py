@@ -18,17 +18,30 @@ SYSTEM_ENRICHMENTS = {
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-M Core Platform
 - **Continuous Modern Hopfield Attractors**: Core associative memory relies on continuous state relaxation governed by the energy function:
-  $$E(x) = -\\text{lse}(\\beta X^T x) + \\frac{1}{2} x^T x + C$$
-  where state iteration follows $x_{t+1} = X \\text{softmax}(\\beta X^T x_t)$, providing exponential memory capacity and guaranteed Lyapunov stability.
+  $$E(x) = -\\frac{1}{\\beta} \\text{lse}(\\beta M x) + \\frac{1}{2} \\|x\\|^2$$
+  where state iteration follows $x_{t+1} = M^T \\text{softmax}(\\beta M x_t)$, providing exponential memory capacity and guaranteed Lyapunov stability (energy strictly decreases along recurrent trajectories).
+- **Batch Attractor Parallel Convergence**: High-throughput vectorized Modern Hopfield convergence across query batches $X \\in \\mathbb{R}^{B \\times d}$:
+  $$X_{t+1} = \\text{normalize}\\left(\\text{softmax}(\\beta X_t M^T) M + \\gamma \\frac{X_t W^T}{\\|W\\|}\\right)$$
+- **Analytical Lyapunov Energy Gradient & Landscape Profiling**: Exact energy gradient $\\nabla E(x) = x - M^T \\text{softmax}(\\beta M x)$ evaluates local basin depth, barrier height $\\Delta E = \\bar{E}_{\\text{rim}} - E^*$, and stability margins.
+- **Truncated SVD Matrix Factorization**: Synaptic parameter compression via rank-$k$ factorization:
+  $$W \\approx U_k \\Sigma_k V_k^T$$
+  achieving ~2x compression while preserving zero diagonal and exact matrix symmetry.
+- **Counterfactual Basin Stress Testing**: Adversarial noise injection evaluating Lyapunov basin stability:
+  $$S_{\\text{basin}} = \\frac{1}{N} \\sum_{i=1}^N \\mathbb{I}(f(x + \\epsilon_i) = f(x))$$
+  differentiating verified attractor basins from fragile hallucinations.
+- **Dynamic Temperature Annealing**: Adaptive inverse temperature $\\beta(E)$ sharpening retrieval for well-settled memories ($E < -1.0$) and relaxing for exploratory association.
+- **Associative Reasoning Chains**: Multi-hop continuous attractor traversal projecting out visited basins to explore adjacent semantic attractors without prompt engineering.
+- **Gram-Schmidt Memory Fusion**: Composite prototype synthesis with orthogonal projection against non-target memories to guarantee zero catastrophic interference.
 - **Orthogonal Synaptic Grafting ($P_\\perp$)**: Zero-collateral parameter integration uses exact null-space projection:
   $$P_\\perp = I - Q_B Q_B^T$$
-  where $Q_B$ is computed via thin QR/SVD on recipient basin prototypes $X_B$, guaranteeing $P_\\perp X_B = 0$ ($0.0\\%$ collateral interference to existing basins).
-- **Universal Event Gateway**: Unified typed pub-sub event bus (`cortex_m.core.EventBus`) with microsecond timestamping, trace IDs, and sensitive field masking.
+  guaranteeing $P_\\perp X_B = 0$ ($0.0\\%$ collateral interference to existing basins).
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
+- **Core Architecture & Beast Neural Substrate**: `src/cortex_m/cortex_v2.py` (`CortexV2`)
+- **Continuous Synaptic Memory**: `src/cortex_m/pathway/synaptic_memory.py` (`SynapticMemoryNetwork`)
 - **Runtime & Contracts**: `src/cortex_m/core/runtime.py`, `src/cortex_m/core/contracts/`
-- **Memory & Epistemics**: `src/cortex_m/memory/continuous_hopfield.py`, `src/cortex_m/learning/consolidation.py`
+- **Developmental Sleep Consolidation**: `src/cortex_m/learning/consolidation.py` (`NocturnalSleepConsolidator`)
 - **Grafting & Orthogonality**: `src/cortex_m/learning/grafting.py` (`SynapticKnowledgePackager`)
 - **Universal Gateway**: `src/cortex_m/gateway.py` (`EcosystemGateway`)
 - **CLI & REST Server**: `src/cortex_m/cli.py`, `src/cortex_m/server/app.py`
@@ -38,15 +51,18 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-IDE / CortexCode",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-IDE / CortexCode
-- **AST Symbol Resolution**: Abstract Syntax Tree parsing (`platforms/ide/src/ast_parser.py`) constructs complete symbol call graphs and cross-file reference DAGs without token truncation.
-- **Syntactic Diff Integrity**: AST Diff Engine (`platforms/ide/src/diff_engine.py`) enforces syntax-preserving AST chunk replacements with comment preservation and regression prevention.
+- **AST Symbol Resolution & Call Trees**: Abstract Syntax Tree parsing (`platforms/ide/src/ast_parser.py`) constructs complete symbol tables, call graphs, and dependency DAGs without token truncation.
+- **McCabe Cyclomatic Complexity**: Real-time complexity evaluation per function:
+  $$M = 1 + \\sum \\text{decision branch points}$$
+  auditing maintenance overhead across conditionals, loops, and boolean operators.
+- **Atomic Multi-File Patch Transactions**: AST Diff Engine (`platforms/ide/src/diff_engine.py`) provides all-or-nothing transaction semantics: if any file in a patch bundle fails AST syntax validation, zero files are committed to disk.
 - **Isolated Subprocess Sandbox**: Deterministic subprocess execution (`platforms/ide/src/sandbox.py`) enforcing hard timeout ceilings ($5.0\\text{ s}$ default), stripped environment variables, and strict memory limits.
 - **Multi-Agent Swarm Protocol**: 5W1H DAG execution across Architect, Coder, Critic, and Auditor personas with cryptographic approval gates prior to git mutation.
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
-- **AST Parser**: `platforms/ide/src/ast_parser.py` (`ASTSymbolTableParser`)
-- **Diff Engine**: `platforms/ide/src/diff_engine.py` (`ASTDiffEngine`)
+- **AST Parser**: `platforms/ide/src/ast_parser.py` (`ASTSymbolTableParser`, `ASTSymbolTable`)
+- **Diff Engine**: `platforms/ide/src/diff_engine.py` (`ASTDiffEngine`, `PatchResult`, `DiffResult`)
 - **Sandbox Runner**: `platforms/ide/src/sandbox.py` (`SubprocessSandboxRunner`)
 - **Swarm Orchestrator**: `platforms/ide/src/swarm.py` (`CortexCodeSwarm`)
 - **Gateway Dispatcher**: `execute_ide(action, params)` in `src/cortex_m/gateway.py`
@@ -58,14 +74,16 @@ SYSTEM_ENRICHMENTS = {
 ### Technical Architecture & Mathematical Foundations: CORTEX-Personal
 - **Tabula Rasa Epistemic Verification**: Projection onto synaptic weight matrix $W_{\\text{personal}}$ determines evidence threshold $S = \\|W x\\| / \\|x\\|$. If $S < \\tau_{\\text{novelty}}$, returns `INSUFFICIENT_EVIDENCE` (honest abstention).
 - **Continuous Online Hebbian Imprinting**: Weight adaptation uses bounded outer-product updates $\\Delta W = \\eta (z z^T - \\alpha W)$ with instant anti-Hebbian unlearning for exact GDPR privacy erasure.
-- **Ultralight Low-Rank Tenant Paging**: Factorizes user memory into low-rank slices ($2.0\\text{ KB}$ per tenant factor) consuming $< 15\\text{ MB}$ total runtime RAM.
-- **Zero-Egress Security Interlock**: Hardware socket interlock (`platforms/personal/src/interlock.py`) guarantees $0.0\\text{ KB}$ external WAN transmission with AES-256-GCM encrypted persistence.
+- **Ultralight Low-Rank Tenant Factor Paging**: Factorizes user memory into low-rank slices ($2.0\\text{ KB}$ rank-4 factors per tenant):
+  $$\\Delta W_{\\text{tenant}} = U_{\\text{tenant}} V_{\\text{tenant}}^T$$
+  with disk-backed serialization (`page_out_to_disk`, `page_in_from_disk`) consuming $< 15\\text{ MB}$ total runtime RAM.
+- **Zero-Egress Security Interlock**: Hardware socket interlock (`platforms/personal/src/interlock.py`) guarantees $0.0\\text{ KB}$ external WAN transmission with AES-256-GCM / PBKDF2-HMAC-SHA256 encrypted persistence.
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
 - **Personal Substrate**: `platforms/personal/src/substrate.py` (`PersonalSubstrateCoordinator`)
 - **Zero-Egress Interlock**: `platforms/personal/src/interlock.py` (`ZeroEgressInterlock`)
-- **Tenant Paging**: `platforms/personal/src/tenant_paging.py` (`PersonalTenantPagingEngine`)
+- **Tenant Paging**: `platforms/personal/src/tenant_paging.py` (`PersonalTenantPagingEngine`, `TenantFactorSlice`)
 - **Encrypted Vault**: `platforms/personal/src/vault.py` (`EncryptedPersonalVault`)
 - **Gateway Dispatcher**: `execute_personal(action, params)` in `src/cortex_m/gateway.py`
 """
@@ -74,15 +92,18 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-Fin",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-Fin
-- **Lyapunov Energy Gradient Attribution**: Transaction risk scoring calculates continuous attractor energy $E(x)$, decomposing the gradient $\\nabla_x E(x)$ into explicit interpretable factor attributions satisfying FCRA and GDPR Article 22.
-- **High-Throughput Columnar Streaming**: Processes transaction tap streams via Apache Arrow columnar memory buffers sustaining $> 100,000\\text{ tx/sec}$ with scoring latency $\\le 150\\ \\mu\\text{s}$.
+- **Lyapunov Energy Gradient Attribution**: Transaction risk scoring calculates continuous attractor energy $E(x) = -\\frac{1}{2} x^T W x$, projecting the exact gradient $\\nabla_x E(x) = -W x$ back into raw transaction feature space to generate FCRA and GDPR Article 22 compliant adverse action codes (`ADV_01_TRANSACTION_AMOUNT_SPIKE`, `ADV_02_GEOGRAPHIC_DISPLACEMENT`, etc.).
+- **Kinematic Leap Velocity Anomaly Detection**: Tracks consecutive transactions per account to identify physically impossible transit leaps:
+  $$v_{\\text{apparent}} = \\frac{\\Delta d}{\\Delta t} > 900\\text{ km/h}$$
+  violating commercial supersonic flight envelopes.
+- **High-Throughput Stream Replay**: Benchmarks transaction pipelines sustaining $> 100,000\\text{ tx/sec}$ with scoring latency $\\le 150\\ \\mu\\text{s}$.
 - **Strict Shadow-Mode Isolation**: Non-authoritative read-only pipe with zero write credentials to live payment rails or bank settlement ledgers.
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
 - **Anomaly Scorer**: `platforms/fin/src/anomaly_scorer.py` (`FinancialAnomalyScorer`, `FraudScoringReport`)
 - **Feature Encoder**: `platforms/fin/src/transaction_encoder.py` (`FinancialTransaction`, `TransactionFeatureEncoder`)
-- **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`)
+- **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`, `ReplayBatchResult`)
 - **Gateway Dispatcher**: `execute_fin(action, params)` in `src/cortex_m/gateway.py`
 """
     },
@@ -94,12 +115,15 @@ SYSTEM_ENRICHMENTS = {
 - **Dynamic Cognitive Affinity Graph**: Semantic document clustering via modern Hopfield associative affinity:
   $$A_{ij} = \\exp(-\\|x_i - x_j\\|^2 / 2\\sigma^2)$$
   clustering related research and code artifacts without altering canonical disk hierarchies.
+- **Newman-Girvan Community Modularity**: Quantifies partitioning quality via:
+  $$Q = \\frac{1}{2m} \\sum_{ij} \\left(A_{ij} - \\frac{k_i k_j}{2m}\\right) \\delta(c_i, c_j)$$
+- **Centroid Cosine Resonance Membership**: Predicts incoming document cluster assignment via cosine projection onto cluster centroid vectors.
 - **Sub-Millisecond Spotlight Omnibar**: Sub-millisecond continuous attractor resonance search over 64D gist embeddings.
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
-- **File Watcher**: `platforms/os/src/file_watcher.py` (`NonPrivilegedFileWatcher`)
-- **Affinity Clustering**: `platforms/os/src/affinity_cluster.py` (`CognitiveAffinityGraph`)
+- **File Watcher**: `platforms/os/src/file_watcher.py` (`NonPrivilegedFileWatcher`, `FileDocument`)
+- **Affinity Clustering**: `platforms/os/src/affinity_cluster.py` (`CognitiveAffinityGraph`, `ProjectCluster`)
 - **Omnibar Engine**: `platforms/os/src/omnibar_search.py` (`SpotlightOmnibarEngine`)
 - **System Monitor**: `platforms/os/src/system_monitor.py` (`SystemResourceMonitor`)
 - **Gateway Dispatcher**: `execute_os(action, params)` in `src/cortex_m/gateway.py`
@@ -109,12 +133,16 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-Robotics",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-Robotics
-- **6-DOF Forward/Inverse Kinematics**: Analytical and numerical DH kinematic solver with singularity-robust Jacobian pseudo-inverse:
-  $$J^+ = J^T (J J^T + \\lambda^2 I)^{-1}$$
-- **Continuous Attractor Trajectory Generation**: Quintic polynomial spline interpolation minimizing jerk ($C^2$ continuity) bounded by energy basins.
+- **6-DOF Denavit-Hartenberg (DH) Kinematics**: Computes exact homogeneous $4 \\times 4$ transformation matrices $T_i^{i-1}$ from base to end-effector across standard industrial articulating geometries.
+- **Damped Least Squares (Levenberg-Marquardt) Inverse Kinematics**: Singularity-robust numerical IK:
+  $$\\Delta q = J^T (J J^T + \\lambda^2 I)^{-1} (x_{\\text{target}} - x_{\\text{current}})$$
+  with step clamping and mechanical joint limit bounding.
+- **Yoshikawa Manipulability Index**: Evaluates kinematic dexterity and distance from singularities:
+  $$w = \\sqrt{\\det(J J^T)}$$
 - **Deterministic ISO 10218-1/2 Safety Interlock**: Speed and Separation Monitoring (SSM) dynamic envelope:
+  $$d_{\\text{stop}} = v \\cdot t_{\\text{react}} + \\frac{v^2}{2 a_{\\text{max}}}$$
   $$v_{\\text{allowable}} = \\sqrt{2 a_{\\text{max}} (d_{\\text{human}} - d_{\\text{stop}})}$$
-  with hard real-time emergency stop ($< 100\\text{ ms}$).
+  with 3D workspace bounding box barriers (floor penetration prevention) and hard real-time emergency stop ($< 100\\text{ ms}$).
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
@@ -128,12 +156,15 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-Mesh",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-Mesh
-- **Practical Byzantine Fault Tolerant (PBFT) Consensus**: 3-phase consensus state machine (Pre-Prepare, Prepare, Commit) tolerating up to $f < n/3$ adversarial or disconnected nodes with Ed25519 cryptographic digest signatures.
+- **Practical Byzantine Fault Tolerant (PBFT) Consensus**: Complete 3-phase consensus state machine (Pre-Prepare, Prepare, Commit) with View-Change protocol and signature verification, tolerating up to $f < n/3$ adversarial or partitioned nodes with $2f+1$ quorum threshold verification.
+- **Lamport/Mattern Vector Clock Causal Tracking**: Causal message delivery tracking across decentralized nodes:
+  $$VC_i[j] = \\max(VC_i[j], VC_{\\text{incoming}}[j])$$
+  guaranteeing causal consistency and preventing out-of-order execution across mesh partitions.
 - **Causal MIMO Sparse Swarm Routing**: Energy-aware and distance-weighted auction routing allocating logistics tasks across autonomous rovers and sensor nodes with Lipschitz continuity cushions.
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
-- **BFT Consensus Engine**: `platforms/mesh/src/consensus.py` (`BFTConsensusEngine`, `ConsensusProposal`, `ConsensusVote`)
+- **BFT Consensus Engine**: `platforms/mesh/src/consensus.py` (`BFTConsensusEngine`, `ConsensusProposal`, `ConsensusVote`, `ConsensusPhase`)
 - **Swarm Router**: `platforms/mesh/src/swarm_router.py` (`CortexSwarmRouter`, `SwarmTaskAllocation`)
 - **Mesh Node**: `platforms/mesh/src/node.py` (`MeshNode`, `NodeStatus`)
 - **Gateway Dispatcher**: `execute_mesh(action, params)` in `src/cortex_m/gateway.py`
@@ -143,15 +174,19 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-Health / BCI",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-Health / BCI
-- **Deterministic Biosignal Conditioning**: 4th-order Butterworth bandpass (0.5–100.0 Hz) and 50/60 Hz notch filtering with FastICA ocular artifact suppression.
-- **Morlet Continuous Wavelet Decomposition**: Time-frequency spectral analysis computing instantaneous power across Delta (0.5–4 Hz), Theta (4–8 Hz), Alpha (8–13 Hz), Beta (13–30 Hz), and Gamma (30–50 Hz) bands.
-- **State-Space Attractor Decoding**: Continuous Hopfield cognitive state classification (Resting, Focused, Cognitive Workload, Drowsy) with strict non-clinical disclaimers.
+- **Deterministic Biosignal Conditioning**: DC offset detrending, IIR 50/60 Hz notch filtering, and artifact clipping ($\\pm 500\\ \\mu\\text{V}$).
+- **Spectral Signal-to-Noise Ratio (SNR) & Lead Impedance**: Evaluates empirical SNR in dB and audits electrode contact integrity, flagging flatline disconnections (variance $< 10^{-4}$) and saturated railed leads.
+- **Welch Power Spectral Density**: Smoothed spectral estimation via 50% overlapping Hanning-windowed periodograms:
+  $$P_{xx}(f) = \\frac{1}{K} \\sum_{k=1}^K I_k(f)$$
+- **Exponential Moving Average (EMA) BCI Stabilization**: Temporal smoothing across continuous sliding prediction windows:
+  $$P_t = \\alpha P_{\\text{inst}} + (1 - \\alpha) P_{t-1}$$
+  preventing classification jitter on discrete cognitive states (Rest, Motor Left/Right, Focus, Drowsy).
 """,
         "impl_refs": """
 ### Implemented Codebase Traceability
 - **Biosignal Filter**: `platforms/health/src/signal_filter.py` (`BiosignalFilter`, `FilteredSignal`)
-- **Wavelet Decomposer**: `platforms/health/src/wavelet_analysis.py` (`WaveletFrequencyDecomposer`, `NeuralBandpower`)
-- **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`)
+- **Wavelet Decomposer**: `platforms/health/src/wavelet_analysis.py` (`WaveletFrequencyDecomposer`, `NeuralBandpower`, `FrequencyBand`)
+- **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`, `CognitiveState`)
 - **Gateway Dispatcher**: `execute_health(action, params)` in `src/cortex_m/gateway.py`
 """
     },
@@ -159,8 +194,9 @@ SYSTEM_ENRICHMENTS = {
         "title": "CORTEX-Space",
         "math_arch": """
 ### Technical Architecture & Mathematical Foundations: CORTEX-Space
-- **Keplerian & J2 Oblateness Orbit Propagation**: Analytical orbital dynamics modeling Earth oblateness ($J_2 = 1.08263 \\times 10^{-3}$) nodal regression and perigee precession with line-of-sight ground station contact cones (Goldstone, Madrid, Canberra).
-- **CCSDS Frame Synchronization & Telemetry Decommutation**: Validates 32-bit Attached Sync Marker (`0x1ACFFC1D`) and CRC-16 telecommand/telemetry packet integrity.
+- **Keplerian & J2 Oblateness Orbit Propagation**: Analytical orbital dynamics modeling Earth oblateness ($J_2 = 1.08263 \\times 10^{-3}$) nodal regression and perigee precession with NORAD Two-Line Element (TLE) parsing (`from_tle`).
+- **Multi-Orbit Ground Station Pass Prediction**: Computes elevation angle $\\theta_{\\text{elev}} = \\arcsin(\\hat{r} \\cdot \\hat{n})$ against topocentric ground stations (Goldstone, Madrid, Canberra), recording AOS/LOS timestamps and elevation mask bounds ($> 5^\\circ$).
+- **CCSDS Frame Synchronization & 14-Bit Continuity**: Validates 32-bit Attached Sync Marker (`0x1ACFFC1D`) and CRC-16 checksums, analyzing sequence counter discontinuities with modulo-16384 wrap-around.
 - **Attractor-Based SEU Radiation Supervisor**: Continuous attractor anomaly scoring isolating Single Event Upsets (SEU latchups) from routine orbital thermal cycles.
 """,
         "impl_refs": """

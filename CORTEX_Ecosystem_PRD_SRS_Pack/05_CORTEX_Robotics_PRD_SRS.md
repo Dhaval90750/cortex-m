@@ -243,15 +243,41 @@ with hard real-time emergency stop ($< 100\text{ ms}$).
 - **Safety Interlock**: `platforms/robotics/src/safety_interlock.py` (`DeterministicSafetyInterlock`, `SafetyStatusReport`)
 - **Gateway Dispatcher**: `execute_robotics(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Robotics
+- **6-DOF Denavit-Hartenberg (DH) Kinematics**: Computes exact homogeneous $4 \times 4$ transformation matrices $T_i^{i-1}$ from base to end-effector across standard industrial articulating geometries.
+- **Damped Least Squares (Levenberg-Marquardt) Inverse Kinematics**: Singularity-robust numerical IK:
+$$\Delta q = J^T (J J^T + \lambda^2 I)^{-1} (x_{\text{target}} - x_{\text{current}})$$
+with step clamping and mechanical joint limit bounding.
+- **Yoshikawa Manipulability Index**: Evaluates kinematic dexterity and distance from singularities:
+$$w = \sqrt{\det(J J^T)}$$
+- **Deterministic ISO 10218-1/2 Safety Interlock**: Speed and Separation Monitoring (SSM) dynamic envelope:
+$$d_{\text{stop}} = v \cdot t_{\text{react}} + \frac{v^2}{2 a_{\text{max}}}$$
+$$v_{\text{allowable}} = \sqrt{2 a_{\text{max}} (d_{\text{human}} - d_{\text{stop}})}$$
+with 3D workspace bounding box barriers (floor penetration prevention) and hard real-time emergency stop ($< 100\text{ ms}$).
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Manipulator Kinematics**: `platforms/robotics/src/kinematics.py` (`Manipulator6DOF`, `RobotPose`)
+- **Path Planner**: `platforms/robotics/src/path_planner.py` (`AttractorPathPlanner`)
+- **Safety Interlock**: `platforms/robotics/src/safety_interlock.py` (`DeterministicSafetyInterlock`, `SafetyStatusReport`)
+- **Gateway Dispatcher**: `execute_robotics(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Robotics
-- **6-DOF Forward/Inverse Kinematics**: Analytical and numerical DH kinematic solver with singularity-robust Jacobian pseudo-inverse:
-  $$J^+ = J^T (J J^T + \lambda^2 I)^{-1}$$
-- **Continuous Attractor Trajectory Generation**: Quintic polynomial spline interpolation minimizing jerk ($C^2$ continuity) bounded by energy basins.
+- **6-DOF Denavit-Hartenberg (DH) Kinematics**: Computes exact homogeneous $4 \times 4$ transformation matrices $T_i^{i-1}$ from base to end-effector across standard industrial articulating geometries.
+- **Damped Least Squares (Levenberg-Marquardt) Inverse Kinematics**: Singularity-robust numerical IK:
+  $$\Delta q = J^T (J J^T + \lambda^2 I)^{-1} (x_{\text{target}} - x_{\text{current}})$$
+  with step clamping and mechanical joint limit bounding.
+- **Yoshikawa Manipulability Index**: Evaluates kinematic dexterity and distance from singularities:
+  $$w = \sqrt{\det(J J^T)}$$
 - **Deterministic ISO 10218-1/2 Safety Interlock**: Speed and Separation Monitoring (SSM) dynamic envelope:
+  $$d_{\text{stop}} = v \cdot t_{\text{react}} + \frac{v^2}{2 a_{\text{max}}}$$
   $$v_{\text{allowable}} = \sqrt{2 a_{\text{max}} (d_{\text{human}} - d_{\text{stop}})}$$
-  with hard real-time emergency stop ($< 100\text{ ms}$).
+  with 3D workspace bounding box barriers (floor penetration prevention) and hard real-time emergency stop ($< 100\text{ ms}$).
 
 ---
 

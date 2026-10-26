@@ -137,6 +137,31 @@ class TestCortexPersonalPlatform(unittest.TestCase):
         self.assertEqual(len(t1.active_attractors), 1)
         self.assertEqual(len(t2.active_attractors), 0)
 
+    def test_tenant_disk_paging_and_footprint(self):
+        engine = PersonalTenantPagingEngine(base_dimension=32, rank=4)
+        t = engine.create_tenant("profile_finance", metadata={"tier": "vip"})
+        cue = torch.randn(32)
+        engine.learn_tenant_association("profile_finance", cue)
+
+        # Storage footprint
+        footprint = engine.get_storage_footprint()
+        self.assertEqual(footprint["num_tenants"], 1)
+        self.assertGreater(footprint["total_bytes"], 0)
+
+        # Page out to disk
+        with tempfile.TemporaryDirectory() as tmpdir:
+            page_path = Path(tmpdir) / "profile_finance.slice"
+            saved_path = engine.page_out_to_disk("profile_finance", str(page_path))
+            self.assertTrue(Path(saved_path).exists())
+
+            # Page into fresh engine
+            fresh_engine = PersonalTenantPagingEngine(base_dimension=32, rank=4)
+            restored = fresh_engine.page_in_from_disk(str(page_path))
+            self.assertEqual(restored.tenant_id, "profile_finance")
+            self.assertEqual(restored.metadata["tier"], "vip")
+            self.assertEqual(len(restored.active_attractors), 1)
+
 
 if __name__ == "__main__":
     unittest.main()
+

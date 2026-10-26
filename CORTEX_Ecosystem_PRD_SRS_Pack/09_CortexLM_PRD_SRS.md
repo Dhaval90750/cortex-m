@@ -247,6 +247,22 @@ Confirm data classification, retention, regulatory requirements and reviewers.
 - **Knowledge Base**: `src/cortex_m/model/knowledge_base.py`
 - **Gateway Dispatcher**: `execute_learning(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CortexLM Model Family
+- **Native Autoregressive Language Architecture**: Compact causal transformer with rotary position embeddings (RoPE), SwiGLU activation, and RMSNorm.
+- **External Gateway Interoperability**: Seamless model gateway abstraction allowing execution of native CortexLM weights alongside external research providers.
+- **Developmental Sleep Consolidation**: Nocturnal consolidation cycles applying Hebbian replay, weight decay, and synaptic pruning ($\|W_{ij}\| < \epsilon$) to stabilize long-term memory without catastrophic forgetting.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Model Architecture**: `src/cortex_m/model/cortex_lm.py` (`CortexLM`, `CortexLMOutput`)
+- **Trainer**: `src/cortex_m/model/real_data_trainer.py`, `src/cortex_m/database/db_trainer.py`
+- **Metacognition & Introspection**: `src/cortex_m/model/metacognition.py`
+- **Knowledge Base**: `src/cortex_m/model/knowledge_base.py`
+- **Gateway Dispatcher**: `execute_learning(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CortexLM Model Family

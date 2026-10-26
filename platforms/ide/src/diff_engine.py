@@ -131,3 +131,47 @@ class ASTDiffEngine:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(modified_code, encoding="utf-8")
         return res
+
+    def apply_atomic_bundle(
+        self,
+        bundle: Dict[str, str],
+    ) -> Dict[str, Any]:
+        """Apply a multi-file atomic patch transaction with AST validation and all-or-nothing rollback.
+        
+        If any file in the bundle fails AST syntax validation, zero files are committed to disk.
+        """
+        validation_results = {}
+        all_valid = True
+
+        for filepath, content in bundle.items():
+            fname = Path(filepath).name
+            ast_table = self.parser.parse_source(content, filename=fname)
+            validation_results[filepath] = {
+                "valid": ast_table.syntax_valid,
+                "error": ast_table.error_message,
+            }
+            if not ast_table.syntax_valid:
+                all_valid = False
+
+        if not all_valid:
+            return {
+                "success": False,
+                "atomic_rollback": True,
+                "committed_files": [],
+                "validation_errors": {fp: r["error"] for fp, r in validation_results.items() if not r["valid"]},
+            }
+
+        committed = []
+        for filepath, content in bundle.items():
+            path = Path(filepath)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(content, encoding="utf-8")
+            committed.append(str(path))
+
+        return {
+            "success": True,
+            "atomic_rollback": False,
+            "committed_files": committed,
+            "total_files": len(committed),
+        }
+

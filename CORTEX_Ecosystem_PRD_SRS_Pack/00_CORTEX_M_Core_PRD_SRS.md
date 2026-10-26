@@ -252,22 +252,68 @@ where $Q_B$ is computed via thin QR/SVD on recipient basin prototypes $X_B$, gua
 - **Universal Gateway**: `src/cortex_m/gateway.py` (`EcosystemGateway`)
 - **CLI & REST Server**: `src/cortex_m/cli.py`, `src/cortex_m/server/app.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-M Core Platform
+- **Continuous Modern Hopfield Attractors**: Core associative memory relies on continuous state relaxation governed by the energy function:
+$$E(x) = -\frac{1}{\beta} \text{lse}(\beta M x) + \frac{1}{2} \|x\|^2$$
+where state iteration follows $x_{t+1} = M^T \text{softmax}(\beta M x_t)$, providing exponential memory capacity and guaranteed Lyapunov stability (energy strictly decreases along recurrent trajectories).
+- **Batch Attractor Parallel Convergence**: High-throughput vectorized Modern Hopfield convergence across query batches $X \in \mathbb{R}^{B \times d}$:
+$$X_{t+1} = \text{normalize}\left(\text{softmax}(\beta X_t M^T) M + \gamma \frac{X_t W^T}{\|W\|}\right)$$
+- **Analytical Lyapunov Energy Gradient & Landscape Profiling**: Exact energy gradient $\nabla E(x) = x - M^T \text{softmax}(\beta M x)$ evaluates local basin depth, barrier height $\Delta E = \bar{E}_{\text{rim}} - E^*$, and stability margins.
+- **Truncated SVD Matrix Factorization**: Synaptic parameter compression via rank-$k$ factorization:
+$$W \approx U_k \Sigma_k V_k^T$$
+achieving ~2x compression while preserving zero diagonal and exact matrix symmetry.
+- **Counterfactual Basin Stress Testing**: Adversarial noise injection evaluating Lyapunov basin stability:
+$$S_{\text{basin}} = \frac{1}{N} \sum_{i=1}^N \mathbb{I}(f(x + \epsilon_i) = f(x))$$
+differentiating verified attractor basins from fragile hallucinations.
+- **Dynamic Temperature Annealing**: Adaptive inverse temperature $\beta(E)$ sharpening retrieval for well-settled memories ($E < -1.0$) and relaxing for exploratory association.
+- **Associative Reasoning Chains**: Multi-hop continuous attractor traversal projecting out visited basins to explore adjacent semantic attractors without prompt engineering.
+- **Gram-Schmidt Memory Fusion**: Composite prototype synthesis with orthogonal projection against non-target memories to guarantee zero catastrophic interference.
+- **Orthogonal Synaptic Grafting ($P_\perp$)**: Zero-collateral parameter integration uses exact null-space projection:
+$$P_\perp = I - Q_B Q_B^T$$
+guaranteeing $P_\perp X_B = 0$ ($0.0\%$ collateral interference to existing basins).
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Core Architecture & Beast Neural Substrate**: `src/cortex_m/cortex_v2.py` (`CortexV2`)
+- **Continuous Synaptic Memory**: `src/cortex_m/pathway/synaptic_memory.py` (`SynapticMemoryNetwork`)
+- **Runtime & Contracts**: `src/cortex_m/core/runtime.py`, `src/cortex_m/core/contracts/`
+- **Developmental Sleep Consolidation**: `src/cortex_m/learning/consolidation.py` (`NocturnalSleepConsolidator`)
+- **Grafting & Orthogonality**: `src/cortex_m/learning/grafting.py` (`SynapticKnowledgePackager`)
+- **Universal Gateway**: `src/cortex_m/gateway.py` (`EcosystemGateway`)
+- **CLI & REST Server**: `src/cortex_m/cli.py`, `src/cortex_m/server/app.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-M Core Platform
 - **Continuous Modern Hopfield Attractors**: Core associative memory relies on continuous state relaxation governed by the energy function:
-  $$E(x) = -\text{lse}(\beta X^T x) + \frac{1}{2} x^T x + C$$
-  where state iteration follows $x_{t+1} = X \text{softmax}(\beta X^T x_t)$, providing exponential memory capacity and guaranteed Lyapunov stability.
+  $$E(x) = -\frac{1}{\beta} \text{lse}(\beta M x) + \frac{1}{2} \|x\|^2$$
+  where state iteration follows $x_{t+1} = M^T \text{softmax}(\beta M x_t)$, providing exponential memory capacity and guaranteed Lyapunov stability (energy strictly decreases along recurrent trajectories).
+- **Batch Attractor Parallel Convergence**: High-throughput vectorized Modern Hopfield convergence across query batches $X \in \mathbb{R}^{B \times d}$:
+  $$X_{t+1} = \text{normalize}\left(\text{softmax}(\beta X_t M^T) M + \gamma \frac{X_t W^T}{\|W\|}\right)$$
+- **Analytical Lyapunov Energy Gradient & Landscape Profiling**: Exact energy gradient $\nabla E(x) = x - M^T \text{softmax}(\beta M x)$ evaluates local basin depth, barrier height $\Delta E = \bar{E}_{\text{rim}} - E^*$, and stability margins.
+- **Truncated SVD Matrix Factorization**: Synaptic parameter compression via rank-$k$ factorization:
+  $$W \approx U_k \Sigma_k V_k^T$$
+  achieving ~2x compression while preserving zero diagonal and exact matrix symmetry.
+- **Counterfactual Basin Stress Testing**: Adversarial noise injection evaluating Lyapunov basin stability:
+  $$S_{\text{basin}} = \frac{1}{N} \sum_{i=1}^N \mathbb{I}(f(x + \epsilon_i) = f(x))$$
+  differentiating verified attractor basins from fragile hallucinations.
+- **Dynamic Temperature Annealing**: Adaptive inverse temperature $\beta(E)$ sharpening retrieval for well-settled memories ($E < -1.0$) and relaxing for exploratory association.
+- **Associative Reasoning Chains**: Multi-hop continuous attractor traversal projecting out visited basins to explore adjacent semantic attractors without prompt engineering.
+- **Gram-Schmidt Memory Fusion**: Composite prototype synthesis with orthogonal projection against non-target memories to guarantee zero catastrophic interference.
 - **Orthogonal Synaptic Grafting ($P_\perp$)**: Zero-collateral parameter integration uses exact null-space projection:
   $$P_\perp = I - Q_B Q_B^T$$
-  where $Q_B$ is computed via thin QR/SVD on recipient basin prototypes $X_B$, guaranteeing $P_\perp X_B = 0$ ($0.0\%$ collateral interference to existing basins).
-- **Universal Event Gateway**: Unified typed pub-sub event bus (`cortex_m.core.EventBus`) with microsecond timestamping, trace IDs, and sensitive field masking.
+  guaranteeing $P_\perp X_B = 0$ ($0.0\%$ collateral interference to existing basins).
 
 ---
 
 ### Implemented Codebase Traceability
+- **Core Architecture & Beast Neural Substrate**: `src/cortex_m/cortex_v2.py` (`CortexV2`)
+- **Continuous Synaptic Memory**: `src/cortex_m/pathway/synaptic_memory.py` (`SynapticMemoryNetwork`)
 - **Runtime & Contracts**: `src/cortex_m/core/runtime.py`, `src/cortex_m/core/contracts/`
-- **Memory & Epistemics**: `src/cortex_m/memory/continuous_hopfield.py`, `src/cortex_m/learning/consolidation.py`
+- **Developmental Sleep Consolidation**: `src/cortex_m/learning/consolidation.py` (`NocturnalSleepConsolidator`)
 - **Grafting & Orthogonality**: `src/cortex_m/learning/grafting.py` (`SynapticKnowledgePackager`)
 - **Universal Gateway**: `src/cortex_m/gateway.py` (`EcosystemGateway`)
 - **CLI & REST Server**: `src/cortex_m/cli.py`, `src/cortex_m/server/app.py`

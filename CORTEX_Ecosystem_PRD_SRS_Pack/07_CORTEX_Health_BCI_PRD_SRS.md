@@ -240,17 +240,40 @@ Confirm data classification, retention, regulatory requirements and reviewers.
 - **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`)
 - **Gateway Dispatcher**: `execute_health(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Health / BCI
+- **Deterministic Biosignal Conditioning**: DC offset detrending, IIR 50/60 Hz notch filtering, and artifact clipping ($\pm 500\ \mu\text{V}$).
+- **Spectral Signal-to-Noise Ratio (SNR) & Lead Impedance**: Evaluates empirical SNR in dB and audits electrode contact integrity, flagging flatline disconnections (variance $< 10^{-4}$) and saturated railed leads.
+- **Welch Power Spectral Density**: Smoothed spectral estimation via 50% overlapping Hanning-windowed periodograms:
+$$P_{xx}(f) = \frac{1}{K} \sum_{k=1}^K I_k(f)$$
+- **Exponential Moving Average (EMA) BCI Stabilization**: Temporal smoothing across continuous sliding prediction windows:
+$$P_t = \alpha P_{\text{inst}} + (1 - \alpha) P_{t-1}$$
+preventing classification jitter on discrete cognitive states (Rest, Motor Left/Right, Focus, Drowsy).
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Biosignal Filter**: `platforms/health/src/signal_filter.py` (`BiosignalFilter`, `FilteredSignal`)
+- **Wavelet Decomposer**: `platforms/health/src/wavelet_analysis.py` (`WaveletFrequencyDecomposer`, `NeuralBandpower`, `FrequencyBand`)
+- **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`, `CognitiveState`)
+- **Gateway Dispatcher**: `execute_health(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Health / BCI
-- **Deterministic Biosignal Conditioning**: 4th-order Butterworth bandpass (0.5–100.0 Hz) and 50/60 Hz notch filtering with FastICA ocular artifact suppression.
-- **Morlet Continuous Wavelet Decomposition**: Time-frequency spectral analysis computing instantaneous power across Delta (0.5–4 Hz), Theta (4–8 Hz), Alpha (8–13 Hz), Beta (13–30 Hz), and Gamma (30–50 Hz) bands.
-- **State-Space Attractor Decoding**: Continuous Hopfield cognitive state classification (Resting, Focused, Cognitive Workload, Drowsy) with strict non-clinical disclaimers.
+- **Deterministic Biosignal Conditioning**: DC offset detrending, IIR 50/60 Hz notch filtering, and artifact clipping ($\pm 500\ \mu\text{V}$).
+- **Spectral Signal-to-Noise Ratio (SNR) & Lead Impedance**: Evaluates empirical SNR in dB and audits electrode contact integrity, flagging flatline disconnections (variance $< 10^{-4}$) and saturated railed leads.
+- **Welch Power Spectral Density**: Smoothed spectral estimation via 50% overlapping Hanning-windowed periodograms:
+  $$P_{xx}(f) = \frac{1}{K} \sum_{k=1}^K I_k(f)$$
+- **Exponential Moving Average (EMA) BCI Stabilization**: Temporal smoothing across continuous sliding prediction windows:
+  $$P_t = \alpha P_{\text{inst}} + (1 - \alpha) P_{t-1}$$
+  preventing classification jitter on discrete cognitive states (Rest, Motor Left/Right, Focus, Drowsy).
 
 ---
 
 ### Implemented Codebase Traceability
 - **Biosignal Filter**: `platforms/health/src/signal_filter.py` (`BiosignalFilter`, `FilteredSignal`)
-- **Wavelet Decomposer**: `platforms/health/src/wavelet_analysis.py` (`WaveletFrequencyDecomposer`, `NeuralBandpower`)
-- **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`)
+- **Wavelet Decomposer**: `platforms/health/src/wavelet_analysis.py` (`WaveletFrequencyDecomposer`, `NeuralBandpower`, `FrequencyBand`)
+- **BCI Decoder**: `platforms/health/src/bci_decoder.py` (`ContinuousBCIDecoder`, `BCIDecodingResult`, `CognitiveState`)
 - **Gateway Dispatcher**: `execute_health(action, params)` in `src/cortex_m/gateway.py`

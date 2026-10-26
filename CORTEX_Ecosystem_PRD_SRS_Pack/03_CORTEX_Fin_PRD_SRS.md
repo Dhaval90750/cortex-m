@@ -244,11 +244,32 @@ Confirm data classification, retention, legal/regulatory requirements and review
 - **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`)
 - **Gateway Dispatcher**: `execute_fin(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Fin
+- **Lyapunov Energy Gradient Attribution**: Transaction risk scoring calculates continuous attractor energy $E(x) = -\frac{1}{2} x^T W x$, projecting the exact gradient $\nabla_x E(x) = -W x$ back into raw transaction feature space to generate FCRA and GDPR Article 22 compliant adverse action codes (`ADV_01_TRANSACTION_AMOUNT_SPIKE`, `ADV_02_GEOGRAPHIC_DISPLACEMENT`, etc.).
+- **Kinematic Leap Velocity Anomaly Detection**: Tracks consecutive transactions per account to identify physically impossible transit leaps:
+$$v_{\text{apparent}} = \frac{\Delta d}{\Delta t} > 900\text{ km/h}$$
+violating commercial supersonic flight envelopes.
+- **High-Throughput Stream Replay**: Benchmarks transaction pipelines sustaining $> 100,000\text{ tx/sec}$ with scoring latency $\le 150\ \mu\text{s}$.
+- **Strict Shadow-Mode Isolation**: Non-authoritative read-only pipe with zero write credentials to live payment rails or bank settlement ledgers.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Anomaly Scorer**: `platforms/fin/src/anomaly_scorer.py` (`FinancialAnomalyScorer`, `FraudScoringReport`)
+- **Feature Encoder**: `platforms/fin/src/transaction_encoder.py` (`FinancialTransaction`, `TransactionFeatureEncoder`)
+- **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`, `ReplayBatchResult`)
+- **Gateway Dispatcher**: `execute_fin(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Fin
-- **Lyapunov Energy Gradient Attribution**: Transaction risk scoring calculates continuous attractor energy $E(x)$, decomposing the gradient $\nabla_x E(x)$ into explicit interpretable factor attributions satisfying FCRA and GDPR Article 22.
-- **High-Throughput Columnar Streaming**: Processes transaction tap streams via Apache Arrow columnar memory buffers sustaining $> 100,000\text{ tx/sec}$ with scoring latency $\le 150\ \mu\text{s}$.
+- **Lyapunov Energy Gradient Attribution**: Transaction risk scoring calculates continuous attractor energy $E(x) = -\frac{1}{2} x^T W x$, projecting the exact gradient $\nabla_x E(x) = -W x$ back into raw transaction feature space to generate FCRA and GDPR Article 22 compliant adverse action codes (`ADV_01_TRANSACTION_AMOUNT_SPIKE`, `ADV_02_GEOGRAPHIC_DISPLACEMENT`, etc.).
+- **Kinematic Leap Velocity Anomaly Detection**: Tracks consecutive transactions per account to identify physically impossible transit leaps:
+  $$v_{\text{apparent}} = \frac{\Delta d}{\Delta t} > 900\text{ km/h}$$
+  violating commercial supersonic flight envelopes.
+- **High-Throughput Stream Replay**: Benchmarks transaction pipelines sustaining $> 100,000\text{ tx/sec}$ with scoring latency $\le 150\ \mu\text{s}$.
 - **Strict Shadow-Mode Isolation**: Non-authoritative read-only pipe with zero write credentials to live payment rails or bank settlement ledgers.
 
 ---
@@ -256,5 +277,5 @@ Confirm data classification, retention, legal/regulatory requirements and review
 ### Implemented Codebase Traceability
 - **Anomaly Scorer**: `platforms/fin/src/anomaly_scorer.py` (`FinancialAnomalyScorer`, `FraudScoringReport`)
 - **Feature Encoder**: `platforms/fin/src/transaction_encoder.py` (`FinancialTransaction`, `TransactionFeatureEncoder`)
-- **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`)
+- **Event Replay Engine**: `platforms/fin/src/event_replay.py` (`HighThroughputReplayEngine`, `ReplayBatchResult`)
 - **Gateway Dispatcher**: `execute_fin(action, params)` in `src/cortex_m/gateway.py`

@@ -245,19 +245,42 @@ Confirm data classification, retention, legal/regulatory requirements and review
 - **Swarm Orchestrator**: `platforms/ide/src/swarm.py` (`CortexCodeSwarm`)
 - **Gateway Dispatcher**: `execute_ide(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-IDE / CortexCode
+- **AST Symbol Resolution & Call Trees**: Abstract Syntax Tree parsing (`platforms/ide/src/ast_parser.py`) constructs complete symbol tables, call graphs, and dependency DAGs without token truncation.
+- **McCabe Cyclomatic Complexity**: Real-time complexity evaluation per function:
+$$M = 1 + \sum \text{decision branch points}$$
+auditing maintenance overhead across conditionals, loops, and boolean operators.
+- **Atomic Multi-File Patch Transactions**: AST Diff Engine (`platforms/ide/src/diff_engine.py`) provides all-or-nothing transaction semantics: if any file in a patch bundle fails AST syntax validation, zero files are committed to disk.
+- **Isolated Subprocess Sandbox**: Deterministic subprocess execution (`platforms/ide/src/sandbox.py`) enforcing hard timeout ceilings ($5.0\text{ s}$ default), stripped environment variables, and strict memory limits.
+- **Multi-Agent Swarm Protocol**: 5W1H DAG execution across Architect, Coder, Critic, and Auditor personas with cryptographic approval gates prior to git mutation.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **AST Parser**: `platforms/ide/src/ast_parser.py` (`ASTSymbolTableParser`, `ASTSymbolTable`)
+- **Diff Engine**: `platforms/ide/src/diff_engine.py` (`ASTDiffEngine`, `PatchResult`, `DiffResult`)
+- **Sandbox Runner**: `platforms/ide/src/sandbox.py` (`SubprocessSandboxRunner`)
+- **Swarm Orchestrator**: `platforms/ide/src/swarm.py` (`CortexCodeSwarm`)
+- **Gateway Dispatcher**: `execute_ide(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-IDE / CortexCode
-- **AST Symbol Resolution**: Abstract Syntax Tree parsing (`platforms/ide/src/ast_parser.py`) constructs complete symbol call graphs and cross-file reference DAGs without token truncation.
-- **Syntactic Diff Integrity**: AST Diff Engine (`platforms/ide/src/diff_engine.py`) enforces syntax-preserving AST chunk replacements with comment preservation and regression prevention.
+- **AST Symbol Resolution & Call Trees**: Abstract Syntax Tree parsing (`platforms/ide/src/ast_parser.py`) constructs complete symbol tables, call graphs, and dependency DAGs without token truncation.
+- **McCabe Cyclomatic Complexity**: Real-time complexity evaluation per function:
+  $$M = 1 + \sum \text{decision branch points}$$
+  auditing maintenance overhead across conditionals, loops, and boolean operators.
+- **Atomic Multi-File Patch Transactions**: AST Diff Engine (`platforms/ide/src/diff_engine.py`) provides all-or-nothing transaction semantics: if any file in a patch bundle fails AST syntax validation, zero files are committed to disk.
 - **Isolated Subprocess Sandbox**: Deterministic subprocess execution (`platforms/ide/src/sandbox.py`) enforcing hard timeout ceilings ($5.0\text{ s}$ default), stripped environment variables, and strict memory limits.
 - **Multi-Agent Swarm Protocol**: 5W1H DAG execution across Architect, Coder, Critic, and Auditor personas with cryptographic approval gates prior to git mutation.
 
 ---
 
 ### Implemented Codebase Traceability
-- **AST Parser**: `platforms/ide/src/ast_parser.py` (`ASTSymbolTableParser`)
-- **Diff Engine**: `platforms/ide/src/diff_engine.py` (`ASTDiffEngine`)
+- **AST Parser**: `platforms/ide/src/ast_parser.py` (`ASTSymbolTableParser`, `ASTSymbolTable`)
+- **Diff Engine**: `platforms/ide/src/diff_engine.py` (`ASTDiffEngine`, `PatchResult`, `DiffResult`)
 - **Sandbox Runner**: `platforms/ide/src/sandbox.py` (`SubprocessSandboxRunner`)
 - **Swarm Orchestrator**: `platforms/ide/src/swarm.py` (`CortexCodeSwarm`)
 - **Gateway Dispatcher**: `execute_ide(action, params)` in `src/cortex_m/gateway.py`

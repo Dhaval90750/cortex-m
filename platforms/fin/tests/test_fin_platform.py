@@ -111,6 +111,52 @@ class TestCortexFinPlatform(unittest.TestCase):
         self.assertGreater(result.mean_latency_us, 0.0)
         self.assertGreater(result.p95_latency_us, 0.0)
 
+    def test_fcra_gdpr_explain_decision(self):
+        tx = FinancialTransaction(
+            tx_id="tx_high_risk_burst",
+            account_id="acc_user",
+            amount_usd=250000.0,
+            mcc=7995,
+            geo_distance_km=9000.0,
+            time_delta_seconds=30.0,
+            channel="CARD_NOT_PRESENT",
+            is_international=True,
+            velocity_1h_count=18,
+        )
+        explanation = self.scorer.explain_decision(tx)
+        self.assertEqual(explanation["tx_id"], "tx_high_risk_burst")
+        self.assertTrue(explanation["compliance"]["fcra_compliant"])
+        self.assertTrue(explanation["compliance"]["gdpr_article_22_explainable"])
+        self.assertGreater(len(explanation["adverse_action_codes"]), 0)
+        self.assertIsNotNone(explanation["top_risk_driver"])
+
+    def test_impossible_leap_velocity(self):
+        engine = HighThroughputReplayEngine(self.scorer)
+        txs = [
+            FinancialTransaction(
+                tx_id="tx_nyc",
+                account_id="acc_traveler",
+                amount_usd=50.0,
+                mcc=5411,
+                geo_distance_km=0.0,
+                time_delta_seconds=0.0,
+            ),
+            FinancialTransaction(
+                tx_id="tx_london",
+                account_id="acc_traveler",
+                amount_usd=1200.0,
+                mcc=5311,
+                geo_distance_km=5585.0,  # NYC to London
+                time_delta_seconds=600.0,  # 10 minutes later (apparent ~33,510 km/h)
+            ),
+        ]
+        anomalies = engine.detect_velocity_anomalies(txs, max_plausible_km_h=900.0)
+        self.assertEqual(len(anomalies), 1)
+        self.assertEqual(anomalies[0]["account_id"], "acc_traveler")
+        self.assertTrue(anomalies[0]["physical_impossibility"])
+        self.assertGreater(anomalies[0]["apparent_velocity_km_h"], 900.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -96,3 +96,41 @@ class WaveletFrequencyDecomposer:
             focus_ratio=round(focus, 4),
             calmness_ratio=round(calmness, 4),
         )
+
+    def welch_psd(
+        self,
+        signal_1d: np.ndarray,
+        window_size: int = 128,
+        overlap: int = 64,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute smoothed Power Spectral Density using Welch's averaged periodogram.
+        
+        Splits signal into 50% overlapping Hanning-windowed segments to reduce spectral variance.
+        """
+        x = np.array(signal_1d, dtype=np.float64).flatten()
+        N = len(x)
+        if N < window_size:
+            window_size = N
+            overlap = 0
+
+        step = max(1, window_size - overlap)
+        window = np.hanning(window_size)
+        win_energy = np.sum(window ** 2)
+
+        segment_psds = []
+        for start in range(0, N - window_size + 1, step):
+            segment = x[start : start + window_size] * window
+            fft_seg = np.fft.rfft(segment)
+            seg_psd = (np.abs(fft_seg) ** 2) / (self.sampling_rate_hz * win_energy)
+            segment_psds.append(seg_psd)
+
+        if not segment_psds:
+            fft_seg = np.fft.rfft(x * np.hanning(N))
+            freqs = np.fft.rfftfreq(N, d=1.0 / self.sampling_rate_hz)
+            psd = (np.abs(fft_seg) ** 2) / max(1.0, N)
+            return freqs, psd
+
+        avg_psd = np.mean(segment_psds, axis=0)
+        freqs = np.fft.rfftfreq(window_size, d=1.0 / self.sampling_rate_hz)
+        return freqs, avg_psd
+

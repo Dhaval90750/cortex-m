@@ -135,3 +135,47 @@ class HighThroughputReplayEngine:
             escalated_count=escalated,
             reports=reports,
         )
+
+    def detect_velocity_anomalies(
+        self,
+        transactions: Sequence[FinancialTransaction],
+        max_plausible_km_h: float = 900.0,
+    ) -> List[Dict[str, Any]]:
+        """Identify physically impossible geographic transit leaps across account event streams.
+        
+        Calculates delta distance / delta time between consecutive transactions per account.
+        Flags any transit speed exceeding commercial supersonic/air travel thresholds (900 km/h).
+        """
+        by_account: Dict[str, List[FinancialTransaction]] = {}
+        for tx in transactions:
+            by_account.setdefault(tx.account_id, []).append(tx)
+
+        anomalies: List[Dict[str, Any]] = []
+        for acc_id, tx_list in by_account.items():
+            if len(tx_list) < 2:
+                continue
+
+            for i in range(1, len(tx_list)):
+                prev = tx_list[i - 1]
+                curr = tx_list[i]
+
+                delta_t_s = abs(curr.time_delta_seconds)
+                delta_d_km = abs(curr.geo_distance_km)
+
+                if delta_t_s > 0 and delta_d_km > 5.0:
+                    delta_t_h = delta_t_s / 3600.0
+                    velocity_km_h = delta_d_km / delta_t_h
+
+                    if velocity_km_h > max_plausible_km_h:
+                        anomalies.append({
+                            "account_id": acc_id,
+                            "tx_id": curr.tx_id,
+                            "prev_tx_id": prev.tx_id,
+                            "distance_km": round(delta_d_km, 2),
+                            "time_interval_seconds": round(delta_t_s, 2),
+                            "apparent_velocity_km_h": round(velocity_km_h, 1),
+                            "max_plausible_km_h": max_plausible_km_h,
+                            "physical_impossibility": True,
+                        })
+
+        return anomalies

@@ -33,6 +33,7 @@ class CortexSwarmRouter:
         self.consensus = consensus_engine
         self.nodes: Dict[str, MeshNode] = {}
         self.active_allocations: Dict[str, SwarmTaskAllocation] = {}
+        self.vector_clock: Dict[str, int] = {}
 
     def register_node(self, node: MeshNode) -> None:
         """Register a participating swarm node."""
@@ -112,3 +113,28 @@ class CortexSwarmRouter:
         )
         self.active_allocations[task_id] = alloc
         return alloc
+
+    def tick_clock(self, node_id: str) -> Dict[str, int]:
+        """Advance local vector clock for a specific node during task or route event."""
+        self.vector_clock[node_id] = self.vector_clock.get(node_id, 0) + 1
+        return dict(self.vector_clock)
+
+    def merge_clock(self, incoming_clock: Dict[str, int]) -> Dict[str, int]:
+        """Merge incoming vector clock via elementwise supremum to preserve Lamport/Mattern causality."""
+        for nid, count in incoming_clock.items():
+            self.vector_clock[nid] = max(self.vector_clock.get(nid, 0), count)
+        return dict(self.vector_clock)
+
+    @staticmethod
+    def is_causally_dependent(clock_a: Dict[str, int], clock_b: Dict[str, int]) -> bool:
+        """Check if clock_a happened before clock_b (a <= b across all keys and a != b)."""
+        all_keys = set(clock_a.keys()).union(set(clock_b.keys()))
+        strictly_less = False
+        for k in all_keys:
+            val_a = clock_a.get(k, 0)
+            val_b = clock_b.get(k, 0)
+            if val_a > val_b:
+                return False
+            if val_a < val_b:
+                strictly_less = True
+        return strictly_less

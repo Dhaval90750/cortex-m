@@ -107,6 +107,15 @@ class DeterministicSafetyInterlock:
         tcp_dist = math.sqrt(dx * dx + dy * dy + dz * dz)
         tcp_speed = tcp_dist / max(1e-5, dt_seconds)
 
+        # 4. Cartesian Workspace Box Limits (Floor & Enclosure Prevention)
+        min_z = 0.0  # Floor constraint
+        max_reach = self.limits.workspace_max_radius_m
+        if p_target.z < min_z:
+            violations.append(f"Target TCP altitude z={p_target.z:.3f}m penetrates floor barrier (min z={min_z}m).")
+        r_target = math.sqrt(p_target.x ** 2 + p_target.y ** 2 + p_target.z ** 2)
+        if r_target > max_reach:
+            violations.append(f"Target TCP radial reach {r_target:.3f}m exceeds max radius {max_reach:.3f}m.")
+
         allowed_tcp_speed = self.calculate_allowable_tcp_speed(human_distance_m)
         if tcp_speed > allowed_tcp_speed:
             violations.append(
@@ -116,7 +125,7 @@ class DeterministicSafetyInterlock:
         is_safe = len(violations) == 0
         if not is_safe and self.strict_mode:
             # Enforce immediate fail-safe latch if critical violation
-            if any("exceeds" in v for v in violations):
+            if any("exceeds" in v or "penetrates" in v for v in violations):
                 self._e_stop_latched = True
 
         return SafetyStatusReport(
@@ -126,3 +135,11 @@ class DeterministicSafetyInterlock:
             allowed_tcp_speed_m_s=allowed_tcp_speed,
             violations=violations,
         )
+
+    def calculate_stopping_distance_m(self, current_velocity_m_s: float, reaction_time_s: float = 0.05) -> float:
+        """Calculate required braking distance to zero velocity under max deceleration."""
+        v = max(0.0, current_velocity_m_s)
+        a_max = self.limits.max_joint_accel_rad_s2 * 0.4  # effective linear deceleration
+        reaction_dist = v * reaction_time_s
+        braking_dist = (v ** 2) / (2.0 * max(0.1, a_max))
+        return round(reaction_dist + braking_dist, 4)

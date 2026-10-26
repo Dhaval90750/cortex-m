@@ -240,19 +240,40 @@ Confirm data classification, retention, legal/regulatory requirements and review
 - **Encrypted Vault**: `platforms/personal/src/vault.py` (`EncryptedPersonalVault`)
 - **Gateway Dispatcher**: `execute_personal(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Personal
+- **Tabula Rasa Epistemic Verification**: Projection onto synaptic weight matrix $W_{\text{personal}}$ determines evidence threshold $S = \|W x\| / \|x\|$. If $S < \tau_{\text{novelty}}$, returns `INSUFFICIENT_EVIDENCE` (honest abstention).
+- **Continuous Online Hebbian Imprinting**: Weight adaptation uses bounded outer-product updates $\Delta W = \eta (z z^T - \alpha W)$ with instant anti-Hebbian unlearning for exact GDPR privacy erasure.
+- **Ultralight Low-Rank Tenant Factor Paging**: Factorizes user memory into low-rank slices ($2.0\text{ KB}$ rank-4 factors per tenant):
+$$\Delta W_{\text{tenant}} = U_{\text{tenant}} V_{\text{tenant}}^T$$
+with disk-backed serialization (`page_out_to_disk`, `page_in_from_disk`) consuming $< 15\text{ MB}$ total runtime RAM.
+- **Zero-Egress Security Interlock**: Hardware socket interlock (`platforms/personal/src/interlock.py`) guarantees $0.0\text{ KB}$ external WAN transmission with AES-256-GCM / PBKDF2-HMAC-SHA256 encrypted persistence.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **Personal Substrate**: `platforms/personal/src/substrate.py` (`PersonalSubstrateCoordinator`)
+- **Zero-Egress Interlock**: `platforms/personal/src/interlock.py` (`ZeroEgressInterlock`)
+- **Tenant Paging**: `platforms/personal/src/tenant_paging.py` (`PersonalTenantPagingEngine`, `TenantFactorSlice`)
+- **Encrypted Vault**: `platforms/personal/src/vault.py` (`EncryptedPersonalVault`)
+- **Gateway Dispatcher**: `execute_personal(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Personal
 - **Tabula Rasa Epistemic Verification**: Projection onto synaptic weight matrix $W_{\text{personal}}$ determines evidence threshold $S = \|W x\| / \|x\|$. If $S < \tau_{\text{novelty}}$, returns `INSUFFICIENT_EVIDENCE` (honest abstention).
 - **Continuous Online Hebbian Imprinting**: Weight adaptation uses bounded outer-product updates $\Delta W = \eta (z z^T - \alpha W)$ with instant anti-Hebbian unlearning for exact GDPR privacy erasure.
-- **Ultralight Low-Rank Tenant Paging**: Factorizes user memory into low-rank slices ($2.0\text{ KB}$ per tenant factor) consuming $< 15\text{ MB}$ total runtime RAM.
-- **Zero-Egress Security Interlock**: Hardware socket interlock (`platforms/personal/src/interlock.py`) guarantees $0.0\text{ KB}$ external WAN transmission with AES-256-GCM encrypted persistence.
+- **Ultralight Low-Rank Tenant Factor Paging**: Factorizes user memory into low-rank slices ($2.0\text{ KB}$ rank-4 factors per tenant):
+  $$\Delta W_{\text{tenant}} = U_{\text{tenant}} V_{\text{tenant}}^T$$
+  with disk-backed serialization (`page_out_to_disk`, `page_in_from_disk`) consuming $< 15\text{ MB}$ total runtime RAM.
+- **Zero-Egress Security Interlock**: Hardware socket interlock (`platforms/personal/src/interlock.py`) guarantees $0.0\text{ KB}$ external WAN transmission with AES-256-GCM / PBKDF2-HMAC-SHA256 encrypted persistence.
 
 ---
 
 ### Implemented Codebase Traceability
 - **Personal Substrate**: `platforms/personal/src/substrate.py` (`PersonalSubstrateCoordinator`)
 - **Zero-Egress Interlock**: `platforms/personal/src/interlock.py` (`ZeroEgressInterlock`)
-- **Tenant Paging**: `platforms/personal/src/tenant_paging.py` (`PersonalTenantPagingEngine`)
+- **Tenant Paging**: `platforms/personal/src/tenant_paging.py` (`PersonalTenantPagingEngine`, `TenantFactorSlice`)
 - **Encrypted Vault**: `platforms/personal/src/vault.py` (`EncryptedPersonalVault`)
 - **Gateway Dispatcher**: `execute_personal(action, params)` in `src/cortex_m/gateway.py`

@@ -129,3 +129,61 @@ class PersonalTenantPagingEngine:
     @property
     def active_tenant_id(self) -> Optional[str]:
         return self._active_tenant_id
+
+    def get_storage_footprint(self) -> Dict[str, Any]:
+        """Report granular byte memory consumption across all active tenant profiles."""
+        total_bytes = sum(t.size_bytes for t in self._tenants.values())
+        return {
+            "num_tenants": len(self._tenants),
+            "total_bytes": total_bytes,
+            "average_bytes_per_tenant": round(total_bytes / max(1, len(self._tenants)), 1),
+            "tenants": {tid: t.size_bytes for tid, t in self._tenants.items()},
+        }
+
+    def page_out_to_disk(self, tenant_id: str, file_path: str) -> str:
+        """Serialize low-rank factor slice (2 KB) to persistent local disk storage."""
+        from pathlib import Path
+        tenant = self.get_tenant(tenant_id)
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        payload = {
+            "tenant_id": tenant.tenant_id,
+            "dimension": tenant.dimension,
+            "rank": tenant.rank,
+            "U": tenant.U.detach().cpu(),
+            "V": tenant.V.detach().cpu(),
+            "creation_time": tenant.creation_time,
+            "last_access_time": tenant.last_access_time,
+            "active_attractors": tenant.active_attractors,
+            "metadata": tenant.metadata,
+        }
+        torch.save(payload, path)
+        return str(path)
+
+    def page_in_from_disk(self, file_path: str) -> TenantFactorSlice:
+        """Restore dormant tenant factor slice from disk into active runtime."""
+        from pathlib import Path
+        path = Path(file_path)
+        if not path.exists():
+            raise FileNotFoundError(f"Tenant factor page not found: {path}")
+
+        payload = torch.load(path, map_location=self.device)
+        tenant_id = payload["tenant_id"]
+
+        slice_obj = TenantFactorSlice(
+            tenant_id=tenant_id,
+            dimension=payload["dimension"],
+            rank=payload["rank"],
+            U=payload["U"].to(self.device),
+            V=payload["V"].to(self.device),
+            creation_time=payload["creation_time"],
+            last_access_time=time.time(),
+            active_attractors=payload.get("active_attractors", []),
+            metadata=payload.get("metadata", {}),
+        )
+        self._tenants[tenant_id] = slice_obj
+        if self._active_tenant_id is None:
+            self._active_tenant_id = tenant_id
+        return slice_obj
+

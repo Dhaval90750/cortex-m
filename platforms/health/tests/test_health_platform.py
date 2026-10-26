@@ -60,6 +60,49 @@ class TestCortexHealthPlatform(unittest.TestCase):
         self.assertIn("NON-CLINICAL RESEARCH ONLY", res.non_clinical_disclaimer)
         self.assertIn("Explicitly prohibited", res.non_clinical_disclaimer)
 
+    def test_snr_and_electrode_impedance_contact(self):
+        t = np.linspace(0, 1.0, int(self.sampling_rate), endpoint=False)
+        clean = 15.0 * np.sin(2 * np.pi * 10.0 * t)
+        snr = self.filter.estimate_snr_db(clean)
+        self.assertGreater(snr, 10.0)
+
+        # Check electrode contact test (good lead vs flatline vs railed)
+        multi_ch = np.array([
+            clean,
+            np.zeros_like(clean),  # Flatline disconnected
+            np.full_like(clean, 495.0),  # Saturated railed
+        ])
+        status = self.filter.check_electrode_contact(multi_ch)
+        self.assertFalse(status["all_leads_contact_good"])
+        self.assertTrue(status["channels"][0]["lead_good"])
+        self.assertTrue(status["channels"][1]["is_flatline"])
+        self.assertTrue(status["channels"][2]["is_railed"])
+
+    def test_welch_psd_periodogram(self):
+        t = np.linspace(0, 2.0, int(self.sampling_rate * 2), endpoint=False)
+        sig = 20.0 * np.sin(2 * np.pi * 12.0 * t) + np.random.normal(0, 1.0, len(t))
+        freqs, psd = self.decomposer.welch_psd(sig, window_size=128, overlap=64)
+        self.assertEqual(len(freqs), len(psd))
+        self.assertGreater(len(freqs), 10)
+        # Peak frequency should be near 12 Hz
+        peak_freq = freqs[np.argmax(psd)]
+        self.assertAlmostEqual(peak_freq, 12.0, delta=2.5)
+
+    def test_stream_window_decoding_with_ema(self):
+        self.decoder.reset_stream()
+        t = np.linspace(0, 1.0, int(self.sampling_rate), endpoint=False)
+        alpha_signal = 25.0 * np.sin(2 * np.pi * 10.0 * t)
+
+        # Run 3 consecutive windows
+        r1 = self.decoder.decode_stream_window(alpha_signal, ema_alpha=0.4)
+        r2 = self.decoder.decode_stream_window(alpha_signal, ema_alpha=0.4)
+        r3 = self.decoder.decode_stream_window(alpha_signal, ema_alpha=0.4)
+
+        self.assertEqual(r3.predicted_state, CognitiveState.REST)
+        self.assertTrue(r3.metadata["smoothed_via_ema"])
+        self.assertGreater(r3.confidence, 0.5)
+
 
 if __name__ == "__main__":
     unittest.main()
+

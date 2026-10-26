@@ -88,3 +88,75 @@ class BiosignalFilter:
             duration_seconds=duration,
             artifacts_clipped_count=clipped_count,
         )
+
+    def estimate_snr_db(
+        self,
+        raw_signal: np.ndarray,
+        signal_band: Tuple[float, float] = (1.0, 30.0),
+        noise_band: Tuple[float, float] = (50.0, 70.0),
+    ) -> float:
+        """Estimate Signal-to-Noise Ratio (SNR in dB) of EEG recordings.
+        
+        Compares spectral power in the physiological neural bandwidth against
+        ambient electromagnetic / powerline interference bands.
+        """
+        x = np.array(raw_signal, dtype=np.float64).flatten()
+        N = len(x)
+        if N < 8:
+            return 0.0
+
+        fft_vals = np.abs(np.fft.rfft(x * np.hanning(N))) ** 2
+        freqs = np.fft.rfftfreq(N, d=1.0 / self.sampling_rate_hz)
+
+        sig_mask = (freqs >= signal_band[0]) & (freqs <= signal_band[1])
+        noise_mask = (freqs >= noise_band[0]) & (freqs <= noise_band[1])
+
+        p_sig = float(np.sum(fft_vals[sig_mask])) if np.any(sig_mask) else 1e-6
+        p_noise = float(np.sum(fft_vals[noise_mask])) if np.any(noise_mask) else 1e-6
+
+        snr = 10.0 * math.log10(max(1e-6, p_sig) / max(1e-6, p_noise))
+        return round(snr, 2)
+
+    def check_electrode_contact(
+        self,
+        signal: np.ndarray,
+        railing_threshold_uv: float = 480.0,
+    ) -> Dict[str, Any]:
+        """Verify scalp electrode impedance and lead connection integrity.
+        
+        Identifies open-circuit disconnected leads (flatline zero variance) and
+        saturated railed electrodes (pegged at ADC clipping ceiling).
+        """
+        arr = np.array(signal, dtype=np.float64)
+        if arr.ndim == 1:
+            arr = arr.reshape(1, -1)
+
+        channels_status = []
+        all_leads_good = True
+
+        for ch in range(arr.shape[0]):
+            ch_data = arr[ch]
+            variance = float(np.var(ch_data))
+            max_val = float(np.max(np.abs(ch_data)))
+            is_flatline = variance < 1e-4
+            is_railed = max_val >= railing_threshold_uv
+
+            lead_ok = not is_flatline and not is_railed
+            if not lead_ok:
+                all_leads_good = False
+
+            channels_status.append({
+                "channel_index": ch,
+                "lead_good": lead_ok,
+                "is_flatline": is_flatline,
+                "is_railed": is_railed,
+                "variance_uv2": round(variance, 3),
+                "peak_amplitude_uv": round(max_val, 2),
+            })
+
+        return {
+            "all_leads_contact_good": all_leads_good,
+            "num_channels": arr.shape[0],
+            "channels": channels_status,
+        }
+

@@ -121,6 +121,60 @@ class TestCortexMeshPlatform(unittest.TestCase):
         self.assertEqual(alloc.status, "UNFEASIBLE_PARTITIONED")
         self.assertIsNone(alloc.assigned_node_id)
 
+    def test_view_change_quorum(self):
+        # Initial view is 0
+        self.assertEqual(self.consensus.current_view, 0)
+
+        # Node initiates view change to view 1
+        vc_self = self.consensus.initiate_view_change(1)
+        self.assertEqual(vc_self.phase, ConsensusPhase.VIEW_CHANGE)
+        self.assertTrue(self.consensus.verify_vote_signature(vc_self))
+
+        # Peer 1 votes for view 1
+        vc_peer1 = ConsensusVote(
+            phase=ConsensusPhase.VIEW_CHANGE,
+            view_number=1,
+            sequence_number=0,
+            proposal_digest="view_change_to_1",
+            voter_node_id="node_1",
+            signature="vc_node_1_1",
+        )
+        changed = self.consensus.receive_view_change(vc_peer1)
+        self.assertFalse(changed)  # Only 2 votes, quorum is 3
+
+        # Peer 2 votes for view 1
+        vc_peer2 = ConsensusVote(
+            phase=ConsensusPhase.VIEW_CHANGE,
+            view_number=1,
+            sequence_number=0,
+            proposal_digest="view_change_to_1",
+            voter_node_id="node_2",
+            signature="vc_node_2_1",
+        )
+        changed = self.consensus.receive_view_change(vc_peer2)
+        self.assertTrue(changed)  # 3 votes reached, view updated to 1
+        self.assertEqual(self.consensus.current_view, 1)
+
+    def test_vector_clock_causality(self):
+        c1 = self.router.tick_clock("node_A")
+        self.assertEqual(c1["node_A"], 1)
+
+        c2 = self.router.tick_clock("node_A")
+        self.assertEqual(c2["node_A"], 2)
+
+        # External clock from peer node B
+        incoming = {"node_A": 1, "node_B": 3}
+        merged = self.router.merge_clock(incoming)
+        self.assertEqual(merged["node_A"], 2)
+        self.assertEqual(merged["node_B"], 3)
+
+        # Causality verification: clock_early < clock_late
+        early = {"node_A": 1, "node_B": 1}
+        late = {"node_A": 2, "node_B": 3}
+        self.assertTrue(CortexSwarmRouter.is_causally_dependent(early, late))
+        self.assertFalse(CortexSwarmRouter.is_causally_dependent(late, early))
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -23,6 +23,7 @@ class ASTSymbol:
     args: List[str] = field(default_factory=list)
     calls: List[str] = field(default_factory=list)
     security_flags: List[str] = field(default_factory=list)
+    cyclomatic_complexity: int = 1
 
 
 @dataclass
@@ -156,7 +157,21 @@ class _SymbolVisitor(ast.NodeVisitor):
                 flags.append(msg)
                 self.table.security_issues.append(msg)
 
+        # Calculate McCabe Cyclomatic Complexity (1 + decision branch points)
+        decision_nodes = (
+            ast.If, ast.While, ast.For, ast.AsyncFor,
+            ast.ExceptHandler, ast.With, ast.AsyncWith,
+            ast.Assert, ast.IfExp
+        )
+        complexity = 1
+        for child in ast.walk(node):
+            if isinstance(child, decision_nodes):
+                complexity += 1
+            elif isinstance(child, ast.BoolOp):
+                complexity += max(0, len(child.values) - 1)
+
         sym.calls = calls
         sym.security_flags = flags
+        sym.cyclomatic_complexity = complexity
         self.table.functions[full_name] = sym
         self.generic_visit(node)

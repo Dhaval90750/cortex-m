@@ -157,6 +157,46 @@ class TestCortexSpacePlatform(unittest.TestCase):
         self.assertEqual(alert_seu.traceability_req_id, "NPR-7150.2-FR-SPC-03")
         self.assertTrue(len(alert_seu.verification_hash) > 8)
 
+    def test_predict_station_passes(self):
+        # Predict over 24-hour orbital mission window (86400s)
+        passes = self.propagator.predict_station_passes(duration_s=86400.0, step_s=120.0)
+        self.assertIsInstance(passes, list)
+        self.assertGreater(len(passes), 0)
+        first_pass = passes[0]
+        self.assertIn("station", first_pass)
+        self.assertIn("aos_time_s", first_pass)
+        self.assertIn("duration_seconds", first_pass)
+        self.assertGreater(first_pass["duration_seconds"], 0.0)
+
+    def test_from_tle_parsing(self):
+        # ISS (ZARYA) NORAD TLE sample
+        line1 = "1 25544U 98067A   24001.50000000  .00016717  00000-0  10270-3 0  9001"
+        line2 = "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.49815016432101"
+        iss_prop = OrbitPropagator.from_tle("ISS", line1, line2)
+        self.assertAlmostEqual(iss_prop.elements.inclination_deg, 51.6416, places=2)
+        self.assertAlmostEqual(iss_prop.elements.eccentricity, 0.0006703, places=5)
+        self.assertGreater(iss_prop.elements.semi_major_axis_km, 6700.0)
+        self.assertLess(iss_prop.elements.semi_major_axis_km, 6900.0)
+
+    def test_packet_continuity_and_gap_detection(self):
+        # Generate 5 continuous packets
+        packets = [
+            DecommutatedTelemetry(100, i, 1700000000.0 + i, 28.0, 6.0, 20.0, 0, 0, 0, False, 15.0, True)
+            for i in range(5)
+        ]
+        res_cont = self.processor.analyze_stream_continuity(packets)
+        self.assertTrue(res_cont["is_contiguous"])
+        self.assertEqual(res_cont["dropped_packets"], 0)
+
+        # Introduce a gap (e.g. sequence jump from 4 to 8)
+        packets_with_gap = packets + [
+            DecommutatedTelemetry(100, 8, 1700000000.0 + 8, 28.0, 6.0, 20.0, 0, 0, 0, False, 15.0, True)
+        ]
+        res_gap = self.processor.analyze_stream_continuity(packets_with_gap)
+        self.assertFalse(res_gap["is_contiguous"])
+        self.assertEqual(res_gap["dropped_packets"], 3)  # missing 5, 6, 7
+        self.assertEqual(res_gap["gaps_detected"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

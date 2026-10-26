@@ -240,16 +240,36 @@ Confirm data classification, retention, regulatory requirements and reviewers.
 - **Mesh Node**: `platforms/mesh/src/node.py` (`MeshNode`, `NodeStatus`)
 - **Gateway Dispatcher**: `execute_mesh(action, params)` in `src/cortex_m/gateway.py`
 
+# Technical Architecture & Mathematical Formulations
+
+### Technical Architecture & Mathematical Foundations: CORTEX-Mesh
+- **Practical Byzantine Fault Tolerant (PBFT) Consensus**: Complete 3-phase consensus state machine (Pre-Prepare, Prepare, Commit) with View-Change protocol and signature verification, tolerating up to $f < n/3$ adversarial or partitioned nodes with $2f+1$ quorum threshold verification.
+- **Lamport/Mattern Vector Clock Causal Tracking**: Causal message delivery tracking across decentralized nodes:
+$$VC_i[j] = \max(VC_i[j], VC_{\text{incoming}}[j])$$
+guaranteeing causal consistency and preventing out-of-order execution across mesh partitions.
+- **Causal MIMO Sparse Swarm Routing**: Energy-aware and distance-weighted auction routing allocating logistics tasks across autonomous rovers and sensor nodes with Lipschitz continuity cushions.
+
+# Implemented Codebase Traceability
+
+### Implemented Codebase Traceability
+- **BFT Consensus Engine**: `platforms/mesh/src/consensus.py` (`BFTConsensusEngine`, `ConsensusProposal`, `ConsensusVote`, `ConsensusPhase`)
+- **Swarm Router**: `platforms/mesh/src/swarm_router.py` (`CortexSwarmRouter`, `SwarmTaskAllocation`)
+- **Mesh Node**: `platforms/mesh/src/node.py` (`MeshNode`, `NodeStatus`)
+- **Gateway Dispatcher**: `execute_mesh(action, params)` in `src/cortex_m/gateway.py`
+
 ---
 
 ### Technical Architecture & Mathematical Foundations: CORTEX-Mesh
-- **Practical Byzantine Fault Tolerant (PBFT) Consensus**: 3-phase consensus state machine (Pre-Prepare, Prepare, Commit) tolerating up to $f < n/3$ adversarial or disconnected nodes with Ed25519 cryptographic digest signatures.
+- **Practical Byzantine Fault Tolerant (PBFT) Consensus**: Complete 3-phase consensus state machine (Pre-Prepare, Prepare, Commit) with View-Change protocol and signature verification, tolerating up to $f < n/3$ adversarial or partitioned nodes with $2f+1$ quorum threshold verification.
+- **Lamport/Mattern Vector Clock Causal Tracking**: Causal message delivery tracking across decentralized nodes:
+  $$VC_i[j] = \max(VC_i[j], VC_{\text{incoming}}[j])$$
+  guaranteeing causal consistency and preventing out-of-order execution across mesh partitions.
 - **Causal MIMO Sparse Swarm Routing**: Energy-aware and distance-weighted auction routing allocating logistics tasks across autonomous rovers and sensor nodes with Lipschitz continuity cushions.
 
 ---
 
 ### Implemented Codebase Traceability
-- **BFT Consensus Engine**: `platforms/mesh/src/consensus.py` (`BFTConsensusEngine`, `ConsensusProposal`, `ConsensusVote`)
+- **BFT Consensus Engine**: `platforms/mesh/src/consensus.py` (`BFTConsensusEngine`, `ConsensusProposal`, `ConsensusVote`, `ConsensusPhase`)
 - **Swarm Router**: `platforms/mesh/src/swarm_router.py` (`CortexSwarmRouter`, `SwarmTaskAllocation`)
 - **Mesh Node**: `platforms/mesh/src/node.py` (`MeshNode`, `NodeStatus`)
 - **Gateway Dispatcher**: `execute_mesh(action, params)` in `src/cortex_m/gateway.py`

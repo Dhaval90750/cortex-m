@@ -19,7 +19,8 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-# Core learning
+# Core learning & Beast Neural Substrate
+from cortex_m.cortex_v2 import CortexV2
 from cortex_m.learning.consolidation import NocturnalSleepConsolidator, SleepCycleReport
 from cortex_m.learning.grafting import (
     GraftingResult,
@@ -103,6 +104,7 @@ class EcosystemGateway:
         self.os_monitor = SystemResourceMonitor()
         self.learning_consolidator = NocturnalSleepConsolidator()
         self.learning_packager = SynapticKnowledgePackager(dim=32)
+        self.cortex = CortexV2(dim=64)
 
     @classmethod
     def get_instance(cls) -> EcosystemGateway:
@@ -353,6 +355,24 @@ class EcosystemGateway:
                 "estop_active": report.e_stop_active,
                 "violations": report.violations,
             }
+        elif action_norm in ("ik", "inverse_kinematics"):
+            target_xyz = params.get("target_xyz", [0.4, 0.2, 0.3])
+            seed = params.get("seed_joints", [0.0] * 6)
+            converged, joint_angles, error_m = self.robotics_arm.inverse_kinematics(target_xyz, initial_guess=seed)
+            return {
+                "success": converged,
+                "target_position": list(target_xyz),
+                "joint_angles_rad": joint_angles,
+                "position_error_m": error_m,
+            }
+        elif action_norm in ("manipulability", "manipulability_index"):
+            joints = params.get("joints", [0.0] * 6)
+            w = self.robotics_arm.manipulability_index(joints)
+            return {
+                "success": True,
+                "joint_angles_rad": joints,
+                "manipulability_index": w,
+            }
         else:
             raise ValueError(f"Unknown robotics action: {action}")
 
@@ -523,6 +543,24 @@ class EcosystemGateway:
                     "traceability_req_id": alert.traceability_req_id,
                 } if alert else None,
             }
+        elif action_norm in ("predict_passes", "passes"):
+            dur = float(params.get("duration_s", 86400.0))
+            step = float(params.get("step_s", 300.0))
+            passes = self.space_propagator.predict_station_passes(duration_s=dur, step_s=step)
+            return {
+                "success": True,
+                "duration_seconds": dur,
+                "step_seconds": step,
+                "num_passes": len(passes),
+                "passes": passes[:10],
+            }
+        elif action_norm in ("stream_continuity", "continuity"):
+            packets = params.get("packets", [])
+            metrics = self.space_ccsds.analyze_stream_continuity(packets)
+            return {
+                "success": True,
+                "metrics": metrics,
+            }
         else:
             raise ValueError(f"Unknown space action: {action}")
 
@@ -607,6 +645,45 @@ class EcosystemGateway:
                 "zero_damage_verified": res.collateral_damage_rate == 0.0,
                 "orthogonality_loss": res.orthogonality_loss,
             }
+        elif action_norm in ("compress_synapses", "compress"):
+            target_rank = int(params.get("target_rank", 16))
+            res = self.cortex.compress_synapses(target_rank=target_rank)
+            return {"success": True, **res}
+        elif action_norm in ("counterfactual_audit", "audit"):
+            cue = params.get("cue", "attractor memory")
+            num_pert = int(params.get("num_perturbations", 5))
+            eps = float(params.get("epsilon", 0.08))
+            res = self.cortex.counterfactual_audit(cue, num_perturbations=num_pert, perturbation_epsilon=eps)
+            return {"success": True, **res}
+        elif action_norm in ("adaptive_recall", "recall"):
+            cue = params.get("cue", "attractor memory")
+            res = self.cortex.adaptive_recall(cue)
+            return {
+                "success": True,
+                "diagnostics": res.get("diagnostics", {}),
+            }
+        elif action_norm in ("batch_recall", "batch"):
+            cues = params.get("cues", ["sample1", "sample2"])
+            res = self.cortex.batch_recall(cues)
+            return {
+                "success": True,
+                "batch_size": len(cues),
+                "results": res,
+            }
+        elif action_norm in ("energy_landscape", "landscape"):
+            cue = params.get("cue", "sample")
+            res = self.cortex.map_energy_landscape(cue)
+            return {"success": True, **res}
+        elif action_norm in ("reasoning_chain", "chain"):
+            cue = params.get("cue", "sample")
+            hops = int(params.get("max_hops", 3))
+            res = self.cortex.associative_reasoning_chain(cue, max_hops=hops)
+            return {"success": True, **res}
+        elif action_norm in ("fuse_memories", "fuse"):
+            m_ids = params.get("memory_ids", ["m1", "m2"])
+            fused_id = params.get("fused_id", "fused_prototype")
+            res = self.cortex.fuse_memories(m_ids, fused_id)
+            return {"success": True, **res}
         else:
             raise ValueError(f"Unknown learning action: {action}")
 

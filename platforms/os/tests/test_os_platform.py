@@ -172,6 +172,29 @@ class TestCortexOSPlatform(unittest.TestCase):
         self.assertIsInstance(snapshot.is_non_privileged, bool)
         self.assertIn("HEALTHY", snapshot.status_summary)
 
+    def test_modularity_and_cluster_prediction(self):
+        d1 = FileDocument("d1", "space1.py", ".py", 100, "telemetry orbit",
+                          self.watcher.extract_gist_vector("satellite orbit", "space1.py"), time.time())
+        d2 = FileDocument("d2", "space2.py", ".py", 100, "ground station pass",
+                          self.watcher.extract_gist_vector("satellite telemetry station", "space2.py"), time.time())
+        d3 = FileDocument("d3", "eeg1.py", ".py", 100, "bci notch filter",
+                          self.watcher.extract_gist_vector("bci notch filter", "eeg1.py"), time.time())
+        d4 = FileDocument("d4", "eeg2.py", ".py", 100, "alpha bandpower",
+                          self.watcher.extract_gist_vector("eeg alpha bandpower", "eeg2.py"), time.time())
+
+        docs = [d1, d2, d3, d4]
+        report = self.graph.extract_clusters(docs)
+        modularity = self.graph.compute_modularity(docs, report)
+        self.assertIsInstance(modularity, float)
+
+        # Predict membership for a new space-related document
+        new_doc = FileDocument("d_new", "telemetry_j2.py", ".py", 200, "orbit j2 propagator",
+                               self.watcher.extract_gist_vector("orbit j2 satellite", "telemetry_j2.py"), time.time())
+        cluster_id, sim = self.graph.predict_cluster(new_doc, report)
+        self.assertIsNotNone(cluster_id)
+        self.assertGreater(sim, 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+
