@@ -162,11 +162,35 @@ class ASTDiffEngine:
             }
 
         committed = []
-        for filepath, content in bundle.items():
-            path = Path(filepath)
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
-            committed.append(str(path))
+        backups: Dict[str, Optional[str]] = {}
+        for filepath in bundle.keys():
+            p = Path(filepath)
+            backups[filepath] = p.read_text(encoding="utf-8") if p.exists() else None
+
+        try:
+            for filepath, content in bundle.items():
+                path = Path(filepath)
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(content, encoding="utf-8")
+                committed.append(str(path))
+        except Exception as io_err:
+            # Transactional rollback to exact prior states
+            for fp, old_content in backups.items():
+                p = Path(fp)
+                try:
+                    if old_content is None:
+                        if p.exists():
+                            p.unlink()
+                    else:
+                        p.write_text(old_content, encoding="utf-8")
+                except Exception:
+                    pass
+            return {
+                "success": False,
+                "atomic_rollback": True,
+                "committed_files": [],
+                "error_message": f"I/O error during commit, rollback executed: {io_err}",
+            }
 
         return {
             "success": True,

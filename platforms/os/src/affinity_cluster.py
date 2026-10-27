@@ -235,9 +235,20 @@ class RandomProjectionLSH:
         self.tables: List[Dict[int, List[Tuple[str, torch.Tensor]]]] = [{} for _ in range(num_tables)]
         self._doc_map: Dict[str, torch.Tensor] = {}
 
+    def _adapt_vector(self, vec: torch.Tensor) -> torch.Tensor:
+        """Ensure input vector matches LSH hyperplane dimension via padding or projection."""
+        v_flat = vec.view(-1).float()
+        if v_flat.numel() < self.dimension:
+            pad = torch.zeros(self.dimension - v_flat.numel(), device=v_flat.device, dtype=v_flat.dtype)
+            v_flat = torch.cat([v_flat, pad])
+        elif v_flat.numel() > self.dimension:
+            v_flat = v_flat[:self.dimension]
+        return F.normalize(v_flat, p=2, dim=0)
+
     def _hash_vector(self, vec: torch.Tensor, table_idx: int) -> int:
         """Project vector onto hyperplanes and convert binary signs to integer bucket hash."""
-        dots = torch.matmul(self.hyperplanes[table_idx], vec)
+        v = self._adapt_vector(vec)
+        dots = torch.matmul(self.hyperplanes[table_idx], v)
         bits = (dots >= 0.0).int().tolist()
         bucket = 0
         for b in bits:
@@ -246,7 +257,7 @@ class RandomProjectionLSH:
 
     def index_document(self, doc_id: str, vector: torch.Tensor) -> None:
         """Insert document vector into all LSH tables."""
-        v = F.normalize(vector.view(-1), p=2, dim=0)
+        v = self._adapt_vector(vector)
         self._doc_map[doc_id] = v
         for t_idx in range(self.num_tables):
             bucket = self._hash_vector(v, t_idx)
@@ -258,7 +269,7 @@ class RandomProjectionLSH:
         """Retrieve top_k nearest neighbors by exact cosine similarity over candidate collision set."""
         if not self._doc_map:
             return []
-        q = F.normalize(query_vec.view(-1), p=2, dim=0)
+        q = self._adapt_vector(query_vec)
         candidates: Set[str] = set()
 
         for t_idx in range(self.num_tables):

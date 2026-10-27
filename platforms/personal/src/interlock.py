@@ -6,8 +6,9 @@ Refuses socket connections to any external, non-loopback IP address or remote ho
 
 from __future__ import annotations
 
+import os
 import socket
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Set
 
 
 class ZeroEgressViolation(PermissionError):
@@ -18,12 +19,29 @@ class ZeroEgressViolation(PermissionError):
 class ZeroEgressInterlock:
     """Interlock monitoring and enforcing zero WAN network egress."""
 
-    ALLOWED_HOSTS = {"127.0.0.1", "::1", "localhost", "0.0.0.0"}
+    DEFAULT_ALLOWED_HOSTS = {"127.0.0.1", "::1", "localhost", "0.0.0.0"}
 
-    def __init__(self, strict_mode: bool = True):
+    def __init__(self, strict_mode: bool = True, allowed_hosts: Optional[Set[str]] = None):
         self.strict_mode = strict_mode
         self._is_active = False
         self._original_socket_connect: Optional[Callable] = None
+        
+        # Merge default hosts, custom allowed hosts, and CORTEX_ALLOWED_HOSTS environment variable
+        self.allowed_hosts = set(self.DEFAULT_ALLOWED_HOSTS)
+        if allowed_hosts:
+            self.allowed_hosts.update(allowed_hosts)
+        
+        env_allowed = os.getenv("CORTEX_ALLOWED_HOSTS")
+        if env_allowed:
+            for h in env_allowed.split(","):
+                clean_h = h.strip()
+                if clean_h:
+                    self.allowed_hosts.add(clean_h)
+
+    # Backwards-compatibility property
+    @property
+    def ALLOWED_HOSTS(self) -> Set[str]:
+        return self.allowed_hosts
 
     def enable(self) -> None:
         """Activate the zero-egress interlock at the process socket layer."""
@@ -41,8 +59,8 @@ class ZeroEgressInterlock:
                 host = address
 
             if host is not None:
-                # Check if loopback
-                if host in interlock_self.ALLOWED_HOSTS or host.startswith("127."):
+                # Check if loopback or explicitly permitted
+                if host in interlock_self.allowed_hosts or host.startswith("127."):
                     return interlock_self._original_socket_connect(sock, address)
 
             # Block all non-loopback WAN/LAN connections

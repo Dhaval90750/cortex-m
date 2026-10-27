@@ -195,8 +195,17 @@ class Manipulator6DOF:
         Ensures secondary motions do not perturb primary Cartesian tool-center-point position.
         """
         q = np.array(joint_angles_rad, dtype=np.float64)
-        dx = np.array(cartesian_displacement_xyz, dtype=np.float64)
-        q_sec = np.array(secondary_objective_gradient, dtype=np.float64)
+        dx_raw = np.array(cartesian_displacement_xyz, dtype=np.float64).flatten()
+        if len(dx_raw) < 3:
+            dx = np.pad(dx_raw, (0, 3 - len(dx_raw)))
+        else:
+            dx = dx_raw[:3]
+
+        q_sec_raw = np.array(secondary_objective_gradient, dtype=np.float64).flatten()
+        if len(q_sec_raw) < 6:
+            q_sec = np.pad(q_sec_raw, (0, 6 - len(q_sec_raw)))
+        else:
+            q_sec = q_sec_raw[:6]
 
         j = self.compute_jacobian(q)
         # Damped pseudo-inverse: J^T (J J^T + lambda^2 I)^-1

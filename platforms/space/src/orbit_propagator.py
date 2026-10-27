@@ -270,6 +270,7 @@ class OrbitPropagator:
             (800.0, 2000.0, 1.170e-16, 120.0),
         ]
         
+        reentry_imminent = altitude_km < 100.0
         alt = max(100.0, min(2000.0, altitude_km))
         rho = 1.170e-16
         for h_min, h_max, rho0, H in table:
@@ -291,6 +292,7 @@ class OrbitPropagator:
             "drag_force_n": f_drag_n,
             "drag_acceleration_m_s2": a_drag_m_s2,
             "decay_rate_km_day": da_dt_km_day,
+            "reentry_imminent": reentry_imminent,
         }
 
     def compute_higher_harmonics_perturbations(self, delta_t_s: float) -> Dict[str, float]:
@@ -337,16 +339,17 @@ class OrbitPropagator:
         required_eb_n0_db: float = 6.0,
     ) -> Dict[str, float]:
         """Compute Friis space RF link budget and digital transmission margin."""
-        d_m = max(1.0, range_km * 1000.0)
-        fspl_db = 20.0 * math.log10(4.0 * math.pi * d_m * frequency_hz / SPEED_OF_LIGHT_M_S)
+        safe_range_km = max(0.1, float(range_km))
+        d_m = safe_range_km * 1000.0
+        fspl_db = 20.0 * math.log10(4.0 * math.pi * d_m * max(1e3, frequency_hz) / SPEED_OF_LIGHT_M_S)
         rx_power_dbw = tx_power_dbw + tx_gain_dbi + rx_gain_dbi - fspl_db
-        noise_power_watts = BOLTZMANN_K * noise_temp_k * bandwidth_hz
+        noise_power_watts = BOLTZMANN_K * max(1.0, noise_temp_k) * max(1.0, bandwidth_hz)
         noise_power_dbw = 10.0 * math.log10(max(1e-30, noise_power_watts))
         snr_db = rx_power_dbw - noise_power_dbw
         link_margin_db = snr_db - required_eb_n0_db
 
         return {
-            "range_km": range_km,
+            "range_km": safe_range_km,
             "fspl_db": round(fspl_db, 2),
             "rx_power_dbw": round(rx_power_dbw, 2),
             "noise_power_dbw": round(noise_power_dbw, 2),
@@ -362,10 +365,12 @@ class OrbitPropagator:
     ) -> List[OrbitalStatePoint]:
         """Generate high-density sub-satellite ground track over duration."""
         points: List[OrbitalStatePoint] = []
+        safe_step = max(1.0, float(step_s))
+        safe_duration = max(0.0, float(duration_s))
         t = 0.0
-        while t <= duration_s:
+        while t <= safe_duration:
             points.append(self.propagate_state(t))
-            t += step_s
+            t += safe_step
         return points
 
     def predict_station_passes(

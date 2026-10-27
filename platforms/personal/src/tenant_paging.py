@@ -114,7 +114,13 @@ class PersonalTenantPagingEngine:
     ) -> None:
         """Incrementally update tenant's rank-4 factor slice without affecting other profiles."""
         tenant = self.get_tenant(tenant_id)
-        z = F.normalize(cue.view(-1).to(self.device), p=2, dim=0)
+        raw_z = cue.view(-1).to(self.device).float()
+        if raw_z.numel() < self.base_dimension:
+            pad = torch.zeros(self.base_dimension - raw_z.numel(), device=self.device, dtype=raw_z.dtype)
+            raw_z = torch.cat([raw_z, pad])
+        elif raw_z.numel() > self.base_dimension:
+            raw_z = raw_z[:self.base_dimension]
+        z = F.normalize(raw_z, p=2, dim=0)
 
         # Update rank-1 component into U and V (cycle through rank columns)
         col_idx = len(tenant.active_attractors) % self.rank
@@ -138,7 +144,13 @@ class PersonalTenantPagingEngine:
             raise ValueError("Differential privacy parameters epsilon and delta must be strictly positive.")
 
         tenant = self.get_tenant(tenant_id)
-        z = cue.view(-1).to(self.device).float()
+        raw_z = cue.view(-1).to(self.device).float()
+        if raw_z.numel() < self.base_dimension:
+            pad = torch.zeros(self.base_dimension - raw_z.numel(), device=self.device, dtype=raw_z.dtype)
+            raw_z = torch.cat([raw_z, pad])
+        elif raw_z.numel() > self.base_dimension:
+            raw_z = raw_z[:self.base_dimension]
+        z = raw_z
 
         # 1. L2 Norm clipping: z_clipped = z / max(1.0, ||z||_2 / clip_norm)
         norm = torch.norm(z, p=2)

@@ -240,18 +240,25 @@ class FinancialAnomalyScorer:
         mean_excess = float(np.mean(excesses))
         var_excess = float(np.var(excesses))
 
-        # Method-of-moments GPD parameter estimates
-        xi = 0.5 * (1.0 - (mean_excess ** 2) / max(1e-6, var_excess))
-        sigma = max(1.0, 0.5 * mean_excess * ((mean_excess ** 2) / max(1e-6, var_excess) + 1.0))
+        # Method-of-moments GPD parameter estimates with numerical clamping
+        ratio = (mean_excess ** 2) / max(1e-4, var_excess)
+        xi_raw = 0.5 * (1.0 - ratio)
+        xi = float(np.clip(xi_raw, -0.5, 0.95))
+        sigma_raw = 0.5 * mean_excess * (ratio + 1.0)
+        sigma = float(max(1.0, min(1e5, sigma_raw)))
 
         # Compute 99.9% Value-at-Risk
         p_target = 0.999
         n = len(arr)
         nu = len(excesses)
-        if xi != 0:
-            var_999 = u + (sigma / xi) * (((n / max(1, nu)) * (1.0 - p_target)) ** (-xi) - 1.0)
-        else:
-            var_999 = u - sigma * math.log((n / max(1, nu)) * (1.0 - p_target))
+        try:
+            if abs(xi) > 1e-4:
+                base = (n / max(1, nu)) * (1.0 - p_target)
+                var_999 = u + (sigma / xi) * ((base ** (-xi)) - 1.0)
+            else:
+                var_999 = u - sigma * math.log((n / max(1, nu)) * (1.0 - p_target))
+        except (OverflowError, ValueError):
+            var_999 = u + sigma * 3.0
 
         return {
             "pot_threshold_u": round(u, 2),

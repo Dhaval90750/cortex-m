@@ -264,6 +264,12 @@ class BiosignalFilter:
             is_ocular.append(abs(kurt) > kurtosis_threshold)
 
         # Zero out ocular blink components
+        num_flagged = sum(is_ocular)
+        if num_flagged >= c and c > 1:
+            # Avoid full signal erasure: only zero out the single component with highest absolute kurtosis
+            max_kurt_idx = int(np.argmax([abs(k) for k in kurtoses]))
+            is_ocular = [i == max_kurt_idx for i in range(c)]
+
         x_filtered_sources = x_white.copy()
         for i, bad in enumerate(is_ocular):
             if bad:

@@ -83,7 +83,11 @@ class ASTSymbolTableParser:
         """Resolve cross-file call dependencies, detect dead symbols, and identify circular imports."""
         all_functions: Set[str] = set()
         function_locations: Dict[str, str] = {}
+        syntax_errors: List[Dict[str, str]] = []
         for t in tables:
+            if not t.syntax_valid:
+                syntax_errors.append({"filename": t.filename, "error": t.error_message or "Unknown syntax error"})
+                continue
             for fn in t.functions.keys():
                 all_functions.add(fn)
                 function_locations[fn] = t.filename
@@ -93,6 +97,8 @@ class ASTSymbolTableParser:
         module_imports: Dict[str, Set[str]] = {}
 
         for t in tables:
+            if not t.syntax_valid:
+                continue
             mod_name = Path(t.filename).stem
             module_imports[mod_name] = set(t.imports)
             for fn_name, sym in t.functions.items():
@@ -137,6 +143,8 @@ class ASTSymbolTableParser:
 
         return {
             "total_modules": len(tables),
+            "valid_modules": len(tables) - len(syntax_errors),
+            "syntax_errors": syntax_errors,
             "total_functions": len(all_functions),
             "call_graph": call_graph,
             "incoming_calls": incoming_calls,

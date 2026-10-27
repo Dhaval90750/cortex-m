@@ -82,10 +82,16 @@ class SynapticMemoryNetwork(nn.Module):
         E(xi) = - (1 / beta) * logsumexp(beta * M * xi) + 0.5 * ||xi||^2
         Energy strictly decreases along recurrent trajectories.
         """
-        if self.num_memories == 0:
-            return 0.5 * float((state ** 2).sum().item())
-
         xi = state.view(-1)
+        if xi.numel() < self.dim:
+            pad = torch.zeros(self.dim - xi.numel(), device=xi.device, dtype=xi.dtype)
+            xi = torch.cat([xi, pad])
+        elif xi.numel() > self.dim:
+            xi = xi[:self.dim]
+
+        if self.num_memories == 0:
+            return 0.5 * float((xi ** 2).sum().item())
+
         overlaps = torch.matmul(self.memory_attractors, xi)  # [M]
         lse = torch.logsumexp(self.beta * overlaps, dim=0) / self.beta
         quadratic = 0.5 * (xi ** 2).sum()
@@ -107,7 +113,13 @@ class SynapticMemoryNetwork(nn.Module):
         And registers the attractor into the continuous network space.
         Records the complete pathway trace during learning.
         """
-        p = F.normalize(pattern.detach().view(-1), p=2, dim=0)
+        raw_p = pattern.detach().view(-1)
+        if raw_p.numel() < self.dim:
+            pad = torch.zeros(self.dim - raw_p.numel(), device=raw_p.device, dtype=raw_p.dtype)
+            raw_p = torch.cat([raw_p, pad])
+        elif raw_p.numel() > self.dim:
+            raw_p = raw_p[:self.dim]
+        p = F.normalize(raw_p, p=2, dim=0)
         mem_id = memory_id or f"mem_{self.num_memories}_{len(self.episodic_traces)}"
 
         # 1. Start pathway trace
@@ -258,7 +270,13 @@ class SynapticMemoryNetwork(nn.Module):
             raise RuntimeError("Cannot recall from empty synaptic memory.")
 
         qid = query_id or f"query_{len(self.tracer.history)}"
-        state = F.normalize(cue.detach().view(-1), p=2, dim=0)
+        raw_cue = cue.detach().view(-1)
+        if raw_cue.numel() < self.dim:
+            pad = torch.zeros(self.dim - raw_cue.numel(), device=raw_cue.device, dtype=raw_cue.dtype)
+            raw_cue = torch.cat([raw_cue, pad])
+        elif raw_cue.numel() > self.dim:
+            raw_cue = raw_cue[:self.dim]
+        state = F.normalize(raw_cue, p=2, dim=0)
 
         init_energy = self.energy(state)
         trace = self.tracer.start_trace(trace_id=qid, phase="recall", initial_energy=init_energy)
@@ -664,7 +682,13 @@ class SynapticMemoryNetwork(nn.Module):
             num_heads = 1
         d_h = d // num_heads
 
-        cue_norm = F.normalize(cue.view(-1), p=2, dim=0)
+        raw_cue = cue.detach().view(-1)
+        if raw_cue.numel() < self.dim:
+            pad = torch.zeros(self.dim - raw_cue.numel(), device=raw_cue.device, dtype=raw_cue.dtype)
+            raw_cue = torch.cat([raw_cue, pad])
+        elif raw_cue.numel() > self.dim:
+            raw_cue = raw_cue[:self.dim]
+        cue_norm = F.normalize(raw_cue, p=2, dim=0)
         recalled_heads = []
         head_attributions = []
 
@@ -708,7 +732,13 @@ class SynapticMemoryNetwork(nn.Module):
         if self.num_memories == 0:
             return {"status": "empty", "recalled_vector": cue, "steps": []}
 
-        state = F.normalize(cue.view(-1), p=2, dim=0)
+        raw_cue = cue.detach().view(-1)
+        if raw_cue.numel() < self.dim:
+            pad = torch.zeros(self.dim - raw_cue.numel(), device=raw_cue.device, dtype=raw_cue.dtype)
+            raw_cue = torch.cat([raw_cue, pad])
+        elif raw_cue.numel() > self.dim:
+            raw_cue = raw_cue[:self.dim]
+        state = F.normalize(raw_cue, p=2, dim=0)
         history = []
         lyapunov_certified = True
 
