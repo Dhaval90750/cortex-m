@@ -11,8 +11,9 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
+import numpy as np
 import torch
 import torch.nn.functional as F
 
@@ -160,4 +161,103 @@ class FinancialAnomalyScorer:
                 "auditable_gradient_norm": round(abs(report.lyapunov_energy), 4),
             },
             "feature_breakdown": dict(sorted_attributions),
+        }
+
+    def detect_syndicate_graph(
+        self,
+        transactions: Sequence[FinancialTransaction],
+        min_cluster_size: int = 2,
+    ) -> Dict[str, Any]:
+        """Detect coordinated money-mule rings and fraud syndicates via bipartite graph analysis.
+        
+        Builds account-merchant-distance adjacency links and computes connected graph
+        components with elevated aggregate risk density.
+        """
+        adj: Dict[str, Set[str]] = {}
+        for tx in transactions:
+            acc_id = getattr(tx, "account_id", None) or (tx.get("account_id") if isinstance(tx, dict) else "acc_unknown")
+            mcc_val = getattr(tx, "mcc", None) or (tx.get("mcc", tx.get("merchant_id", "mcc_unknown")) if isinstance(tx, dict) else "mcc_unknown")
+            acc_node = f"acc:{acc_id}"
+            mcc_node = f"mcc:{mcc_val}"
+            adj.setdefault(acc_node, set()).add(mcc_node)
+            adj.setdefault(mcc_node, set()).add(acc_node)
+
+        visited: Set[str] = set()
+        syndicates: List[Dict[str, Any]] = []
+
+        for node in adj:
+            if node not in visited and node.startswith("acc:"):
+                # BFS to discover connected cluster
+                component = []
+                queue = [node]
+                visited.add(node)
+                while queue:
+                    curr = queue.pop(0)
+                    component.append(curr)
+                    for neighbor in adj[curr]:
+                        if neighbor not in visited:
+                            visited.add(neighbor)
+                            queue.append(neighbor)
+
+                accounts_in_comp = [n.replace("acc:", "") for n in component if n.startswith("acc:")]
+                mccs_in_comp = [int(n.replace("mcc:", "")) if n.replace("mcc:", "").isdigit() else n.replace("mcc:", "") for n in component if n.startswith("mcc:")]
+
+                if len(accounts_in_comp) >= min_cluster_size:
+                    syndicates.append({
+                        "syndicate_id": f"syndicate_{len(syndicates) + 1:03d}",
+                        "accounts": accounts_in_comp,
+                        "shared_merchant_categories": mccs_in_comp,
+                        "cluster_size": len(accounts_in_comp),
+                        "risk_level": "CRITICAL" if len(accounts_in_comp) >= 4 else "HIGH",
+                    })
+
+        return {
+            "total_transactions_analyzed": len(transactions),
+            "syndicates_detected": len(syndicates),
+            "syndicates": syndicates,
+            "is_syndicate_active": len(syndicates) > 0,
+        }
+
+    def estimate_evt_threshold(
+        self,
+        amounts: Sequence[float],
+        quantile: float = 0.95,
+    ) -> Dict[str, Any]:
+        """Extreme Value Theory (EVT) Peaks-Over-Threshold estimator for fat-tailed fraud amounts.
+        
+        Fits generalized Pareto tail to estimate statistical 99.9% value-at-risk ceiling.
+        """
+        arr = np.array(amounts, dtype=np.float64)
+        if len(arr) < 5:
+            return {"threshold": 1000.0, "shape_xi": 0.1, "scale_sigma": 100.0}
+
+        u = float(np.percentile(arr, quantile * 100.0))
+        excesses = arr[arr > u] - u
+
+        if len(excesses) < 2:
+            return {"threshold": u, "shape_xi": 0.0, "scale_sigma": 50.0}
+
+        mean_excess = float(np.mean(excesses))
+        var_excess = float(np.var(excesses))
+
+        # Method-of-moments GPD parameter estimates
+        xi = 0.5 * (1.0 - (mean_excess ** 2) / max(1e-6, var_excess))
+        sigma = max(1.0, 0.5 * mean_excess * ((mean_excess ** 2) / max(1e-6, var_excess) + 1.0))
+
+        # Compute 99.9% Value-at-Risk
+        p_target = 0.999
+        n = len(arr)
+        nu = len(excesses)
+        if xi != 0:
+            var_999 = u + (sigma / xi) * (((n / max(1, nu)) * (1.0 - p_target)) ** (-xi) - 1.0)
+        else:
+            var_999 = u - sigma * math.log((n / max(1, nu)) * (1.0 - p_target))
+
+        return {
+            "pot_threshold_u": round(u, 2),
+            "num_exceedances": len(excesses),
+            "gpd_shape_xi": round(float(xi), 4),
+            "gpd_scale_sigma": round(float(sigma), 2),
+            "value_at_risk_999": round(float(max(u, var_999)), 2),
+            "fat_tailed": bool(xi > 0.0),
         }

@@ -614,3 +614,142 @@ class SynapticMemoryNetwork(nn.Module):
             "path": str(target),
             "num_memories": self.num_memories,
         }
+
+    def quantize_synapses(self, num_bits: int = 8) -> Dict[str, Any]:
+        """Quantize synaptic weight matrix and stored patterns to INT8/INT4.
+        
+        Symmetric per-tensor quantization with scale factor S = max(|W|) / (2^(b-1) - 1).
+        Provides 4x memory compression for edge deployment while tracking reconstruction error.
+        """
+        if num_bits not in (4, 8, 16):
+            raise ValueError(f"Supported quantization bitwidths: 4, 8, 16. Received: {num_bits}")
+
+        q_max = (1 << (num_bits - 1)) - 1
+        w_float = self.synaptic_weights.detach()
+        abs_max = torch.max(torch.abs(w_float)).item()
+        scale = max(1e-8, abs_max / float(q_max))
+
+        w_quant = torch.clamp(torch.round(w_float / scale), -q_max, q_max).to(torch.int8 if num_bits <= 8 else torch.int16)
+        w_recon = w_quant.float() * scale
+
+        frob_error = torch.norm(w_float - w_recon, p="fro").item()
+        rel_error = frob_error / max(1e-6, torch.norm(w_float, p="fro").item())
+
+        return {
+            "bitwidth": num_bits,
+            "scale_factor": scale,
+            "quantized_weight_bytes": int(w_quant.nelement() * (1 if num_bits <= 8 else 2)),
+            "original_weight_bytes": int(w_float.nelement() * 4),
+            "compression_ratio": round(4.0 / (1.0 if num_bits <= 8 else 2.0), 1),
+            "frobenius_reconstruction_error": round(frob_error, 5),
+            "relative_quantization_error": round(rel_error, 5),
+        }
+
+    def multi_head_recall(
+        self,
+        cue: torch.Tensor,
+        num_heads: int = 4,
+        beta: float = 8.0,
+    ) -> Dict[str, Any]:
+        """Subspace Multi-Head Modern Hopfield associative retrieval.
+        
+        Splits cue into H independent subspace heads (d_h = d / H), retrieves associative
+        resonance across each orthogonal subspace independently, and recombines.
+        """
+        if self.num_memories == 0:
+            return {"status": "empty", "recalled_vector": cue, "head_attributions": []}
+
+        d = self.dim
+        if d % num_heads != 0:
+            num_heads = 1
+        d_h = d // num_heads
+
+        cue_norm = F.normalize(cue.view(-1), p=2, dim=0)
+        recalled_heads = []
+        head_attributions = []
+
+        for h in range(num_heads):
+            start = h * d_h
+            end = start + d_h
+            sub_cue = cue_norm[start:end]
+            sub_patterns = self.memory_attractors[:, start:end]
+
+            logits = beta * torch.mv(sub_patterns, sub_cue)
+            probs = F.softmax(logits - logits.max(), dim=0)
+            sub_out = torch.mv(sub_patterns.t(), probs)
+            recalled_heads.append(sub_out)
+
+            top_idx = int(torch.argmax(probs).item())
+            head_attributions.append({
+                "head": h,
+                "top_memory_id": self.memory_metadata[top_idx].get("memory_id"),
+                "resonance": round(float(probs[top_idx].item()), 4),
+            })
+
+        recombined = torch.cat(recalled_heads, dim=0)
+        recombined = F.normalize(recombined, p=2, dim=0)
+        final_energy = self.energy(recombined)
+
+        return {
+            "recalled_vector": recombined,
+            "energy": round(final_energy, 4),
+            "num_heads": num_heads,
+            "head_attributions": head_attributions,
+        }
+
+    def annealed_lyapunov_recall(
+        self,
+        cue: torch.Tensor,
+        beta_start: float = 2.0,
+        beta_end: float = 16.0,
+        steps: int = 5,
+    ) -> Dict[str, Any]:
+        """Temperature-Annealed Hopfield dynamics with Lyapunov derivative monitoring."""
+        if self.num_memories == 0:
+            return {"status": "empty", "recalled_vector": cue, "steps": []}
+
+        state = F.normalize(cue.view(-1), p=2, dim=0)
+        history = []
+        lyapunov_certified = True
+
+        for s in range(steps):
+            t_frac = s / max(1, steps - 1)
+            current_beta = beta_start + t_frac * (beta_end - beta_start)
+            e_before = self.energy(state)
+
+            logits = current_beta * torch.mv(self.memory_attractors, state)
+            probs = F.softmax(logits - logits.max(), dim=0)
+            state = torch.mv(self.memory_attractors.t(), probs)
+            state = F.normalize(state, p=2, dim=0)
+
+            e_after = self.energy(state)
+            de = e_after - e_before
+            if de > 1e-4:
+                lyapunov_certified = False
+
+            history.append({
+                "step": s + 1,
+                "beta": round(current_beta, 2),
+                "energy": round(e_after, 4),
+                "delta_energy": round(de, 5),
+            })
+
+        return {
+            "recalled_vector": state,
+            "final_energy": round(history[-1]["energy"], 4),
+            "lyapunov_certified": lyapunov_certified,
+            "trajectory": history,
+        }
+
+    def estimate_exponential_capacity(self) -> Dict[str, Any]:
+        """Compute theoretical exponential Modern Hopfield capacity C ~ 0.5 * 2^((d-1)/2)."""
+        d = self.dim
+        theo_capacity = 0.5 * (2.0 ** min(60.0, (d - 1) / 2.0))
+        return {
+            "dimension": d,
+            "stored_memories": self.num_memories,
+            "theoretical_exponential_capacity": theo_capacity,
+            "memory_load_percentage": round((self.num_memories / max(1.0, theo_capacity)) * 100.0, 6),
+            "orthogonal_capacity_limit": d,
+            "is_within_stability_regime": self.num_memories < d or self.num_memories < theo_capacity,
+        }

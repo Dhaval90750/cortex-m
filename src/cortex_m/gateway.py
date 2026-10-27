@@ -27,6 +27,8 @@ from cortex_m.learning.grafting import (
     SynapticKnowledgePackager,
     SynapticPackageManifest,
 )
+from cortex_m.research.research_engine import CortexResearchEngine, ResearchReport
+from cortex_m.lab.lab_engine import CortexLabHarness, BenchmarkSuiteReport, AblationResult
 
 # Platforms
 from platforms.personal.src.interlock import ZeroEgressInterlock
@@ -56,10 +58,15 @@ from platforms.health.src.signal_filter import BiosignalFilter, FilteredSignal
 from platforms.health.src.wavelet_analysis import NeuralBandpower, WaveletFrequencyDecomposer
 
 from platforms.space.src.ccsds_telemetry import CCSDSTelemetryProcessor, DecommutatedTelemetry
-from platforms.space.src.orbit_propagator import OrbitalElements, OrbitPropagator
+from platforms.space.src.orbit_propagator import DEFAULT_GROUND_STATIONS, GroundStation, OrbitalElements, OrbitPropagator
 from platforms.space.src.safety_supervisor import AnomalySeverity as SpaceSeverity, SpaceSafetySupervisor
 
-from platforms.os.src.affinity_cluster import AffinityClusterReport, CognitiveAffinityGraph
+from platforms.os.src.affinity_cluster import (
+    AffinityClusterReport,
+    CognitiveAffinityGraph,
+    RandomProjectionLSH,
+    WTinyLFUCache,
+)
 from platforms.os.src.file_watcher import FileDocument, NonPrivilegedFileWatcher
 from platforms.os.src.omnibar_search import OmnibarQueryResponse, SpotlightOmnibarEngine
 from platforms.os.src.system_monitor import SystemResourceMonitor
@@ -105,6 +112,9 @@ class EcosystemGateway:
         self.learning_consolidator = NocturnalSleepConsolidator()
         self.learning_packager = SynapticKnowledgePackager(dim=32)
         self.cortex = CortexV2(dim=64)
+        self.research_engine = CortexResearchEngine()
+        self.lab_harness = CortexLabHarness(target_cortex=self.cortex)
+        self.os_wtiny_cache = WTinyLFUCache(capacity=200)
 
     @classmethod
     def get_instance(cls) -> EcosystemGateway:
@@ -121,50 +131,60 @@ class EcosystemGateway:
                 "personal": {
                     "identity": "CORTEX-Personal",
                     "status": "READY",
-                    "features": ["zero_egress_interlock", "encrypted_vault", "tenant_paging_2kb", "tabula_rasa_hebbian", "disk_paging_engine"],
+                    "features": ["zero_egress_interlock", "encrypted_vault", "tenant_paging_2kb", "tabula_rasa_hebbian", "disk_paging_engine", "differential_privacy_gaussian_mechanism"],
                 },
                 "ide": {
                     "identity": "CORTEX-IDE",
                     "status": "READY",
-                    "features": ["ast_symbol_parser", "diff_engine", "subprocess_sandbox_5s", "code_swarm", "atomic_bundle_patch", "mccabe_cyclomatic_complexity"],
+                    "features": ["ast_symbol_parser", "diff_engine", "subprocess_sandbox_5s", "code_swarm", "atomic_bundle_patch", "mccabe_cyclomatic_complexity", "cross_file_call_graph", "test_suite_synthesis"],
                 },
                 "fin": {
                     "identity": "CORTEX-Fin",
                     "status": "READY",
-                    "features": ["transaction_encoder_32d", "hopfield_energy_attribution", "stream_replay_5000tps", "fcra_gdpr_adverse_action_codes", "supersonic_velocity_anomaly_detection"],
+                    "features": ["transaction_encoder_32d", "hopfield_energy_attribution", "stream_replay_5000tps", "fcra_gdpr_adverse_action_codes", "supersonic_velocity_anomaly_detection", "syndicate_graph_clustering", "extreme_value_theory_pot"],
                 },
                 "robotics": {
                     "identity": "CORTEX-Robotics",
                     "status": "READY",
-                    "features": ["6dof_kinematics", "iso_10218_interlock", "quintic_attractor_planner", "levenberg_marquardt_ik", "yoshikawa_manipulability"],
+                    "features": ["6dof_kinematics", "iso_10218_interlock", "quintic_attractor_planner", "levenberg_marquardt_ik", "yoshikawa_manipulability", "null_space_projection", "singularity_avoidance_gradient"],
                 },
                 "mesh": {
                     "identity": "CORTEX-Mesh",
                     "status": "READY",
-                    "features": ["pbft_bft_consensus", "mesh_node_health", "causal_sparse_router", "pbft_view_change", "lamport_vector_clocks"],
+                    "features": ["pbft_bft_consensus", "mesh_node_health", "causal_sparse_router", "pbft_view_change", "lamport_vector_clocks", "epidemic_gossip_anti_entropy", "byzantine_fault_detector"],
                 },
                 "health": {
                     "identity": "CORTEX-Health",
                     "status": "READY",
                     "disclaimer": "NON-CLINICAL RESEARCH ONLY",
-                    "features": ["biosignal_filter_60hz_notch", "wavelet_bandpower", "continuous_bci_decoder", "eeg_snr_estimator", "lead_contact_impedance", "welch_periodogram_psd"],
+                    "features": ["biosignal_filter_60hz_notch", "wavelet_bandpower", "continuous_bci_decoder", "eeg_snr_estimator", "lead_contact_impedance", "welch_periodogram_psd", "csp_spatial_filter", "ica_ocular_artifact_removal"],
                 },
                 "space": {
                     "identity": "CORTEX-Space",
                     "status": "READY",
                     "compliance": "NASA NPR 7150.2 Class C",
-                    "features": ["ccsds_sync_asm_crc16", "j2_orbit_propagator", "seu_radiation_supervisor", "orbit_station_pass_prediction"],
+                    "features": ["ccsds_sync_asm_crc16", "j2_orbit_propagator", "seu_radiation_supervisor", "orbit_station_pass_prediction", "atmospheric_drag_decay", "j3_j4_harmonics", "rf_link_budget", "topocentric_aer"],
                 },
                 "os": {
                     "identity": "CORTEX-OS",
                     "status": "READY",
                     "mode": "non_privileged_userspace",
-                    "features": ["debounced_watcher_500ms", "affinity_clustering", "spotlight_omnibar_sub1ms", "memory_ceiling_2_5mb", "newman_girvan_modularity"],
+                    "features": ["debounced_watcher_500ms", "affinity_clustering", "spotlight_omnibar_sub1ms", "memory_ceiling_2_5mb", "newman_girvan_modularity", "lsh_random_hyperplanes", "w_tiny_lfu_cache"],
                 },
                 "learning": {
                     "identity": "CORTEX-Developmental-Learning",
                     "status": "READY",
-                    "features": ["nocturnal_sleep_consolidation", "synaptic_knowledge_packager", "orthogonal_grafting_0_collateral", "vectorized_hopfield_batch_recall", "lyapunov_energy_landscape", "associative_reasoning_chains"],
+                    "features": ["nocturnal_sleep_consolidation", "synaptic_knowledge_packager", "orthogonal_grafting_0_collateral", "vectorized_hopfield_batch_recall", "lyapunov_energy_landscape", "associative_reasoning_chains", "synapse_int8_quantization", "subspace_multi_head_recall", "annealed_lyapunov_recall", "exponential_capacity_modern_hopfield"],
+                },
+                "research": {
+                    "identity": "CORTEX-Research",
+                    "status": "READY",
+                    "features": ["adversarial_cross_examination", "multi_source_grounded_citations", "query_decomposition", "consensus_scoring"],
+                },
+                "lab": {
+                    "identity": "CORTEX-Lab",
+                    "status": "READY",
+                    "features": ["associative_memory_benchmark", "architectural_ablation_matrix", "full_gate_harness", "latency_percentiles"],
                 },
             },
         }
@@ -232,6 +252,25 @@ class EcosystemGateway:
         elif action_norm in ("footprint", "paging_footprint", "storage_footprint"):
             fp = self.personal_substrate.paging_engine.get_storage_footprint()
             return {"success": True, **fp}
+        elif action_norm in ("dp_learn", "differentially_private_learn"):
+            cue = params.get("cue")
+            if cue is None:
+                cue = torch.randn(self.personal_substrate.dim)
+            elif isinstance(cue, list):
+                cue = torch.tensor(cue, dtype=torch.float32)
+            eps = float(params.get("epsilon", 1.0))
+            delta = float(params.get("delta", 1e-5))
+            clip = float(params.get("clip_norm", 1.0))
+            if tid not in self.personal_substrate.paging_engine._tenants:
+                self.personal_substrate.paging_engine.create_tenant(tid)
+            res = self.personal_substrate.paging_engine.learn_tenant_association_differentially_private(
+                tenant_id=tid,
+                cue=cue,
+                epsilon=eps,
+                delta=delta,
+                clip_norm=clip,
+            )
+            return {"success": True, **res}
         else:
             raise ValueError(f"Unknown personal action: {action}")
 
@@ -294,6 +333,20 @@ class EcosystemGateway:
             bundle = params.get("bundle", {})
             res = self.ide_diff.apply_atomic_bundle(bundle)
             return res
+        elif action_norm in ("call_graph", "project_call_graph"):
+            sources = params.get("sources", [
+                {"filename": "a.py", "code": "def fa(): pass"},
+                {"filename": "b.py", "code": "def fb(): pass"},
+            ])
+            tables = [self.ide_parser.parse_source(s["code"], s.get("filename", "mod.py")) for s in sources]
+            cg = ASTSymbolTableParser.build_project_call_graph(tables)
+            return {"success": True, **cg}
+        elif action_norm in ("test_synthesis", "generate_tests"):
+            code = params.get("code", "def add(a, b): return a + b")
+            filename = params.get("filename", "calc.py")
+            table = self.ide_parser.parse_source(code, filename)
+            suite = ASTSymbolTableParser.generate_unit_test_suite(table)
+            return {"success": True, "filename": filename, "synthesized_test_suite": suite}
         else:
             raise ValueError(f"Unknown ide action: {action}")
 
@@ -378,6 +431,17 @@ class EcosystemGateway:
                 "num_anomalies": len(anomalies),
                 "anomalies": anomalies,
             }
+        elif action_norm in ("syndicate_graph", "detect_syndicate", "mule_graph"):
+            txs = params.get("transactions", [
+                {"tx_id": "t1", "account_id": "a1", "merchant_id": "m1", "amount": 9500.0, "time_delta_seconds": 60.0},
+                {"tx_id": "t2", "account_id": "a2", "merchant_id": "m1", "amount": 9200.0, "time_delta_seconds": 120.0},
+            ])
+            syndicate_res = self.fin_scorer.detect_syndicate_graph(txs)
+            return {"success": True, **syndicate_res}
+        elif action_norm in ("evt_threshold", "extreme_value_theory", "pot_threshold"):
+            scores = params.get("scores", [0.1, 0.2, 0.15, 0.85, 0.92, 0.98])
+            evt_res = self.fin_scorer.estimate_evt_threshold(scores)
+            return {"success": True, **evt_res}
         else:
             raise ValueError(f"Unknown fin action: {action}")
 
@@ -445,6 +509,16 @@ class EcosystemGateway:
                 "joint_angles_rad": joints,
                 "manipulability_index": w,
             }
+        elif action_norm in ("null_space", "null_space_projection"):
+            q_angles = params.get("joints", params.get("q_angles", [0.0, 0.5, -0.5, 0.0, 0.2, 0.0]))
+            dx = params.get("displacement_xyz", [0.01, 0.0, 0.0])
+            sec_grad = params.get("secondary_gradient", [0.1, -0.1, 0.05, 0.0, 0.0, 0.0])
+            proj_dict = self.robotics_arm.null_space_projection(q_angles, dx, sec_grad)
+            return {"success": True, **proj_dict}
+        elif action_norm in ("singularity_avoidance", "manipulability_gradient"):
+            q_angles = params.get("joints", params.get("q_angles", [0.0, 0.5, -0.5, 0.0, 0.2, 0.0]))
+            step_dict = self.robotics_arm.singularity_avoidance_step(q_angles)
+            return {"success": True, **step_dict}
         else:
             raise ValueError(f"Unknown robotics action: {action}")
 
@@ -501,6 +575,19 @@ class EcosystemGateway:
                 "logical_timestamp": new_t,
                 "vector_clock": dict(self.mesh_router.vector_clock),
             }
+        elif action_norm in ("gossip_reconcile", "anti_entropy"):
+            peer_id = params.get("peer_node_id", "node_peer")
+            peer_clock = params.get("peer_clock", {"node_gateway": 1, "node_peer": 2})
+            peer_tasks = params.get("peer_known_tasks", [])
+            rec = self.mesh_router.reconcile_gossip_digest(peer_id, peer_clock, peer_tasks)
+            return {"success": True, **rec}
+        elif action_norm in ("byzantine_detect", "detect_byzantine"):
+            log = params.get("vote_audit_log", [
+                {"voter_node_id": "node_bad", "sequence_number": 5, "digest": "d1", "signature": "node_bad_sig1"},
+                {"voter_node_id": "node_bad", "sequence_number": 5, "digest": "d2", "signature": "node_bad_sig2"},
+            ])
+            byz = self.mesh_router.detect_byzantine_nodes(log)
+            return {"success": True, **byz}
         else:
             raise ValueError(f"Unknown mesh action: {action}")
 
@@ -607,6 +694,15 @@ class EcosystemGateway:
                 "metadata": res.metadata,
                 "non_clinical_disclaimer": res.non_clinical_disclaimer,
             }
+        elif action_norm in ("csp_filter", "compute_csp"):
+            c1 = params.get("class1_trials", np.random.randn(5, 4, 100).tolist())
+            c2 = params.get("class2_trials", np.random.randn(5, 4, 100).tolist())
+            csp_res = self.health_filter.compute_csp_filter(np.array(c1), np.array(c2))
+            return {"success": True, **csp_res}
+        elif action_norm in ("ica_clean", "remove_ocular_artifacts"):
+            eeg = params.get("multichannel_eeg", np.random.randn(4, 250).tolist())
+            ica_res = self.health_filter.remove_ocular_artifacts_ica(np.array(eeg))
+            return {"success": True, **ica_res}
         else:
             raise ValueError(f"Unknown health action: {action}")
 
@@ -705,6 +801,29 @@ class EcosystemGateway:
                 "success": True,
                 "metrics": metrics,
             }
+        elif action_norm in ("aer", "azimuth_elevation_range"):
+            stn_name = params.get("station", "Goldstone")
+            stn = next((s for s in self.space_propagator.ground_stations if s.name.lower() == stn_name.lower()), DEFAULT_GROUND_STATIONS[0])
+            dt = float(params.get("delta_t_s", 300.0))
+            az, el, rng = self.space_propagator.compute_azimuth_elevation_range(stn, dt)
+            return {"success": True, "station": stn.name, "azimuth_deg": az, "elevation_deg": el, "range_km": rng}
+        elif action_norm in ("drag", "atmospheric_drag"):
+            alt = float(params.get("altitude_km", 400.0))
+            vel = float(params.get("velocity_km_s", 7.66))
+            drag = self.space_propagator.compute_atmospheric_drag(alt, vel)
+            return {"success": True, **drag}
+        elif action_norm in ("higher_harmonics", "harmonics"):
+            dt = float(params.get("delta_t_s", 3600.0))
+            harm = self.space_propagator.compute_higher_harmonics_perturbations(dt)
+            return {"success": True, **harm}
+        elif action_norm in ("link_budget", "rf_link_budget"):
+            tx_p = float(params.get("tx_power_dbw", 10.0))
+            tx_g = float(params.get("tx_gain_dbi", 12.0))
+            rx_g = float(params.get("rx_gain_dbi", 35.0))
+            freq = float(params.get("frequency_hz", 8.4e9))
+            rng = float(params.get("range_km", 1000.0))
+            budget = OrbitPropagator.compute_rf_link_budget(tx_p, tx_g, rx_g, freq, rng)
+            return {"success": True, **budget}
         else:
             raise ValueError(f"Unknown space action: {action}")
 
@@ -830,6 +949,30 @@ class EcosystemGateway:
                 "best_cluster_id": best_id,
                 "resonance_score": resonance,
             }
+        elif action_norm in ("lsh_search", "lsh_index", "lsh"):
+            docs_data = params.get("documents", [
+                {"id": "doc1", "path": "cortex/space.py", "text": "satellite telemetry orbit"},
+                {"id": "doc2", "path": "cortex/health.py", "text": "eeg biosignal bci filter"},
+            ])
+            docs = [
+                FileDocument(d["id"], d["path"], ".py", len(d["text"]), d["text"], self.os_watcher.extract_gist_vector(d["text"], d["path"]), 1700000000.0)
+                for d in docs_data
+            ]
+            lsh = self.os_graph.build_lsh_index(docs, num_bits=6, num_tables=3)
+            query = params.get("query", "satellite orbit")
+            qv = self.os_watcher.extract_gist_vector(query, "query.py")
+            matches = lsh.query(qv, top_k=int(params.get("top_k", 2)))
+            return {"success": True, "query": query, "matches": matches}
+        elif action_norm in ("wtiny_cache", "tiny_lfu", "cache"):
+            op = params.get("operation", "get")
+            key = params.get("key", "test_key")
+            if op == "put":
+                val = params.get("value", "sample_val")
+                self.os_wtiny_cache.put(key, val)
+                return {"success": True, "operation": "put", "key": key}
+            else:
+                val = self.os_wtiny_cache.get(key)
+                return {"success": True, "operation": "get", "key": key, "value": val}
         else:
             raise ValueError(f"Unknown os action: {action}")
 
@@ -905,6 +1048,86 @@ class EcosystemGateway:
             fused_id = params.get("fused_id", "fused_prototype")
             res = self.cortex.fuse_memories(m_ids, fused_id)
             return {"success": True, **res}
+        elif action_norm in ("quantize", "quantize_weights"):
+            bits = int(params.get("bits", 8))
+            res = self.cortex.quantize_weights(num_bits=bits)
+            return {"success": True, **res}
+        elif action_norm in ("multi_head_recall", "multi_head"):
+            cue = params.get("cue", "sample memory")
+            heads = int(params.get("heads", 4))
+            res = self.cortex.multi_head_recall(cue, num_heads=heads)
+            return {"success": True, **res}
+        elif action_norm in ("annealed_recall", "anneal_lyapunov"):
+            cue = params.get("cue", "sample memory")
+            steps = int(params.get("steps", 5))
+            res = self.cortex.annealed_lyapunov_recall(cue, steps=steps)
+            return {"success": True, **res}
+        elif action_norm in ("capacity", "exponential_capacity"):
+            res = self.cortex.exponential_capacity()
+            return {"success": True, **res}
         else:
             raise ValueError(f"Unknown learning action: {action}")
+
+    def execute_research(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute CORTEX-Research workflow."""
+        action_norm = action.lower().strip()
+        if action_norm in ("research", "deep_research"):
+            topic = params.get("topic", params.get("query", "Modern Hopfield Networks"))
+            report = self.research_engine.conduct_deep_research(topic)
+            return {
+                "success": True,
+                "topic": report.topic,
+                "sub_questions": report.sub_questions,
+                "synthesis": report.synthesis_markdown,
+                "citations_count": len(report.citations),
+                "epistemic_status": report.epistemic_status,
+                "consensus_score": report.consensus_score,
+                "provenance_hash": report.provenance_hash,
+                "duration_ms": report.duration_ms,
+            }
+        elif action_norm in ("decompose", "sub_questions"):
+            topic = params.get("topic", "Modern Hopfield Networks")
+            sub_q = self.research_engine.decompose_query(topic)
+            return {"success": True, "topic": topic, "sub_questions": sub_q}
+        else:
+            raise ValueError(f"Unknown research action: {action}")
+
+    def execute_lab(self, action: str, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute CORTEX-Lab workflow."""
+        action_norm = action.lower().strip()
+        if action_norm in ("benchmark", "associative_benchmark"):
+            num_patterns = int(params.get("num_patterns", 20))
+            noise = float(params.get("noise_level", 0.15))
+            res = self.lab_harness.run_associative_benchmark(num_patterns=num_patterns, noise_level=noise)
+            return {"success": True, **res}
+        elif action_norm in ("ablation", "ablation_matrix"):
+            ablations = self.lab_harness.run_ablation_matrix()
+            return {
+                "success": True,
+                "num_ablations": len(ablations),
+                "ablations": [
+                    {
+                        "component": a.ablated_component,
+                        "baseline_metric": a.baseline_metric,
+                        "ablated_metric": a.ablated_metric,
+                        "delta_percentage": a.delta_percentage,
+                        "is_critical": a.is_critical_dependency,
+                    }
+                    for a in ablations
+                ],
+            }
+        elif action_norm in ("full_suite", "suite"):
+            suite_name = params.get("suite_name", "CORTEX-M Industrial Gate")
+            report = self.lab_harness.execute_full_suite(suite_name=suite_name)
+            return {
+                "success": True,
+                "suite_name": report.suite_name,
+                "accuracy_pct": report.mean_accuracy_pct,
+                "p50_latency_us": report.p50_latency_us,
+                "p95_latency_us": report.p95_latency_us,
+                "passed_all_gates": report.passed_all_gates,
+                "summary": report.summary,
+            }
+        else:
+            raise ValueError(f"Unknown lab action: {action}")
 

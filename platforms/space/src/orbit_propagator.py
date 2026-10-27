@@ -19,7 +19,11 @@ from typing import Dict, List, Optional, Tuple
 EARTH_RADIUS_KM = 6378.137
 EARTH_MU = 398600.4418  # km^3 / s^2
 EARTH_J2 = 1.08262668e-3
+EARTH_J3 = -2.532656485e-6
+EARTH_J4 = -1.61962159e-6
 EARTH_ROTATION_RATE_RAD_S = 7.2921159e-5  # rad/s
+SPEED_OF_LIGHT_M_S = 299792458.0  # m/s
+BOLTZMANN_K = 1.380649e-23  # J/K
 
 
 @dataclass
@@ -203,6 +207,153 @@ class OrbitPropagator:
         elevation_deg = math.degrees(elevation_rad)
 
         return elevation_deg >= stn.min_elevation_deg
+
+    def compute_azimuth_elevation_range(
+        self,
+        stn: GroundStation,
+        delta_t_s: float,
+    ) -> Tuple[float, float, float]:
+        """Compute topocentric Azimuth (deg), Elevation (deg), and Range (km) to ground station."""
+        state = self.propagate_state(delta_t_s)
+        alt_km = state.altitude_km
+        r_mag = EARTH_RADIUS_KM + alt_km
+        lat_rad = math.radians(state.latitude_deg)
+        lon_rad = math.radians(state.longitude_deg)
+        sat_x = r_mag * math.cos(lat_rad) * math.cos(lon_rad)
+        sat_y = r_mag * math.cos(lat_rad) * math.sin(lon_rad)
+        sat_z = r_mag * math.sin(lat_rad)
+
+        stn_lat = math.radians(stn.latitude_deg)
+        stn_lon = math.radians(stn.longitude_deg)
+        r_stn = EARTH_RADIUS_KM + (stn.elevation_m / 1000.0)
+
+        # Station ECEF position
+        sx = r_stn * math.cos(stn_lat) * math.cos(stn_lon)
+        sy = r_stn * math.cos(stn_lat) * math.sin(stn_lon)
+        sz = r_stn * math.sin(stn_lat)
+
+        # Vector from station to satellite in ECEF
+        rx = sat_x - sx
+        ry = sat_y - sy
+        rz = sat_z - sz
+        range_dist = math.sqrt(rx ** 2 + ry ** 2 + rz ** 2)
+
+        # Topocentric ENU basis vectors:
+        e_east = -math.sin(stn_lon) * rx + math.cos(stn_lon) * ry
+        e_north = -math.sin(stn_lat) * math.cos(stn_lon) * rx - math.sin(stn_lat) * math.sin(stn_lon) * ry + math.cos(stn_lat) * rz
+        e_up = math.cos(stn_lat) * math.cos(stn_lon) * rx + math.cos(stn_lat) * math.sin(stn_lon) * ry + math.sin(stn_lat) * rz
+
+        elevation_deg = math.degrees(math.asin(max(-1.0, min(1.0, e_up / max(1e-6, range_dist)))))
+        azimuth_deg = math.degrees(math.atan2(e_east, e_north)) % 360.0
+
+        return round(azimuth_deg, 2), round(elevation_deg, 2), round(range_dist, 3)
+
+    def compute_atmospheric_drag(
+        self,
+        altitude_km: float,
+        velocity_km_s: float,
+        area_m2: float = 1.0,
+        mass_kg: float = 100.0,
+        cd: float = 2.2,
+    ) -> Dict[str, float]:
+        """Compute thermospheric atmospheric drag acceleration and orbital decay rate.
+        
+        Uses layered exponential scale height density model:
+            rho(h) = rho_0 * exp(-(h - h_0) / H)
+        """
+        table = [
+            (100.0, 150.0, 5.297e-10, 5.877),
+            (150.0, 200.0, 2.076e-11, 26.74),
+            (200.0, 300.0, 2.541e-12, 43.49),
+            (300.0, 500.0, 1.916e-13, 53.628),
+            (500.0, 800.0, 6.967e-15, 76.4),
+            (800.0, 2000.0, 1.170e-16, 120.0),
+        ]
+        
+        alt = max(100.0, min(2000.0, altitude_km))
+        rho = 1.170e-16
+        for h_min, h_max, rho0, H in table:
+            if h_min <= alt <= h_max:
+                rho = rho0 * math.exp(-(alt - h_min) / H)
+                break
+        
+        v_m_s = velocity_km_s * 1000.0
+        f_drag_n = 0.5 * rho * (v_m_s ** 2) * cd * area_m2
+        a_drag_m_s2 = f_drag_n / max(0.1, mass_kg)
+        
+        a_km = EARTH_RADIUS_KM + alt
+        da_dt_km_s = -2.0 * math.sqrt((a_km ** 3) / EARTH_MU) * (a_drag_m_s2 / 1000.0)
+        da_dt_km_day = da_dt_km_s * 86400.0
+
+        return {
+            "altitude_km": altitude_km,
+            "density_kg_m3": rho,
+            "drag_force_n": f_drag_n,
+            "drag_acceleration_m_s2": a_drag_m_s2,
+            "decay_rate_km_day": da_dt_km_day,
+        }
+
+    def compute_higher_harmonics_perturbations(self, delta_t_s: float) -> Dict[str, float]:
+        """Compute secular rates and long-period oscillations under J2, J3, and J4 geopotential harmonics."""
+        a = self.elements.semi_major_axis_km
+        e = max(1e-5, self.elements.eccentricity)
+        i_rad = math.radians(self.elements.inclination_deg)
+        p = a * (1.0 - e ** 2)
+        n = self.n0
+        re_p = EARTH_RADIUS_KM / p
+
+        cos_i = math.cos(i_rad)
+        sin_i = math.sin(i_rad)
+        raan_dot_j4 = (15.0 / 16.0) * EARTH_J4 * n * (re_p ** 4) * cos_i * (7.0 * (cos_i ** 2) - 3.0)
+        arg_perigee_dot_j4 = -(15.0 / 32.0) * EARTH_J4 * n * (re_p ** 4) * (21.0 * (cos_i ** 4) - 14.0 * (cos_i ** 2) + 1.0)
+
+        delta_e_j3_amp = -(EARTH_J3 / (2.0 * EARTH_J2)) * re_p * sin_i
+        omega_curr = math.radians(self.elements.arg_perigee_deg) + self.arg_perigee_dot * delta_t_s
+        ecc_perturbed = e + delta_e_j3_amp * math.sin(omega_curr)
+
+        total_raan_dot = self.raan_dot + raan_dot_j4
+        total_arg_perigee_dot = self.arg_perigee_dot + arg_perigee_dot_j4
+
+        return {
+            "raan_dot_j2_rad_s": self.raan_dot,
+            "raan_dot_j4_rad_s": raan_dot_j4,
+            "total_raan_dot_deg_day": math.degrees(total_raan_dot) * 86400.0,
+            "arg_perigee_dot_j2_rad_s": self.arg_perigee_dot,
+            "arg_perigee_dot_j4_rad_s": arg_perigee_dot_j4,
+            "total_arg_perigee_dot_deg_day": math.degrees(total_arg_perigee_dot) * 86400.0,
+            "j3_eccentricity_amplitude": delta_e_j3_amp,
+            "instantaneous_perturbed_eccentricity": max(0.0, ecc_perturbed),
+        }
+
+    @staticmethod
+    def compute_rf_link_budget(
+        tx_power_dbw: float,
+        tx_gain_dbi: float,
+        rx_gain_dbi: float,
+        frequency_hz: float,
+        range_km: float,
+        bandwidth_hz: float = 1e6,
+        noise_temp_k: float = 290.0,
+        required_eb_n0_db: float = 6.0,
+    ) -> Dict[str, float]:
+        """Compute Friis space RF link budget and digital transmission margin."""
+        d_m = max(1.0, range_km * 1000.0)
+        fspl_db = 20.0 * math.log10(4.0 * math.pi * d_m * frequency_hz / SPEED_OF_LIGHT_M_S)
+        rx_power_dbw = tx_power_dbw + tx_gain_dbi + rx_gain_dbi - fspl_db
+        noise_power_watts = BOLTZMANN_K * noise_temp_k * bandwidth_hz
+        noise_power_dbw = 10.0 * math.log10(max(1e-30, noise_power_watts))
+        snr_db = rx_power_dbw - noise_power_dbw
+        link_margin_db = snr_db - required_eb_n0_db
+
+        return {
+            "range_km": range_km,
+            "fspl_db": round(fspl_db, 2),
+            "rx_power_dbw": round(rx_power_dbw, 2),
+            "noise_power_dbw": round(noise_power_dbw, 2),
+            "snr_db": round(snr_db, 2),
+            "link_margin_db": round(link_margin_db, 2),
+            "link_closed": link_margin_db >= 0.0,
+        }
 
     def generate_ground_track(
         self,

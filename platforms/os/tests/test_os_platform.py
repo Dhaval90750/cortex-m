@@ -12,6 +12,8 @@ from platforms.os.src.affinity_cluster import (
     AffinityClusterReport,
     CognitiveAffinityGraph,
     ProjectCluster,
+    RandomProjectionLSH,
+    WTinyLFUCache,
 )
 from platforms.os.src.file_watcher import (
     EventType,
@@ -193,6 +195,45 @@ class TestCortexOSPlatform(unittest.TestCase):
         cluster_id, sim = self.graph.predict_cluster(new_doc, report)
         self.assertIsNotNone(cluster_id)
         self.assertGreater(sim, 0.0)
+
+    def test_random_projection_lsh(self):
+        d1 = FileDocument("d1", "space1.py", ".py", 100, "orbit",
+                          self.watcher.extract_gist_vector("satellite orbit", "space1.py"), time.time())
+        d2 = FileDocument("d2", "space2.py", ".py", 100, "telemetry",
+                          self.watcher.extract_gist_vector("space telemetry", "space2.py"), time.time())
+        d3 = FileDocument("d3", "eeg1.py", ".py", 100, "eeg",
+                          self.watcher.extract_gist_vector("biosignal brain eeg", "eeg1.py"), time.time())
+
+        lsh = self.graph.build_lsh_index([d1, d2, d3], num_bits=6, num_tables=3)
+        query_v = self.watcher.extract_gist_vector("orbit trajectory", "test.py")
+        results = lsh.query(query_v, top_k=2)
+        self.assertGreaterEqual(len(results), 1)
+        # Most similar should be space1 or space2
+        top_match_id, sim = results[0]
+        self.assertIn(top_match_id, ["space1.py", "space2.py"])
+        self.assertGreater(sim, 0.0)
+
+    def test_wtiny_lfu_cache(self):
+        cache = WTinyLFUCache(capacity=6, window_ratio=0.33, protected_ratio=0.5)
+        # Put 2 items in window cache
+        cache.put("k1", "v1")
+        cache.put("k2", "v2")
+        self.assertEqual(cache.get("k1"), "v1")
+        self.assertEqual(cache.get("k2"), "v2")
+
+        # Reinforce k1 with multiple accesses to build CountMinSketch frequency
+        for _ in range(5):
+            cache.get("k1")
+
+        # Fill and trigger TinyLFU admission
+        cache.put("k3", "v3")
+        cache.put("k4", "v4")
+        cache.put("k5", "v5")
+        cache.put("k6", "v6")
+        cache.put("k7", "v7")
+
+        # Hot item k1 should still be present
+        self.assertEqual(cache.get("k1"), "v1")
 
 
 if __name__ == "__main__":

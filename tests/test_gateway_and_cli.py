@@ -256,6 +256,109 @@ class TestEcosystemGateway(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+    def test_sota_platform_upgrades_routing(self):
+        # 1. Personal Differential Privacy
+        dp_res = self.gateway.execute_personal("dp_learn", {"tenant_id": "priv_user", "epsilon": 0.5})
+        self.assertTrue(dp_res["success"])
+        self.assertEqual(dp_res["epsilon"], 0.5)
+        self.assertIn("sigma", dp_res)
+
+        # 2. IDE Call Graph & Test Synthesis
+        cg_res = self.gateway.execute_ide("call_graph", {
+            "sources": [
+                {"filename": "a.py", "code": "def fa(): return 1"},
+                {"filename": "b.py", "code": "def fb(): return 2"},
+            ]
+        })
+        self.assertTrue(cg_res["success"])
+        self.assertEqual(cg_res["total_modules"], 2)
+
+        synth_res = self.gateway.execute_ide("test_synthesis", {"code": "def multiply(x, y): return x * y", "filename": "mult.py"})
+        self.assertTrue(synth_res["success"])
+        self.assertIn("test_multiply", synth_res["synthesized_test_suite"])
+
+        # 3. Fin Syndicate Graph & EVT Threshold
+        synd_res = self.gateway.execute_fin("syndicate_graph", {})
+        self.assertTrue(synd_res["success"])
+        self.assertIn("syndicates_detected", synd_res)
+
+        evt_res = self.gateway.execute_fin("evt_threshold", {"scores": [0.1, 0.2, 0.95, 0.99]})
+        self.assertTrue(evt_res["success"])
+        self.assertIn("threshold", evt_res)
+
+        # 4. Robotics Null Space & Singularity Avoidance
+        null_res = self.gateway.execute_robotics("null_space", {})
+        self.assertTrue(null_res["success"])
+        self.assertEqual(len(null_res["joint_velocity_total"]), 6)
+
+        sing_res = self.gateway.execute_robotics("singularity_avoidance", {})
+        self.assertTrue(sing_res["success"])
+        self.assertEqual(len(sing_res["manipulability_gradient"]), 6)
+
+        # 5. Mesh Gossip Reconcile & Byzantine Detect
+        gossip_res = self.gateway.execute_mesh("gossip_reconcile", {})
+        self.assertTrue(gossip_res["success"])
+        self.assertIn("causal_divergence", gossip_res)
+
+        byz_res = self.gateway.execute_mesh("byzantine_detect", {})
+        self.assertTrue(byz_res["success"])
+        self.assertIn("byzantine_nodes_detected", byz_res)
+
+        # 6. Health CSP & ICA
+        csp_res = self.gateway.execute_health("csp_filter", {})
+        self.assertTrue(csp_res["success"])
+        self.assertIn("spatial_filter_matrix", csp_res)
+
+        ica_res = self.gateway.execute_health("ica_clean", {})
+        self.assertTrue(ica_res["success"])
+        self.assertIn("clean_signal", ica_res)
+
+        # 7. Space AER, Drag, Harmonics, Link Budget
+        aer_res = self.gateway.execute_space("aer", {})
+        self.assertTrue(aer_res["success"])
+        self.assertIn("azimuth_deg", aer_res)
+
+        drag_res = self.gateway.execute_space("drag", {})
+        self.assertTrue(drag_res["success"])
+        self.assertIn("decay_rate_km_day", drag_res)
+
+        harm_res = self.gateway.execute_space("higher_harmonics", {})
+        self.assertTrue(harm_res["success"])
+        self.assertIn("total_raan_dot_deg_day", harm_res)
+
+        lb_res = self.gateway.execute_space("link_budget", {})
+        self.assertTrue(lb_res["success"])
+        self.assertIn("link_margin_db", lb_res)
+
+        # 8. OS LSH Search & WTinyLFU Cache
+        lsh_res = self.gateway.execute_os("lsh_search", {})
+        self.assertTrue(lsh_res["success"])
+        self.assertIn("matches", lsh_res)
+
+        cache_put = self.gateway.execute_os("wtiny_cache", {"operation": "put", "key": "k_test", "value": 123})
+        self.assertTrue(cache_put["success"])
+        cache_get = self.gateway.execute_os("wtiny_cache", {"operation": "get", "key": "k_test"})
+        self.assertTrue(cache_get["success"])
+        self.assertEqual(cache_get["value"], 123)
+
+        # 9. Learning Quantize, Multi-Head, Anneal, Capacity
+        q_res = self.gateway.execute_learning("quantize", {"bits": 8})
+        self.assertTrue(q_res["success"])
+        self.assertIn("compression_ratio", q_res)
+
+        cap_res = self.gateway.execute_learning("capacity", {})
+        self.assertTrue(cap_res["success"])
+        self.assertIn("theoretical_exponential_capacity", cap_res)
+
+        # 10. Research & Lab
+        res_res = self.gateway.execute_research("research", {"topic": "Hopfield Networks"})
+        self.assertTrue(res_res["success"])
+        self.assertIn("synthesis", res_res)
+
+        lab_res = self.gateway.execute_lab("benchmark", {"num_patterns": 5})
+        self.assertTrue(lab_res["success"])
+        self.assertIn("p50_latency_us", lab_res)
+
 
 if __name__ == "__main__":
     unittest.main()

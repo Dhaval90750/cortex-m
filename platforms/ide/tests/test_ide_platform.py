@@ -178,6 +178,48 @@ def complex_logic(x, y):
             self.assertEqual(f1.read_text(encoding="utf-8"), "a = 100\n")
             self.assertEqual(f2.read_text(encoding="utf-8"), "b = 200\n")
 
+    def test_project_call_graph_resolution(self):
+        c1 = """
+import service_b
+
+def handler_a():
+    return service_b.process_data()
+
+def dead_worker():
+    return 42
+"""
+        c2 = """
+import service_a
+
+def process_data():
+    return "done"
+"""
+        t1 = self.parser.parse_source(c1, filename="service_a.py")
+        t2 = self.parser.parse_source(c2, filename="service_b.py")
+
+        cg = ASTSymbolTableParser.build_project_call_graph([t1, t2])
+        self.assertEqual(cg["total_modules"], 2)
+        self.assertEqual(cg["total_functions"], 3)
+        self.assertIn("dead_worker", cg["dead_symbols"])
+        # Circular import detected between service_a and service_b
+        self.assertTrue(cg["has_circular_dependencies"])
+
+    def test_unit_test_suite_synthesis(self):
+        code = """
+def calculate_metrics(values, factor=1.5):
+    \"\"\"Compute summary metrics.\"\"\"
+    return sum(values) * factor
+"""
+        table = self.parser.parse_source(code, filename="metrics.py")
+        suite_code = ASTSymbolTableParser.generate_unit_test_suite(table)
+        self.assertIn("TestMetricsSynthesizedSuite", suite_code)
+        self.assertIn("test_calculate_metrics_nominal_execution", suite_code)
+        self.assertIn("test_calculate_metrics_boundary_conditions", suite_code)
+        # Should be valid python syntax
+        import ast
+        tree = ast.parse(suite_code)
+        self.assertIsNotNone(tree)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from .consensus import BFTConsensusEngine, ConsensusProposal
 from .node import MeshNode, NodeStatus
@@ -138,3 +138,89 @@ class CortexSwarmRouter:
             if val_a < val_b:
                 strictly_less = True
         return strictly_less
+
+    def reconcile_gossip_digest(
+        self,
+        peer_node_id: str,
+        peer_clock: Dict[str, int],
+        peer_known_tasks: Sequence[str],
+    ) -> Dict[str, Any]:
+        """Anti-entropy epidemic gossip reconciliation between two mesh swarm nodes.
+        
+        Calculates set differences and causal lag to synchronize state over lossy RF links.
+        """
+        # Tasks we have that peer lacks
+        peer_task_set = set(peer_known_tasks)
+        missing_on_peer = [tid for tid in self.active_allocations if tid not in peer_task_set]
+
+        # Causal divergence analysis
+        local_ahead = []
+        peer_ahead = []
+        for nid in set(self.vector_clock.keys()).union(peer_clock.keys()):
+            loc_t = self.vector_clock.get(nid, 0)
+            peer_t = peer_clock.get(nid, 0)
+            if loc_t > peer_t:
+                local_ahead.append({"node_id": nid, "delta": loc_t - peer_t})
+            elif peer_t > loc_t:
+                peer_ahead.append({"node_id": nid, "delta": peer_t - loc_t})
+
+        # Advance our clock by merging
+        self.merge_clock(peer_clock)
+
+        return {
+            "peer_node_id": peer_node_id,
+            "tasks_sent_to_peer": missing_on_peer,
+            "num_tasks_propagated": len(missing_on_peer),
+            "causal_divergence": {
+                "local_ahead_events": local_ahead,
+                "peer_ahead_events": peer_ahead,
+            },
+            "reconciled_vector_clock": dict(self.vector_clock),
+            "sync_status": "SYNCHRONIZED" if not missing_on_peer and not peer_ahead else "DELTA_TRANSFERRED",
+        }
+
+    def detect_byzantine_nodes(
+        self,
+        vote_audit_log: Sequence[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Identify and isolate Byzantine / adversarial swarm nodes attempting equivocation or invalid signatures."""
+        equivocations: Dict[str, Set[str]] = {}
+        signature_faults: Dict[str, int] = {}
+        faulty_nodes: Set[str] = set()
+
+        for record in vote_audit_log:
+            node_id = record.get("voter_node_id")
+            if not node_id:
+                continue
+
+            seq = record.get("sequence_number", 0)
+            digest = record.get("digest", "")
+            sig = record.get("signature", "")
+
+            # Check signature integrity
+            if not sig or node_id not in sig:
+                signature_faults[node_id] = signature_faults.get(node_id, 0) + 1
+                faulty_nodes.add(node_id)
+
+            # Check equivocation (double-voting different digests for same sequence number)
+            key = f"{node_id}:{seq}"
+            if key not in equivocations:
+                equivocations[key] = set()
+            equivocations[key].add(digest)
+            if len(equivocations[key]) > 1:
+                faulty_nodes.add(node_id)
+
+        # De-register or mark unavailable any byzantine nodes
+        isolated = []
+        for fn in faulty_nodes:
+            if fn in self.nodes:
+                self.nodes[fn].is_available = False
+                isolated.append(fn)
+
+        return {
+            "audited_records": len(vote_audit_log),
+            "byzantine_nodes_detected": list(faulty_nodes),
+            "isolated_from_routing": isolated,
+            "signature_fault_counts": signature_faults,
+            "swarm_security_status": "COMPROMISED_ISOLATED" if faulty_nodes else "NOMINAL",
+        }

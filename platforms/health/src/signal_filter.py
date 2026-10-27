@@ -160,3 +160,125 @@ class BiosignalFilter:
             "channels": channels_status,
         }
 
+    def compute_csp_filter(
+        self,
+        class_a_trials: np.ndarray,
+        class_b_trials: np.ndarray,
+        num_components: int = 2,
+    ) -> Dict[str, Any]:
+        """Compute Common Spatial Pattern (CSP) spatial projection matrix.
+        
+        Diagonalizes normalized covariance matrices to maximize variance ratio between
+        two neurological states (e.g., motor imagery execution vs rest):
+            Sigma_A = W Lambda_A W^T,  Sigma_B = W Lambda_B W^T,  Lambda_A + Lambda_B = I
+        """
+        # Shapes: [trials, channels, samples] or [channels, samples]
+        arr_a = np.array(class_a_trials, dtype=np.float64)
+        arr_b = np.array(class_b_trials, dtype=np.float64)
+
+        if arr_a.ndim == 2:
+            arr_a = arr_a[np.newaxis, :, :]
+        if arr_b.ndim == 2:
+            arr_b = arr_b[np.newaxis, :, :]
+
+        c = arr_a.shape[1]
+
+        # Compute average normalized spatial covariance
+        cov_a = np.zeros((c, c), dtype=np.float64)
+        for trial in arr_a:
+            t_cov = np.dot(trial, trial.T)
+            cov_a += t_cov / max(1e-6, np.trace(t_cov))
+        cov_a /= max(1, len(arr_a))
+
+        cov_b = np.zeros((c, c), dtype=np.float64)
+        for trial in arr_b:
+            t_cov = np.dot(trial, trial.T)
+            cov_b += t_cov / max(1e-6, np.trace(t_cov))
+        cov_b /= max(1, len(arr_b))
+
+        # Composite covariance and whitening
+        cov_composite = cov_a + cov_b + 1e-6 * np.eye(c)
+        evals, evecs = np.linalg.eigh(cov_composite)
+        evals = np.maximum(evals, 1e-6)
+        whitening = np.dot(np.diag(1.0 / np.sqrt(evals)), evecs.T)
+
+        # Transformed covariance
+        sa_wh = np.dot(whitening, np.dot(cov_a, whitening.T))
+        evals_sa, b_mat = np.linalg.eigh(sa_wh)
+
+        # Full spatial projection matrix W
+        w_proj = np.dot(b_mat.T, whitening)
+
+        # Select top and bottom components
+        k = min(num_components, c // 2) if c >= 4 else 1
+        selected_filters = np.vstack([w_proj[:k], w_proj[-k:]])
+
+        return {
+            "num_channels": c,
+            "components_extracted": selected_filters.shape[0],
+            "spatial_filter_matrix": selected_filters.tolist(),
+            "eigenvalues_class_a": [round(float(v), 4) for v in evals_sa],
+        }
+
+    def remove_ocular_artifacts_ica(
+        self,
+        multi_channel_eeg: np.ndarray,
+        kurtosis_threshold: float = 3.5,
+    ) -> Dict[str, Any]:
+        """Blind source separation (FastICA-inspired) to isolate and eliminate EOG blink artifacts.
+        
+        Calculates higher-order statistical non-Gaussianity (excess kurtosis), zeroing
+        out ballistic blink components before spatial back-projection.
+        """
+        x = np.array(multi_channel_eeg, dtype=np.float64)
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+
+        c, n = x.shape
+        if c < 2 or n < 10:
+            return {"clean_signal": x.tolist(), "artifacts_removed": 0, "blink_component_detected": False}
+
+        # Center signals
+        x_centered = x - np.mean(x, axis=1, keepdims=True)
+
+        # Whitening via SVD
+        cov = np.dot(x_centered, x_centered.T) / max(1, n - 1)
+        u, s, _ = np.linalg.svd(cov)
+        whitening_matrix = np.dot(np.diag(1.0 / np.sqrt(s + 1e-6)), u.T)
+        dewhitening_matrix = np.dot(u, np.diag(np.sqrt(s + 1e-6)))
+
+        x_white = np.dot(whitening_matrix, x_centered)
+
+        # Source kurtosis identification
+        kurtoses = []
+        is_ocular = []
+        for i in range(c):
+            comp = x_white[i]
+            comp_std = np.std(comp)
+            if comp_std > 1e-6:
+                m4 = np.mean((comp - np.mean(comp)) ** 4)
+                kurt = (m4 / (comp_std ** 4)) - 3.0
+            else:
+                kurt = 0.0
+            kurtoses.append(kurt)
+            is_ocular.append(abs(kurt) > kurtosis_threshold)
+
+        # Zero out ocular blink components
+        x_filtered_sources = x_white.copy()
+        for i, bad in enumerate(is_ocular):
+            if bad:
+                x_filtered_sources[i, :] = 0.0
+
+        # Back-project to clean electrode space
+        clean_x = np.dot(dewhitening_matrix, x_filtered_sources) + np.mean(x, axis=1, keepdims=True)
+
+        num_artifacts = int(sum(is_ocular))
+        return {
+            "num_channels": c,
+            "num_samples": n,
+            "blink_component_detected": num_artifacts > 0,
+            "artifacts_removed": num_artifacts,
+            "kurtosis_per_component": [round(float(k), 2) for k in kurtoses],
+            "clean_signal": clean_x.tolist(),
+        }
+

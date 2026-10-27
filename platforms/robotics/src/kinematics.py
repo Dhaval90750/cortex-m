@@ -181,3 +181,90 @@ class Manipulator6DOF:
             if angle < self.limits.joint_min_rad[i] or angle > self.limits.joint_max_rad[i]:
                 return False
         return True
+
+    def null_space_projection(
+        self,
+        joint_angles_rad: Sequence[float],
+        cartesian_displacement_xyz: Sequence[float],
+        secondary_objective_gradient: Sequence[float],
+        damping: float = 0.05,
+    ) -> Dict[str, Any]:
+        """Project secondary task (obstacle / joint limit avoidance) into kinematic null-space.
+        
+        Delta q = J_damped^+ Delta x + (I - J^+ J) nabla q_secondary
+        Ensures secondary motions do not perturb primary Cartesian tool-center-point position.
+        """
+        q = np.array(joint_angles_rad, dtype=np.float64)
+        dx = np.array(cartesian_displacement_xyz, dtype=np.float64)
+        q_sec = np.array(secondary_objective_gradient, dtype=np.float64)
+
+        j = self.compute_jacobian(q)
+        # Damped pseudo-inverse: J^T (J J^T + lambda^2 I)^-1
+        jjt = np.dot(j, j.T) + (damping ** 2) * np.eye(3)
+        j_pinv = np.dot(j.T, np.linalg.inv(jjt))
+
+        # Primary joint motion
+        dq_primary = np.dot(j_pinv, dx)
+
+        # Null-space projector: N = I - J_pinv * J
+        eye6 = np.eye(6)
+        null_projector = eye6 - np.dot(j_pinv, j)
+
+        # Projected secondary joint motion
+        dq_secondary = np.dot(null_projector, q_sec)
+
+        dq_total = dq_primary + dq_secondary
+        q_new = q + dq_total
+
+        # Check limits
+        valid = self.validate_joint_limits(q_new.tolist())
+
+        return {
+            "joint_velocity_total": dq_total.tolist(),
+            "primary_motion": dq_primary.tolist(),
+            "null_space_motion": dq_secondary.tolist(),
+            "resulting_joint_angles": q_new.tolist(),
+            "within_joint_limits": valid,
+            "null_space_norm": float(np.linalg.norm(dq_secondary)),
+        }
+
+    def singularity_avoidance_step(
+        self,
+        joint_angles_rad: Sequence[float],
+        step_size: float = 0.02,
+    ) -> Dict[str, Any]:
+        """Compute numerical gradient of Yoshikawa manipulability w(q) to steer away from kinematic singularities.
+        
+        nabla_q w(q) = [ (w(q + eps*e_i) - w(q - eps*e_i)) / (2*eps) ]
+        """
+        q = np.array(joint_angles_rad, dtype=np.float64)
+        w0 = self.manipulability_index(q.tolist())
+        eps = 1e-4
+
+        grad = np.zeros(6, dtype=np.float64)
+        for i in range(6):
+            q_plus = q.copy()
+            q_plus[i] += eps
+            q_minus = q.copy()
+            q_minus[i] -= eps
+            w_plus = self.manipulability_index(q_plus.tolist())
+            w_minus = self.manipulability_index(q_minus.tolist())
+            grad[i] = (w_plus - w_minus) / (2.0 * eps)
+
+        grad_norm = float(np.linalg.norm(grad))
+        if grad_norm > 1e-6:
+            direction = grad / grad_norm
+        else:
+            direction = np.zeros(6)
+
+        q_steered = q + step_size * direction
+        w_new = self.manipulability_index(q_steered.tolist())
+
+        return {
+            "initial_manipulability": round(w0, 4),
+            "steered_manipulability": round(w_new, 4),
+            "manipulability_gradient": grad.tolist(),
+            "gradient_norm": round(grad_norm, 4),
+            "steered_joints_rad": q_steered.tolist(),
+            "singularity_cleared": w_new > w0,
+        }

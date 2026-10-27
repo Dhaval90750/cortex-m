@@ -30,6 +30,12 @@ _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _SRC_DIR not in sys.path:
     sys.path.insert(0, _SRC_DIR)
 
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from cortex_m.gateway import EcosystemGateway
 
 
@@ -459,6 +465,54 @@ def cortex_platform_cli():
         else:
             parser.print_help()
 
+    elif platform == "research":
+        parser = argparse.ArgumentParser(prog="cortex research")
+        sub = parser.add_subparsers(dest="action")
+        p_res = sub.add_parser("query")
+        p_res.add_argument("topic", nargs="*", default=["Modern Hopfield Networks"])
+        p_dec = sub.add_parser("decompose")
+        p_dec.add_argument("topic", nargs="*", default=["Modern Hopfield Networks"])
+        parsed = parser.parse_args(args_rest)
+
+        topic_str = " ".join(parsed.topic) if hasattr(parsed, "topic") and parsed.topic else "Modern Hopfield Networks"
+        if parsed.action in ("query", None):
+            r = gateway.execute_research("research", {"topic": topic_str})
+            print(f"[Research] Topic: {r['topic']} | Epistemic Status: {r['epistemic_status']} | Citations: {r['citations_count']}")
+            print(f"\n{r['synthesis']}\n")
+        elif parsed.action == "decompose":
+            r = gateway.execute_research("decompose", {"topic": topic_str})
+            print(f"[Research Decompose] Sub-questions for '{r['topic']}':")
+            for q in r["sub_questions"]:
+                print(f"  - {q}")
+        else:
+            parser.print_help()
+
+    elif platform == "lab":
+        parser = argparse.ArgumentParser(prog="cortex lab")
+        sub = parser.add_subparsers(dest="action")
+        p_bench = sub.add_parser("benchmark")
+        p_bench.add_argument("--patterns", type=int, default=20)
+        p_abl = sub.add_parser("ablation")
+        p_gate = sub.add_parser("suite")
+        parsed = parser.parse_args(args_rest)
+
+        if parsed.action in ("benchmark", None):
+            patterns = getattr(parsed, "patterns", 20)
+            r = gateway.execute_lab("benchmark", {"num_patterns": patterns})
+            print(f"[Lab Benchmark] Evaluated {r['num_patterns']} patterns | Recovery Acc: {r['perfect_recovery_rate_pct']}% | p50: {r['p50_latency_us']}us | p95: {r['p95_latency_us']}us")
+        elif parsed.action == "ablation":
+            r = gateway.execute_lab("ablation", {})
+            print(f"[Lab Ablation Matrix] {r['num_ablations']} architectural submodules evaluated:")
+            for a in r["ablations"]:
+                crit_tag = "[CRITICAL]" if a["is_critical"] else "[ROBUST]"
+                print(f"  {crit_tag} {a['component']}: {a['baseline_metric']}% -> {a['ablated_metric']}% ({a['delta_percentage']}%)")
+        elif parsed.action == "suite":
+            r = gateway.execute_lab("full_suite", {})
+            print(f"[Lab Gate Suite] {r['suite_name']} | Passed: {r['passed_all_gates']} | Accuracy: {r['accuracy_pct']}% | p50: {r['p50_latency_us']}us")
+            print(f"  Summary: {r['summary']}")
+        else:
+            parser.print_help()
+
     else:
         print(f"Error: Unknown platform or command '{platform}'. Run 'cortex --help' for usage.")
 
@@ -490,6 +544,8 @@ Product Platforms:
   cortex space               CORTEX-Space CCSDS Synchronizer & Orbit Propagator
   cortex os                  CORTEX-OS Spotlight Omnibar & Resource Monitor
   cortex learning            Developmental Sleep Consolidation & SVD Grafting
+  cortex research            Autonomous Deep Research & Grounded Citations
+  cortex lab                 Automated Model Evaluation & Benchmark Gate
 """)
             return
         elif cmd == "studio":
@@ -512,6 +568,7 @@ Product Platforms:
             "status", "overview", "info",
             "personal", "ide", "fin", "robotics",
             "mesh", "health", "space", "os", "learning",
+            "research", "lab",
         ):
             cortex_platform_cli()
             return

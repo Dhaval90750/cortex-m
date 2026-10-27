@@ -713,3 +713,54 @@ class CortexV2:
         """Load synaptic network state from disk."""
         return self.memory.load_checkpoint(filepath)
 
+    def quantize_weights(self, num_bits: int = 8) -> Dict[str, Any]:
+        """Quantize full synaptic weight tensor to INT8/INT4 for ultra-compact edge execution."""
+        return self.memory.quantize_synapses(num_bits=num_bits)
+
+    def multi_head_recall(
+        self,
+        cue: Union[str, Sequence[float], torch.Tensor],
+        num_heads: int = 4,
+        beta: float = 8.0,
+    ) -> Dict[str, Any]:
+        """Subspace Multi-Head Modern Hopfield associative retrieval."""
+        if isinstance(cue, str):
+            encoded = self.encoder.encode_text(cue)
+        elif isinstance(cue, torch.Tensor):
+            encoded = self.encoder.encode_numeric(cue).squeeze(0)
+        else:
+            t = torch.tensor(cue, dtype=torch.float32, device=self.device)
+            encoded = self.encoder.encode_numeric(t).squeeze(0)
+
+        res = self.memory.multi_head_recall(encoded, num_heads=num_heads, beta=beta)
+        if "recalled_vector" in res:
+            res["recalled_vector_norm"] = float(res["recalled_vector"].norm().item())
+            del res["recalled_vector"]
+        return res
+
+    def annealed_lyapunov_recall(
+        self,
+        cue: Union[str, Sequence[float], torch.Tensor],
+        beta_start: float = 2.0,
+        beta_end: float = 16.0,
+        steps: int = 5,
+    ) -> Dict[str, Any]:
+        """Temperature-Annealed Hopfield dynamics with certified Lyapunov descent."""
+        if isinstance(cue, str):
+            encoded = self.encoder.encode_text(cue)
+        elif isinstance(cue, torch.Tensor):
+            encoded = self.encoder.encode_numeric(cue).squeeze(0)
+        else:
+            t = torch.tensor(cue, dtype=torch.float32, device=self.device)
+            encoded = self.encoder.encode_numeric(t).squeeze(0)
+
+        res = self.memory.annealed_lyapunov_recall(encoded, beta_start=beta_start, beta_end=beta_end, steps=steps)
+        if "recalled_vector" in res:
+            res["recalled_vector_norm"] = float(res["recalled_vector"].norm().item())
+            del res["recalled_vector"]
+        return res
+
+    def exponential_capacity(self) -> Dict[str, Any]:
+        """Compute theoretical exponential Modern Hopfield capacity C ~ 0.5 * 2^((d-1)/2)."""
+        return self.memory.estimate_exponential_capacity()
+

@@ -161,6 +161,35 @@ class TestCortexPersonalPlatform(unittest.TestCase):
             self.assertEqual(restored.metadata["tier"], "vip")
             self.assertEqual(len(restored.active_attractors), 1)
 
+    def test_differentially_private_tenant_learning(self):
+        engine = PersonalTenantPagingEngine(base_dimension=32, rank=4)
+        engine.create_tenant("profile_private")
+        cue = torch.randn(32)
+
+        res = engine.learn_tenant_association_differentially_private(
+            tenant_id="profile_private",
+            cue=cue,
+            epsilon=0.5,
+            delta=1e-5,
+            clip_norm=1.0,
+        )
+        self.assertEqual(res["tenant_id"], "profile_private")
+        self.assertEqual(res["epsilon"], 0.5)
+        self.assertGreater(res["sigma"], 0.0)
+        self.assertIn("snr_db", res)
+        self.assertEqual(res["accumulated_epsilon"], 0.5)
+        self.assertEqual(res["update_count"], 1)
+
+        # Second update accumulates budget
+        res2 = engine.learn_tenant_association_differentially_private(
+            tenant_id="profile_private",
+            cue=cue,
+            epsilon=0.5,
+            delta=1e-5,
+        )
+        self.assertEqual(res2["accumulated_epsilon"], 1.0)
+        self.assertEqual(res2["update_count"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

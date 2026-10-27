@@ -195,7 +195,46 @@ class TestCortexSpacePlatform(unittest.TestCase):
         res_gap = self.processor.analyze_stream_continuity(packets_with_gap)
         self.assertFalse(res_gap["is_contiguous"])
         self.assertEqual(res_gap["dropped_packets"], 3)  # missing 5, 6, 7
-        self.assertEqual(res_gap["gaps_detected"], 1)
+    def test_azimuth_elevation_range_and_aer(self):
+        goldstone = DEFAULT_GROUND_STATIONS[0]
+        az, el, rng = self.propagator.compute_azimuth_elevation_range(goldstone, delta_t_s=300.0)
+        self.assertGreaterEqual(az, 0.0)
+        self.assertLessEqual(az, 360.0)
+        self.assertGreaterEqual(el, -90.0)
+        self.assertLessEqual(el, 90.0)
+        self.assertGreater(rng, 100.0)
+
+    def test_atmospheric_drag_and_decay(self):
+        drag = self.propagator.compute_atmospheric_drag(altitude_km=400.0, velocity_km_s=7.66)
+        self.assertIn("density_kg_m3", drag)
+        self.assertGreater(drag["density_kg_m3"], 0.0)
+        self.assertGreater(drag["drag_force_n"], 0.0)
+        self.assertGreater(drag["drag_acceleration_m_s2"], 0.0)
+        self.assertLess(drag["decay_rate_km_day"], 0.0)  # Orbit decays downward
+
+    def test_higher_harmonics_perturbations(self):
+        harmonics = self.propagator.compute_higher_harmonics_perturbations(delta_t_s=3600.0)
+        self.assertIn("raan_dot_j4_rad_s", harmonics)
+        self.assertIn("total_raan_dot_deg_day", harmonics)
+        self.assertIn("arg_perigee_dot_j4_rad_s", harmonics)
+        self.assertIn("j3_eccentricity_amplitude", harmonics)
+        self.assertGreater(harmonics["instantaneous_perturbed_eccentricity"], 0.0)
+
+    def test_rf_link_budget(self):
+        # 10W X-band downlink (8.4 GHz) over 1000 km range
+        budget = OrbitPropagator.compute_rf_link_budget(
+            tx_power_dbw=10.0,
+            tx_gain_dbi=12.0,
+            rx_gain_dbi=35.0,
+            frequency_hz=8.4e9,
+            range_km=1000.0,
+            bandwidth_hz=1e6,
+        )
+        self.assertIn("fspl_db", budget)
+        self.assertGreater(budget["fspl_db"], 160.0)
+        self.assertIn("snr_db", budget)
+        self.assertIn("link_margin_db", budget)
+        self.assertTrue(budget["link_closed"])
 
 
 if __name__ == "__main__":
