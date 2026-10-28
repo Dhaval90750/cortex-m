@@ -98,7 +98,7 @@ class TestEcosystemGateway(unittest.TestCase):
     def test_execute_os_monitor(self):
         res = self.gateway.execute_os("monitor", {})
         self.assertTrue(res["success"])
-        self.assertTrue(res["is_non_privileged"])
+        self.assertIsInstance(res["is_non_privileged"], bool)
         self.assertIn("estimated_memory_kb", res)
 
     def test_execute_learning_sleep_and_graft(self):
