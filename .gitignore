@@ -56,6 +56,10 @@ desktop.ini
 .tempmediaStorage/
 scratch/
 .agents/
+.env*
+*.key
+*.secret
+secrets/
 
 # SQLite Caches & Ephemeral Data Stores
 data/visualizer_memory.sqlite3*
