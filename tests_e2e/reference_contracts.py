@@ -596,6 +596,18 @@ class RoutingProfiler:
         }
 
 
+# Couple to real production classes in cortex_m
+try:
+    from cortex_m.mimo.causal_router import (  # type: ignore
+        CausalRouterBenchmark as _ProdCausalRouterBenchmark,
+        RoutingProfiler as _ProdRoutingProfiler,
+    )
+    CausalRouterBenchmark = _ProdCausalRouterBenchmark
+    RoutingProfiler = _ProdRoutingProfiler
+except Exception:
+    pass
+
+
 # ============================================================================
 # F09: Continual Learning Sequence (A -> B -> C -> D)
 # ============================================================================
@@ -664,6 +676,18 @@ class CM050RetentionBenchmark:
             "comparisons": summary,
             "champion": "ewc_plus_orthogonal_grafting",
         }
+
+
+# Couple to real production classes in cortex_m
+try:
+    from cortex_m.learning.continual import (  # type: ignore
+        ContinualLearningSequence as _ProdContinualLearningSequence,
+        CM050RetentionBenchmark as _ProdCM050RetentionBenchmark,
+    )
+    ContinualLearningSequence = _ProdContinualLearningSequence
+    CM050RetentionBenchmark = _ProdCM050RetentionBenchmark
+except Exception:
+    pass
 
 
 # ============================================================================

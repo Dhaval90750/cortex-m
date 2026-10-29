@@ -21,6 +21,19 @@ from .pathway.gist_bottleneck import GistBottleneck
 from .pathway.gist_generator import GistRealizer
 from .gist import StructuredGist
 from .memory import EpisodicRecord, EpisodicMemoryStore
+from .mimo import (
+    CausalRouter,
+    CausalRouterBenchmark,
+    RandomRouter,
+    RoutingProfiler,
+    StaticDenseRouter,
+)
+from .learning import (
+    CM050RetentionBenchmark,
+    ContinualLearningSequence,
+    EWCRegularizer,
+    SequentialTaskSuite,
+)
 from .pathway.hierarchical_router import HierarchicalSparseRouter
 from .pathway.mimo_pathway import MIMOPathwaySystem
 from .pathway.synaptic_memory import SynapticMemoryNetwork
@@ -131,5 +144,14 @@ __all__ = [
     "DocumentationSkill",
     "SqlOptimizationSkill",
     "SynapticMemorySkill",
+    "CausalRouter",
+    "CausalRouterBenchmark",
+    "RandomRouter",
+    "RoutingProfiler",
+    "StaticDenseRouter",
+    "ContinualLearningSequence",
+    "CM050RetentionBenchmark",
+    "EWCRegularizer",
+    "SequentialTaskSuite",
 ]
 
