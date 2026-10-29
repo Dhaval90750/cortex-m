@@ -1,0 +1,664 @@
+{
+  "timestamp": "2026-10-29T04:11:51.144284+00:00",
+  "benchmark_id": "CM-030",
+  "seeds": [
+    42,
+    137,
+    256,
+    512,
+    1024
+  ],
+  "summary": {
+    "no_memory": {
+      "recall_exact_top1": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "recall_para_top1": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "recall_para_top5": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "stale_rejection_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "ood_abstention_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "unlearning_precision_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "collateral_degradation_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "mean_latency_ms": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "memory_footprint_kb": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "exact_lookup": {
+      "recall_exact_top1": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "recall_para_top1": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "recall_para_top5": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "stale_rejection_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "ood_abstention_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "unlearning_precision_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "collateral_degradation_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "mean_latency_ms": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.003,
+          0.002,
+          0.002,
+          0.002,
+          0.002
+        ]
+      },
+      "memory_footprint_kb": {
+        "mean": 2.5,
+        "std": 0.0,
+        "values": [
+          2.5,
+          2.5,
+          2.5,
+          2.5,
+          2.5
+        ]
+      }
+    },
+    "cosine_top_k": {
+      "recall_exact_top1": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "recall_para_top1": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "recall_para_top5": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "stale_rejection_pct": {
+        "mean": 5.0,
+        "std": 11.18,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          25.0
+        ]
+      },
+      "ood_abstention_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "unlearning_precision_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "collateral_degradation_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "mean_latency_ms": {
+        "mean": 1.1,
+        "std": 0.12,
+        "values": [
+          1.111,
+          1.016,
+          1.056,
+          1.293,
+          1.016
+        ]
+      },
+      "memory_footprint_kb": {
+        "mean": 4.0,
+        "std": 0.0,
+        "values": [
+          4.0,
+          4.0,
+          4.0,
+          4.0,
+          4.0
+        ]
+      }
+    },
+    "provenance_hopfield": {
+      "recall_exact_top1": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "recall_para_top1": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "recall_para_top5": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "stale_rejection_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "ood_abstention_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "unlearning_precision_pct": {
+        "mean": 100.0,
+        "std": 0.0,
+        "values": [
+          100.0,
+          100.0,
+          100.0,
+          100.0,
+          100.0
+        ]
+      },
+      "collateral_degradation_pct": {
+        "mean": 0.0,
+        "std": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "mean_latency_ms": {
+        "mean": 17.04,
+        "std": 0.12,
+        "values": [
+          16.858,
+          16.983,
+          17.162,
+          17.058,
+          17.125
+        ]
+      },
+      "memory_footprint_kb": {
+        "mean": 18.25,
+        "std": 0.0,
+        "values": [
+          18.25,
+          18.25,
+          18.25,
+          18.25,
+          18.25
+        ]
+      }
+    }
+  },
+  "seed_runs": [
+    {
+      "seed": 42,
+      "metrics": {
+        "no_memory": {
+          "recall_exact_top1": 0.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.0,
+          "memory_footprint_kb": 0.0
+        },
+        "exact_lookup": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.003,
+          "memory_footprint_kb": 2.5
+        },
+        "cosine_top_k": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 0.0,
+          "ood_abstention_pct": 0.0,
+          "unlearning_precision_pct": 0.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 1.111,
+          "memory_footprint_kb": 4.0
+        },
+        "provenance_hopfield": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 16.858,
+          "memory_footprint_kb": 18.25
+        }
+      }
+    },
+    {
+      "seed": 137,
+      "metrics": {
+        "no_memory": {
+          "recall_exact_top1": 0.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.0,
+          "memory_footprint_kb": 0.0
+        },
+        "exact_lookup": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.002,
+          "memory_footprint_kb": 2.5
+        },
+        "cosine_top_k": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 0.0,
+          "ood_abstention_pct": 0.0,
+          "unlearning_precision_pct": 0.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 1.016,
+          "memory_footprint_kb": 4.0
+        },
+        "provenance_hopfield": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 16.983,
+          "memory_footprint_kb": 18.25
+        }
+      }
+    },
+    {
+      "seed": 256,
+      "metrics": {
+        "no_memory": {
+          "recall_exact_top1": 0.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.0,
+          "memory_footprint_kb": 0.0
+        },
+        "exact_lookup": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.002,
+          "memory_footprint_kb": 2.5
+        },
+        "cosine_top_k": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 0.0,
+          "ood_abstention_pct": 0.0,
+          "unlearning_precision_pct": 0.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 1.056,
+          "memory_footprint_kb": 4.0
+        },
+        "provenance_hopfield": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 17.162,
+          "memory_footprint_kb": 18.25
+        }
+      }
+    },
+    {
+      "seed": 512,
+      "metrics": {
+        "no_memory": {
+          "recall_exact_top1": 0.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.0,
+          "memory_footprint_kb": 0.0
+        },
+        "exact_lookup": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.002,
+          "memory_footprint_kb": 2.5
+        },
+        "cosine_top_k": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 0.0,
+          "ood_abstention_pct": 0.0,
+          "unlearning_precision_pct": 0.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 1.293,
+          "memory_footprint_kb": 4.0
+        },
+        "provenance_hopfield": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 17.058,
+          "memory_footprint_kb": 18.25
+        }
+      }
+    },
+    {
+      "seed": 1024,
+      "metrics": {
+        "no_memory": {
+          "recall_exact_top1": 0.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.0,
+          "memory_footprint_kb": 0.0
+        },
+        "exact_lookup": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 0.0,
+          "recall_para_top5": 0.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 0.002,
+          "memory_footprint_kb": 2.5
+        },
+        "cosine_top_k": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 25.0,
+          "ood_abstention_pct": 0.0,
+          "unlearning_precision_pct": 0.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 1.016,
+          "memory_footprint_kb": 4.0
+        },
+        "provenance_hopfield": {
+          "recall_exact_top1": 100.0,
+          "recall_para_top1": 100.0,
+          "recall_para_top5": 100.0,
+          "stale_rejection_pct": 100.0,
+          "ood_abstention_pct": 100.0,
+          "unlearning_precision_pct": 100.0,
+          "collateral_degradation_pct": 0.0,
+          "mean_latency_ms": 17.125,
+          "memory_footprint_kb": 18.25
+        }
+      }
+    }
+  ]
+}

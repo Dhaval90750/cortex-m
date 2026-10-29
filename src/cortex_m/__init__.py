@@ -19,6 +19,8 @@ from .pathway.dual_stream import DualStreamProcessor
 from .pathway.encoder import NeuralFeatureEncoder
 from .pathway.gist_bottleneck import GistBottleneck
 from .pathway.gist_generator import GistRealizer
+from .gist import StructuredGist
+from .memory import EpisodicRecord, EpisodicMemoryStore
 from .pathway.hierarchical_router import HierarchicalSparseRouter
 from .pathway.mimo_pathway import MIMOPathwaySystem
 from .pathway.synaptic_memory import SynapticMemoryNetwork
@@ -98,6 +100,9 @@ __all__ = [
     "PathwayTrace",
     "GistBottleneck",
     "GistRealizer",
+    "StructuredGist",
+    "EpisodicRecord",
+    "EpisodicMemoryStore",
     "CausalPathwayMIMO",
     "HierarchicalSparseRouter",
     "SynapticConsolidator",

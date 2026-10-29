@@ -12,14 +12,14 @@
       "recall_at_5_pct": 58.3,
       "abstention_accuracy_pct": 80.0,
       "false_grounding_pct": 20.0,
-      "avg_latency_ms": 1.27
+      "avg_latency_ms": 1.21
     },
     "Cortex_M_Hopfield": {
       "recall_at_1_pct": 33.3,
       "recall_at_5_pct": 41.7,
       "abstention_accuracy_pct": 80.0,
       "false_grounding_pct": 20.0,
-      "avg_latency_ms": 5.63
+      "avg_latency_ms": 5.29
     }
   },
   "unlearning_probe": {

@@ -30,3 +30,14 @@ cortex-lm = "cortex_m.cli:cortex_lm_main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "tests_mimo", "platforms"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore:cannot collect test class 'TestGenerationSkill':pytest.PytestCollectionWarning"
+]
