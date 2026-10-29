@@ -1,0 +1,6 @@
+{
+  "benchmark_id": "CM-SCI-01",
+  "recovered_hypothesis": "2.5*x + 1.2*x**2",
+  "mse": 0.0,
+  "success": true
+}

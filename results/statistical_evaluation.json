@@ -1,0 +1,11 @@
+{
+  "num_seeds": 10,
+  "screening_pass": true,
+  "confirmatory_pass": true,
+  "mean": 0.9425,
+  "std": 0.0219,
+  "ci_95": [
+    0.9289,
+    0.9561
+  ]
+}
