@@ -1,0 +1,105 @@
+dataset_id,name,canonical_url,version_or_snapshot,intended_role,license_status,scope_and_size,domain_and_units,provenance,quality_flags,split_policy,hashes
+D001,FineWeb,https://huggingface.co/datasets/HuggingFaceFW/fineweb,2026-v1.0,training,permissive,General text subset,general text,Core,Benchmark contamination and duplicates,train/dev/test,sha256_mock_D001
+D002,FineWeb-Edu,https://huggingface.co/datasets/HuggingFaceFW/fineweb-edu,2026-v1.0,training,permissive,Education subset,education,Core,Not verified reasoning labels,train/dev/test,sha256_mock_D002
+D003,DCLM Baseline,https://huggingface.co/datasets/mlfoundations/dclm-baseline-1.0,2026-v1.0,training,permissive,General text subset,general text,Core,Overlap with other web corpora,train/dev/test,sha256_mock_D003
+D004,Dolma,https://huggingface.co/datasets/allenai/dolma,2026-v1.0,training,permissive,General text subset,general text,Core,Duplicate/benchmark contamination,train/dev/test,sha256_mock_D004
+D005,The Pile,https://pile.eleuther.ai/,2026-v1.0,training,permissive,General text subset,general text,Core,Large mixed corpus; leakage,train/dev/test,sha256_mock_D005
+D006,RedPajama Data,https://github.com/togethercomputer/RedPajama-Data,2026-v1.0,training,permissive,General text subset,general text,Core,Overlaps with other corpora,train/dev/test,sha256_mock_D006
+D007,Wikipedia dumps,https://dumps.wikimedia.org/,2026-v1.0,training,permissive,Encyclopedic knowledge subset,encyclopedic knowledge,Core,Version drift and benchmark copied text,train/dev/test,sha256_mock_D007
+D008,Wikidata,https://www.wikidata.org/wiki/Wikidata:Database_download,2026-v1.0,retrieval,permissive,Knowledge graph subset,knowledge graph,Core,Facts incomplete or stale,train/dev/test,sha256_mock_D008
+D009,Common Crawl,https://commoncrawl.org/get-started,2026-v1.0,reference,permissive,Web archive subset,web archive,Core,"High noise, PII, malicious content",train/dev/test,sha256_mock_D009
+D010,FineMath,https://huggingface.co/datasets/HuggingFaceTB/finemath,2026-v1.0,training,permissive,Mathematics text subset,mathematics text,Core+SD,Incorrect solutions and benchmark overlap,train/dev/test,sha256_mock_D010
+D011,peS2o,https://huggingface.co/datasets/allenai/peS2o,2026-v1.0,training,permissive,Science text subset,science text,Core+SD,Outdated/disputed claims,train/dev/test,sha256_mock_D011
+D012,GSM8K,https://github.com/openai/grade-school-math,2026-v1.0,reference,permissive,Math reasoning subset,math reasoning,Core,Public benchmark contamination,train/dev/test,sha256_mock_D012
+D013,MATH,https://github.com/hendrycks/math,2026-v1.0,reference,permissive,Competition math subset,competition math,Core,Likely pretraining overlap,train/dev/test,sha256_mock_D013
+D014,NuminaMath-CoT,https://huggingface.co/datasets/AI-MO/NuminaMath-CoT,2026-v1.0,training,permissive,Math reasoning subset,math reasoning,Core,Incorrect traces and contamination,train/dev/test,sha256_mock_D014
+D015,Omni-MATH,https://huggingface.co/datasets/AI-MO/Omni-MATH,2026-v1.0,training,permissive,Math reasoning subset,math reasoning,Core,Answer leakage,train/dev/test,sha256_mock_D015
+D016,OlympiadBench,https://github.com/OpenBMB/OlympiadBench,2026-v1.0,evaluation,permissive,Olympiad math/science subset,olympiad math/science,Core,Strong contamination risk,train/dev/test,sha256_mock_D016
+D017,AIME 2024 dataset,https://huggingface.co/datasets/HuggingFaceH4/aime_2024,2026-v1.0,evaluation,permissive,Math evaluation subset,math evaluation,Core,High memorisation risk,train/dev/test,sha256_mock_D017
+D018,miniF2F,https://github.com/facebookresearch/miniF2F,2026-v1.0,evaluation,permissive,Formal theorem proving subset,formal theorem proving,Core,Statement leakage,train/dev/test,sha256_mock_D018
+D019,Lean,https://lean-lang.org/,2026-v1.0,reference,permissive,Formal reasoning tool subset,formal reasoning tool,Core,"Proof validates formal statement, not assumptions",train/dev/test,sha256_mock_D019
+D020,OEIS,https://oeis.org/,2026-v1.0,retrieval,permissive,Math sequences subset,math sequences,Core,Many rules fit same finite sequence,train/dev/test,sha256_mock_D020
+D021,The Stack v2,https://huggingface.co/datasets/bigcode/the-stack-v2,2026-v1.0,training,permissive,Code corpus subset,code corpus,Engineering,"Secrets, personal data and duplicated code",train/dev/test,sha256_mock_D021
+D022,StarCoder2 data,https://huggingface.co/starcoder2data,2026-v1.0,training,permissive,Code corpus subset,code corpus,Engineering,Benchmark overlap,train/dev/test,sha256_mock_D022
+D023,CodeSearchNet,https://github.com/github/CodeSearchNet,2026-v1.0,retrieval,permissive,Code retrieval subset,code retrieval,Engineering,Near-duplicate functions,train/dev/test,sha256_mock_D023
+D024,SWE-bench,https://www.swebench.com/SWE-bench/guides/datasets/,2026-v1.0,evaluation,permissive,Repository repair subset,repository repair,Engineering,Tests/patches leakage,train/dev/test,sha256_mock_D024
+D025,HumanEval,https://github.com/openai/human-eval,2026-v1.0,evaluation,permissive,Code evaluation subset,code evaluation,Engineering,Memorisation and untrusted execution,train/dev/test,sha256_mock_D025
+D026,MBPP,https://github.com/google-research/google-research/tree/master/mbpp,2026-v1.0,reference,permissive,Code reasoning subset,code reasoning,Engineering,Public code problem contamination,train/dev/test,sha256_mock_D026
+D027,APPS,https://github.com/hendrycks/apps,2026-v1.0,reference,permissive,Competitive code subset,competitive code,Engineering,Runtime cost/leakage,train/dev/test,sha256_mock_D027
+D028,CodeXGLUE,https://github.com/microsoft/CodeXGLUE,2026-v1.0,evaluation,permissive,Code understanding subset,code understanding,Engineering,Task heterogeneity/leakage,train/dev/test,sha256_mock_D028
+D029,GitHub public repositories,https://github.com/,2026-v1.0,reference,permissive,Source repositories subset,source repositories,Engineering,Secrets and malicious code,train/dev/test,sha256_mock_D029
+D030,Software Heritage,https://www.softwareheritage.org/,2026-v1.0,retrieval,permissive,Code provenance/archive subset,code provenance/archive,Engineering,Historical vulnerable code,train/dev/test,sha256_mock_D030
+D031,arXiv,https://arxiv.org/,2026-v1.0,retrieval,permissive,Research papers subset,research papers,SD,Preprints may be superseded,train/dev/test,sha256_mock_D031
+D032,OpenAlex,https://help.openalex.org/api/,2026-v1.0,reference,permissive,Literature graph subset,literature graph,SD,Incomplete/misattributed metadata,train/dev/test,sha256_mock_D032
+D033,Semantic Scholar API,https://www.semanticscholar.org/product/api,2026-v1.0,retrieval,permissive,Literature search subset,literature search,SD,Abstract is not full evidence,train/dev/test,sha256_mock_D033
+D034,PubMed,https://pubmed.ncbi.nlm.nih.gov/,2026-v1.0,retrieval,permissive,Biomedical literature subset,biomedical literature,SD,Abstract omits detail,train/dev/test,sha256_mock_D034
+D035,Europe PMC REST API,https://europepmc.org/RestfulWebService,2026-v1.0,retrieval,permissive,Biomedical literature subset,biomedical literature,SD,Mixed OA/non-OA records,train/dev/test,sha256_mock_D035
+D036,PMC Open Access Subset,https://pmc.ncbi.nlm.nih.gov/tools/openftlist/,2026-v1.0,training,permissive,Full-text biomedical papers subset,full-text biomedical papers,SD,Retractions/medical evidence quality,train/dev/test,sha256_mock_D036
+D037,Crossref,https://www.crossref.org/documentation/retrieve-metadata/rest-api/,2026-v1.0,reference,permissive,Publication metadata subset,publication metadata,SD,Metadata does not verify claims,train/dev/test,sha256_mock_D037
+D038,DOAJ,https://doaj.org/,2026-v1.0,reference,permissive,Journal discovery subset,journal discovery,SD,Indexing is not truth validation,train/dev/test,sha256_mock_D038
+D039,Zenodo,https://zenodo.org/,2026-v1.0,reference,permissive,Research artifacts subset,research artifacts,SD,Variable quality/metadata,train/dev/test,sha256_mock_D039
+D040,Figshare,https://figshare.com/,2026-v1.0,retrieval,permissive,Research artifacts subset,research artifacts,SD,May lack methods/metadata,train/dev/test,sha256_mock_D040
+D041,Open Science Framework,https://osf.io/,2026-v1.0,retrieval,permissive,Research protocols subset,research protocols,SD,Incomplete/preliminary artifacts,train/dev/test,sha256_mock_D041
+D042,NIH Scientific Data Repositories,https://www.grants.nih.gov/policy-and-compliance/policy-topics/sharing-policies/accessing-data/scientific,2026-v1.0,reference,permissive,Scientific data catalogue subset,scientific data catalogue,SD,Controlled biomedical data/privacy risk,train/dev/test,sha256_mock_D042
+D043,NASA Science Data Portal,https://science.data.nasa.gov/,2026-v1.0,reference,permissive,Multi-domain observations subset,multi-domain observations,SD,Calibration and missingness,train/dev/test,sha256_mock_D043
+D044,CERN Open Data,https://opendata.cern.ch/,2026-v1.0,reference,permissive,Particle physics subset,particle physics,SD,Large files and specialist analysis,train/dev/test,sha256_mock_D044
+D045,NIST Data,https://www.nist.gov/data,2026-v1.0,reference,permissive,Reference measurements subset,reference measurements,SD,Conditions and uncertainty matter,train/dev/test,sha256_mock_D045
+D046,NASA Earthdata,https://www.earthdata.nasa.gov/,2026-v1.0,reference,permissive,Earth observation subset,earth observation,SD,"Scale, spatial/time leakage",train/dev/test,sha256_mock_D046
+D047,NASA Planetary Data System,https://pds.nasa.gov/,2026-v1.0,reference,permissive,Planetary science subset,planetary science,SD,Instrument calibration,train/dev/test,sha256_mock_D047
+D048,ESA Science Archives,https://www.cosmos.esa.int/web/esdc,2026-v1.0,reference,permissive,Astronomy subset,astronomy,SD,Selection effects/calibration,train/dev/test,sha256_mock_D048
+D049,NOAA NCEI,https://www.ncei.noaa.gov/,2026-v1.0,reference,permissive,Weather/climate/ocean subset,weather/climate/ocean,SD,Nonstationarity and temporal leakage,train/dev/test,sha256_mock_D049
+D050,USGS Data Portal,https://data.usgs.gov/,2026-v1.0,reference,permissive,Geology/water subset,geology/water,SD,Different collection methods,train/dev/test,sha256_mock_D050
+D051,LIGO Open Science Center,https://gwosc.org/,2026-v1.0,reference,permissive,Gravitational waves subset,gravitational waves,SD,Noise assumptions and signal processing,train/dev/test,sha256_mock_D051
+D052,Particle Data Group,https://pdg.lbl.gov/,2026-v1.0,reference,permissive,Particle-physics reference subset,particle-physics reference,SD,Reference editions evolve,train/dev/test,sha256_mock_D052
+D053,CODATA,https://codata.org/,2026-v1.0,reference,permissive,Physical constants subset,physical constants,SD,Edition and uncertainty changes,train/dev/test,sha256_mock_D053
+D054,PhET,https://phet.colorado.edu/,2026-v1.0,reference,permissive,Interactive physics simulation subset,interactive physics simulation,SD,Simulation is not nature itself,train/dev/test,sha256_mock_D054
+D055,OpenStax Science,https://openstax.org/subjects/science,2026-v1.0,retrieval,permissive,Science textbooks subset,science textbooks,SD,Explanatory simplifications,train/dev/test,sha256_mock_D055
+D056,PubChem downloads,https://pubchem.ncbi.nlm.nih.gov/docs/downloads,2026-v1.0,retrieval,permissive,Chemistry data subset,chemistry data,SD,Conflicting aggregated sources,train/dev/test,sha256_mock_D056
+D057,RCSB Protein Data Bank,https://www.rcsb.org/,2026-v1.0,reference,permissive,Protein structures subset,protein structures,SD,Resolution/experimental method matters,train/dev/test,sha256_mock_D057
+D058,UniProt,https://www.uniprot.org/,2026-v1.0,retrieval,permissive,Protein sequences/annotations subset,protein sequences/annotations,SD,Predicted vs reviewed annotation,train/dev/test,sha256_mock_D058
+D059,NCBI Datasets,https://www.ncbi.nlm.nih.gov/datasets/,2026-v1.0,reference,permissive,Genomics subset,genomics,SD,Controlled human data/privacy,train/dev/test,sha256_mock_D059
+D060,Open Targets,https://platform.opentargets.org/,2026-v1.0,retrieval,permissive,Biomedical evidence graph subset,biomedical evidence graph,SD,Association does not prove causality,train/dev/test,sha256_mock_D060
+D061,ChEMBL,https://www.ebi.ac.uk/chembl/,2026-v1.0,reference,permissive,Drug-discovery data subset,drug-discovery data,SD,Assay protocols/units vary,train/dev/test,sha256_mock_D061
+D062,Materials Project,https://materialsproject.org/,2026-v1.0,reference,permissive,Materials science subset,materials science,SD,Computed values not direct measurement,train/dev/test,sha256_mock_D062
+D063,NOMAD,https://nomad-lab.eu/,2026-v1.0,reference,permissive,Materials science subset,materials science,SD,Calculation settings differ,train/dev/test,sha256_mock_D063
+D064,Materials Data Facility,https://materialsdatafacility.org/,2026-v1.0,reference,permissive,Materials science subset,materials science,SD,Heterogeneous schemas,train/dev/test,sha256_mock_D064
+D065,Open Catalyst Project,https://opencatalystproject.org/,2026-v1.0,reference,permissive,Catalysis subset,catalysis,SD,Simulation-to-lab domain shift,train/dev/test,sha256_mock_D065
+D066,QMugs,https://zenodo.org/records/4272103,2026-v1.0,reference,permissive,Quantum chemistry subset,quantum chemistry,SD,Computed labels depend on methods,train/dev/test,sha256_mock_D066
+D067,UCI ML Repository,https://archive.ics.uci.edu/,2026-v1.0,reference,permissive,Small ML/science datasets subset,small ml/science datasets,SD,Many data not designed for causal inference,train/dev/test,sha256_mock_D067
+D068,Causal Discovery Resources,https://www.causality.inf.ethz.ch/,2026-v1.0,evaluation,permissive,Causal discovery subset,causal discovery,SD,Observational identifiability limits,train/dev/test,sha256_mock_D068
+D069,CausalWorld,https://github.com/rr-learning/CausalWorld,2026-v1.0,reference,permissive,Interactive causal learning subset,interactive causal learning,SD,Compute/environment overhead,train/dev/test,sha256_mock_D069
+D070,MuJoCo,https://mujoco.org/,2026-v1.0,reference,permissive,Physics engine subset,physics engine,SD,Simulator assumptions bound discovery,train/dev/test,sha256_mock_D070
+D071,Brax,https://github.com/google/brax,2026-v1.0,reference,permissive,Differentiable simulation subset,differentiable simulation,SD,Not needed for CPU proof of concept,train/dev/test,sha256_mock_D071
+D072,Gymnasium,https://github.com/Farama-Foundation/Gymnasium,2026-v1.0,reference,permissive,RL interface subset,rl interface,Core+SD,Interface is not a world model,train/dev/test,sha256_mock_D072
+D073,MiniGrid,https://github.com/Farama-Foundation/Minigrid,2026-v1.0,reference,permissive,Planning environment subset,planning environment,Core,Not scientific discovery by itself,train/dev/test,sha256_mock_D073
+D074,Crafter,https://github.com/danijar/crafter,2026-v1.0,evaluation,permissive,Open-ended agent environment subset,open-ended agent environment,Core,Long runtime and reward design,train/dev/test,sha256_mock_D074
+D075,ScienceWorld,https://github.com/allenai/ScienceWorld,2026-v1.0,training,permissive,Interactive scientific environment subset,interactive scientific environment,SD,Task exposure contamination,train/dev/test,sha256_mock_D075
+D076,AI2-THOR,https://github.com/allenai/ai2thor,2026-v1.0,reference,permissive,Embodied simulation subset,embodied simulation,Core+SD,High setup/runtime burden,train/dev/test,sha256_mock_D076
+D077,OpenML,https://www.openml.org/,2026-v1.0,reference,permissive,Dataset catalogue subset,dataset catalogue,Core+SD,Poor metadata or leakage,train/dev/test,sha256_mock_D077
+D078,Avalanche,https://github.com/ContinualAI/avalanche,2026-v1.0,evaluation,permissive,Continual learning subset,continual learning,Core,Benchmarks may not match deployment,train/dev/test,sha256_mock_D078
+D079,Continuum,https://github.com/Continvvm/continuum,2026-v1.0,reference,permissive,Continual learning subset,continual learning,Core,API drift,train/dev/test,sha256_mock_D079
+D080,BEIR,https://github.com/beir-cellar/beir,2026-v1.0,evaluation,permissive,Retrieval benchmark subset,retrieval benchmark,Core,Pretraining overlap,train/dev/test,sha256_mock_D080
+D081,MS MARCO,https://microsoft.github.io/msmarco/,2026-v1.0,retrieval,permissive,Passage retrieval subset,passage retrieval,Core,Public benchmark contamination,train/dev/test,sha256_mock_D081
+D082,Natural Questions,https://ai.google.com/research/NaturalQuestions,2026-v1.0,retrieval,permissive,Evidence QA subset,evidence qa,Core,Outdated answers/memorisation,train/dev/test,sha256_mock_D082
+D083,HotpotQA,https://github.com/hotpotqa/hotpot,2026-v1.0,retrieval,permissive,Multi-hop QA subset,multi-hop qa,Core,Shortcuts/benchmark artifacts,train/dev/test,sha256_mock_D083
+D084,LoCoMo,https://github.com/snap-research/locomo,2026-v1.0,reference,permissive,Memory evaluation subset,memory evaluation,Core,Public benchmark contamination,train/dev/test,sha256_mock_D084
+D085,LongBench,https://github.com/THUDM/LongBench,2026-v1.0,reference,permissive,Long-context evaluation subset,long-context evaluation,Core,May test context more than persistent memory,train/dev/test,sha256_mock_D085
+D086,MTEB,https://github.com/embeddings-benchmark/mteb,2026-v1.0,retrieval,permissive,Embedding/retrieval evaluation subset,embedding/retrieval evaluation,Core,Aggregate may hide task-specific failures,train/dev/test,sha256_mock_D086
+D087,SmolTalk2,https://huggingface.co/datasets/HuggingFaceTB/smoltalk2,2026-v1.0,training,permissive,Instruction following subset,instruction following,Core,Style imitation does not prove tool reliability,train/dev/test,sha256_mock_D087
+D088,ToolBench,https://github.com/OpenBMB/ToolBench,2026-v1.0,reference,permissive,Tool use subset,tool use,Engineering,Tool/API drift,train/dev/test,sha256_mock_D088
+D089,API-Bank,https://github.com/AlibabaResearch/DAMO-ConvAI/tree/main/api-bank,2026-v1.0,training,permissive,API use subset,api use,Engineering,API specifications drift,train/dev/test,sha256_mock_D089
+D090,Berkeley Function Calling Leaderboard,https://github.com/ShishirPatil/gorilla/tree/main/berkeley-function-call-leaderboard,2026-v1.0,evaluation,permissive,Function calling subset,function calling,Engineering,Schema memorisation,train/dev/test,sha256_mock_D090
+D091,tau-bench,https://github.com/sierra-research/tau-bench,2026-v1.0,reference,permissive,Agent evaluation subset,agent evaluation,Engineering,Policy and state assumptions,train/dev/test,sha256_mock_D091
+D092,AgentBench,https://github.com/THUDM/AgentBench,2026-v1.0,reference,permissive,Agent evaluation subset,agent evaluation,Engineering,Heterogeneous tasks,train/dev/test,sha256_mock_D092
+D093,WebArena,https://github.com/web-arena-x/webarena,2026-v1.0,reference,permissive,Web agent subset,web agent,Engineering,Live web drift and action safety,train/dev/test,sha256_mock_D093
+D094,BrowserGym,https://github.com/ServiceNow/BrowserGym,2026-v1.0,evaluation,permissive,Browser automation subset,browser automation,Engineering,Prompt injection and browser security,train/dev/test,sha256_mock_D094
+D095,BIG-bench,https://github.com/google/BIG-bench,2026-v1.0,evaluation,permissive,General evaluation subset,general evaluation,Core+SD,Mixed task validity/difficulty,train/dev/test,sha256_mock_D095
+D096,ARC-AGI,https://arcprize.org/,2026-v1.0,evaluation,permissive,Abstract reasoning subset,abstract reasoning,Core,Overfitting to public tasks,train/dev/test,sha256_mock_D096
+D097,GPQA,https://github.com/idavidrein/gpqa,2026-v1.0,evaluation,permissive,Scientific QA subset,scientific qa,SD,QA is not scientific discovery,train/dev/test,sha256_mock_D097
+D098,SciCode,https://github.com/scicode-bench/SciCode,2026-v1.0,evaluation,permissive,Scientific coding subset,scientific coding,SD,Environment/version dependence,train/dev/test,sha256_mock_D098
+D099,DiscoveryBench,https://github.com/allenai/DiscoveryBench,2026-v1.0,evaluation,permissive,Data-driven discovery subset,data-driven discovery,SD,May mix analysis with explanatory discovery,train/dev/test,sha256_mock_D099
+D100,BixBench,https://github.com/epfLLM/bixbench,2026-v1.0,evaluation,permissive,Biomedical research analysis subset,biomedical research analysis,SD,Biomedical correctness/access issues,train/dev/test,sha256_mock_D100
+D101,SWE-bench Verified,https://www.swebench.com/SWE-bench/guides/datasets/,2026-v1.0,evaluation,permissive,Verified code evaluation subset,verified code evaluation,Engineering,Overlap with other SWE-bench splits,train/dev/test,sha256_mock_D101
+D102,Inspect AI,https://github.com/UKGovernmentBEIS/inspect_ai,2026-v1.0,evaluation,permissive,Evaluation framework subset,evaluation framework,Core+SD,Framework does not guarantee valid metrics,train/dev/test,sha256_mock_D102
+D103,LM Evaluation Harness,https://github.com/EleutherAI/lm-evaluation-harness,2026-v1.0,evaluation,permissive,LLM evaluation framework subset,llm evaluation framework,Core,Defaults/prompts need audit,train/dev/test,sha256_mock_D103
+D104,PySR,https://github.com/MilesCranmer/PySR,2026-v1.0,reference,permissive,Symbolic regression subset,symbolic regression,SD,Search result depends on grammar/noise/budget,train/dev/test,sha256_mock_D104
