@@ -1,5 +1,6 @@
 # =====================================================================
 # Cortex-M Git Ignore Configuration
+# Governed by Master Research & Engineering Policy
 # =====================================================================
 
 # Virtual Environments
@@ -8,26 +9,34 @@
 env/
 venv/
 ENV/
+*.virtualenv/
 
-# Python Bytecode & Compilation
+# Python Bytecode, Caching & Native Builds
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyd
+*.dll
+*.dylib
 
 # Packaging & Build Artifacts
 build/
 dist/
+dist_mobile/
 *.egg-info/
 .eggs/
 node_modules/
+*.whl
 
-# Testing & Quality
+# Testing, Quality & Coverage
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
 .mypy_cache/
 .ruff_cache/
+.hypothesis/
 
 # Operating System & IDEs
 .idea/
@@ -38,17 +47,40 @@ htmlcov/
 .DS_Store
 Thumbs.db
 desktop.ini
+*.bak
 
-# Temporary Runtime & Logs
+# Temporary Runtime, Agent Scratch & Logs
 *.log
 *.tmp
+*.temp
 .tempmediaStorage/
+scratch/
+.agents/
 
-# SQLite Caches & Ephemeral Data
+# SQLite Caches & Ephemeral Data Stores
 data/visualizer_memory.sqlite3*
 data/*.sqlite3*
+data/cache/
+*.db
+*.sqlite
 
-# External Model Caches
+# Large Model Checkpoints & Raw Weights (Avoid committing GB-scale binary blobs)
 models/*.gguf
+models/*.bin
+models/*.pt
+models/*.pth
+models/*.safetensors
 models/cache/
-scratch/
+checkpoints/
+
+# Ephemeral Test/Experiment Run Outputs (keep summary json/reports, exclude raw batch run dumps)
+results/core-*
+results/rule-*
+results/acceptance-*
+results/mimo93-*
+results/scale-probe-*
+results/system-audit-*
+results/mimo-sparse-router-*
+results/phase-check-*
+results/*/*.jsonl
+results/*/*.pt
