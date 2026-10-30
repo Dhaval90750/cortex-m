@@ -72,10 +72,12 @@ data/cache/
 models/*.gguf
 models/*.bin
 models/*.pt
+!models/checkpoints/
+!models/checkpoints/*_baseline.pt
 models/*.pth
 models/*.safetensors
 models/cache/
-checkpoints/
+/checkpoints/
 
 # Internal Research, Tests, Intermediate Results & Benchmarks (Excluded from Production Distribution)
 tests/
