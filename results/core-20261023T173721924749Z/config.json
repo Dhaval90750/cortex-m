@@ -1,7 +1,0 @@
-{
-  "split": "holdout",
-  "system": "Cortex-M deterministic core",
-  "language_model": false,
-  "fact_source": "benchmark annotations",
-  "case_count": 240
-}

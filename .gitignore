@@ -77,14 +77,14 @@ models/*.safetensors
 models/cache/
 checkpoints/
 
-# Ephemeral Test/Experiment Run Outputs (keep summary json/reports, exclude raw batch run dumps)
-results/core-*
-results/rule-*
-results/acceptance-*
-results/mimo93-*
-results/scale-probe-*
-results/system-audit-*
-results/mimo-sparse-router-*
-results/phase-check-*
-results/*/*.jsonl
-results/*/*.pt
+# Internal Research, Tests, Intermediate Results & Benchmarks (Excluded from Production Distribution)
+tests/
+tests_e2e/
+tests_mimo/
+benchmarks/
+results/
+reports/
+plans/
+CORTEX_Ecosystem_PRD_SRS_Pack/
+CORTEX_M_Master_Research_Pack/
+00_README_and_Approval_Guide.docx
